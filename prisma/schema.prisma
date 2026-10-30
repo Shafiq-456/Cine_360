@@ -1,0 +1,366 @@
+// CINE 360 — Database schema (Prisma / SQLite for sandbox demo)
+// Production mapping to PostgreSQL is documented in README (section: Production Stack Mapping).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ USERS & ACCESS ============
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  // CUSTOMER | OWNER | STAFF | ADMIN
+  role         String   @default("CUSTOMER")
+  // ACTIVE | INACTIVE
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  theatres    Theatre[] // theatres owned (role=OWNER)
+  staffAt     TheatreStaff[]
+  bookings    Booking[]
+  holds       SeatHold[]
+  validations TicketValidation[]
+  auditLogs   AuditLog[]
+}
+
+model Theatre {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  city      String
+  address   String
+  amenities String   @default("[]") // JSON string[]
+  // PENDING | APPROVED | SUSPENDED | REJECTED
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner       User           @relation(fields: [ownerId], references: [id])
+  auditoriums Auditorium[]
+  staff       TheatreStaff[]
+
+  @@index([status])
+  @@index([city])
+}
+
+model TheatreStaff {
+  id        String   @id @default(cuid())
+  theatreId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  theatre Theatre @relation(fields: [theatreId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([theatreId, userId])
+}
+
+// ============ VENUES & SEATS ============
+
+model Auditorium {
+  id             String   @id @default(cuid())
+  theatreId      String
+  name           String
+  // JSON LayoutConfig (screen dims/pos, row params, aisles, spacing)
+  layoutConfig   String
+  // PROCEDURAL | UPLOADED
+  geometrySource String   @default("PROCEDURAL")
+  // DRAFT | PUBLISHED (DRAFT auditoriums are not bookable)
+  status         String   @default("PUBLISHED")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  theatre    Theatre           @relation(fields: [theatreId], references: [id], onDelete: Cascade)
+  seats      Seat[]
+  categories SeatCategory[]
+  shows      Show[]
+  models     AuditoriumModel[]
+}
+
+model SeatCategory {
+  id           String @id @default(cuid())
+  auditoriumId String
+  code         String // SILVER | GOLD | RECLINER | CUSTOM
+  name         String
+  color        String @default("#20D9E8")
+  basePrice    Float
+
+  auditorium Auditorium @relation(fields: [auditoriumId], references: [id], onDelete: Cascade)
+  seats      Seat[]
+
+  @@unique([auditoriumId, code])
+}
+
+model Seat {
+  id           String  @id @default(cuid())
+  auditoriumId String
+  rowLabel     String
+  seatNumber   Int
+  rowIndex     Int
+  colIndex     Int
+  // calibrated geometry (metres): x lateral (0 = screen center axis), z distance from screen wall, baseY floor elevation at seat
+  x            Float
+  z            Float
+  baseY        Float
+  eyeHeight    Float   @default(1.15)
+  categoryId   String
+  isAccessible Boolean @default(false)
+
+  auditorium Auditorium   @relation(fields: [auditoriumId], references: [id], onDelete: Cascade)
+  category   SeatCategory @relation(fields: [categoryId], references: [id])
+  showSeats  ShowSeat[]
+  tickets    Ticket[]
+
+  @@unique([auditoriumId, rowLabel, seatNumber])
+  @@index([auditoriumId])
+}
+
+// 3D model management (owner uploads GLB/glTF, or procedural)
+model AuditoriumModel {
+  id           String   @id @default(cuid())
+  auditoriumId String
+  // PROCEDURAL | UPLOADED
+  kind         String   @default("PROCEDURAL")
+  fileUrl      String?
+  fileSize     Int?
+  // JSON map: rowLabel -> { nodePrefix, offsetX, offsetZ, scale }
+  nodeMap      String   @default("{}")
+  // DRAFT | PUBLISHED
+  status       String   @default("DRAFT")
+  version      Int      @default(1)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auditorium Auditorium @relation(fields: [auditoriumId], references: [id], onDelete: Cascade)
+
+  @@index([auditoriumId, status])
+}
+
+// ============ CONTENT ============
+
+model Movie {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  synopsis      String
+  posterUrl     String
+  backdropUrl   String?
+  languages     String    @default("[]") // JSON string[]
+  genres        String    @default("[]") // JSON string[]
+  durationMins  Int
+  certification String    @default("UA")
+  releaseDate   DateTime?
+  trailerUrl    String?
+  // NOW_SHOWING | UPCOMING | ARCHIVED
+  status        String    @default("NOW_SHOWING")
+  featured      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  shows Show[]
+
+  @@index([status])
+}
+
+model Show {
+  id           String   @id @default(cuid())
+  movieId      String
+  auditoriumId String
+  startsAt     DateTime
+  language     String
+  // 2D | 3D | IMAX 2D | IMAX 3D | 4DX
+  format       String   @default("2D")
+  // SCHEDULED | COMPLETED | CANCELLED
+  status       String   @default("SCHEDULED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  movie      Movie      @relation(fields: [movieId], references: [id])
+  auditorium Auditorium @relation(fields: [auditoriumId], references: [id])
+  showSeats  ShowSeat[]
+  bookings   Booking[]
+
+  @@index([movieId, startsAt])
+  @@index([auditoriumId, startsAt])
+  @@index([status])
+}
+
+// Show-specific inventory: availability + price per seat for ONE show.
+// Physical seats live in `Seat`; this is the per-show overlay.
+model ShowSeat {
+  id        String   @id @default(cuid())
+  showId    String
+  seatId    String
+  // AVAILABLE | HELD | BOOKED | UNAVAILABLE
+  status    String   @default("AVAILABLE")
+  price     Float
+  holdId    String?
+  updatedAt DateTime @updatedAt
+
+  show         Show          @relation(fields: [showId], references: [id], onDelete: Cascade)
+  seat         Seat          @relation(fields: [seatId], references: [id])
+  hold         SeatHold?     @relation(fields: [holdId], references: [id])
+  bookingSeats BookingSeat[]
+  tickets      Ticket[]
+
+  @@unique([showId, seatId])
+  @@index([showId, status])
+}
+
+// ============ BOOKING PIPELINE ============
+
+model SeatHold {
+  id        String   @id @default(cuid())
+  showId    String
+  userId    String
+  expiresAt DateTime
+  // ACTIVE | EXPIRED | CONVERTED
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  showSeats ShowSeat[]
+  bookings  Booking[]
+
+  @@index([showId, status])
+  @@index([userId])
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  reference   String   @unique
+  userId      String
+  showId      String
+  holdId      String?
+  totalAmount Float
+  // PENDING_PAYMENT | CONFIRMED | CANCELLED | REFUNDED
+  status      String   @default("PENDING_PAYMENT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User          @relation(fields: [userId], references: [id])
+  show    Show          @relation(fields: [showId], references: [id])
+  hold    SeatHold?     @relation(fields: [holdId], references: [id])
+  seats   BookingSeat[]
+  payment Payment?
+  tickets Ticket[]
+
+  @@index([userId])
+  @@index([showId])
+  @@index([status])
+}
+
+model BookingSeat {
+  id           String @id @default(cuid())
+  bookingId    String
+  showSeatId   String
+  rowLabel     String
+  seatNumber   Int
+  categoryName String
+  price        Float
+
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  showSeat ShowSeat @relation(fields: [showSeatId], references: [id])
+
+  @@unique([bookingId, showSeatId])
+}
+
+// ============ PAYMENTS ============
+
+model Payment {
+  id               String   @id @default(cuid())
+  bookingId        String   @unique
+  // DEMO | RAZORPAY
+  provider         String   @default("DEMO")
+  orderId          String   @unique
+  gatewayPaymentId String?
+  amount           Float
+  currency         String   @default("INR")
+  // CREATED | PAID | FAILED | REFUNDED
+  status           String   @default("CREATED")
+  signature        String?
+  method           String?
+  failureReason    String?
+  // idempotency: unique webhook/settle event id
+  eventId          String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+// ============ TICKETS ============
+
+model Ticket {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  bookingId    String
+  showId       String
+  seatId       String
+  rowLabel     String
+  seatNumber   Int
+  // VALID | REDEEMED | VOID
+  status       String    @default("VALID")
+  redeemedAt   DateTime?
+  redeemedById String?
+  createdAt    DateTime  @default(now())
+
+  booking     Booking            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seat        Seat               @relation(fields: [seatId], references: [id])
+  validations TicketValidation[]
+
+  @@unique([bookingId, seatId])
+  @@index([status])
+}
+
+model TicketValidation {
+  id            String   @id @default(cuid())
+  ticketId      String
+  validatedById String
+  // SUCCESS | ALREADY_REDEEMED | INVALID | WRONG_SHOW
+  result        String
+  detail        String?
+  createdAt     DateTime @default(now())
+
+  ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  validatedBy User   @relation(fields: [validatedById], references: [id])
+
+  @@index([ticketId])
+}
+
+// ============ PLATFORM ============
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  entity     String
+  entityId   String?
+  meta       String   @default("{}") // JSON
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

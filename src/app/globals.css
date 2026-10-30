@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cine-sans);
+  --font-mono: var(--font-cine-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-cine-blue: #477BFF;
+  --color-cine-cyan: #20D9E8;
+  --color-cine-flame: #FF713D;
+  --color-cine-obsidian: #08090C;
+  --color-cine-graphite: #171A21;
+  --color-cine-titanium: #DDE1E8;
+}
+
+/* ============ CINE 360 — Obsidian theme ============ */
+:root,
+.dark {
+  --radius: 0.75rem;
+  --background: #08090C;
+  --foreground: #F5F7FA;
+  --card: #101218;
+  --card-foreground: #F5F7FA;
+  --popover: #12141B;
+  --popover-foreground: #F5F7FA;
+  --primary: #477BFF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #171A21;
+  --secondary-foreground: #DDE1E8;
+  --muted: #14161D;
+  --muted-foreground: #8FA3BF;
+  --accent: #1A2338;
+  --accent-foreground: #9FC0FF;
+  --destructive: #E5484D;
+  --border: rgba(221, 225, 232, 0.10);
+  --input: rgba(221, 225, 232, 0.12);
+  --ring: #477BFF;
+  --chart-1: #477BFF;
+  --chart-2: #20D9E8;
+  --chart-3: #FF713D;
+  --chart-4: #F5C518;
+  --chart-5: #2FBF71;
+  --sidebar: #0B0D12;
+  --sidebar-foreground: #F5F7FA;
+  --sidebar-primary: #477BFF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #171A21;
+  --sidebar-accent-foreground: #DDE1E8;
+  --sidebar-border: rgba(221, 225, 232, 0.1);
+  --sidebar-ring: #477BFF;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.01em;
+  }
+  ::selection {
+    background: rgba(71, 123, 255, 0.35);
+  }
+}
+
+/* ============ Brand utilities ============ */
+.cine-gradient-text {
+  background: linear-gradient(92deg, #F5F7FA 0%, #9FC0FF 45%, #20D9E8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cine-flame-text {
+  background: linear-gradient(92deg, #FF713D, #F5C518);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cine-card {
+  background: linear-gradient(160deg, rgba(23, 26, 33, 0.9), rgba(11, 13, 18, 0.9));
+  border: 1px solid rgba(221, 225, 232, 0.08);
+  border-radius: var(--radius-lg);
+}
+.cine-card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s;
+}
+.cine-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(71, 123, 255, 0.45);
+  box-shadow: 0 12px 40px -12px rgba(71, 123, 255, 0.35), 0 0 0 1px rgba(71, 123, 255, 0.15);
+}
+.cine-glow-blue {
+  box-shadow: 0 0 24px rgba(71, 123, 255, 0.45), 0 0 64px rgba(71, 123, 255, 0.18);
+}
+.cine-hero-beam {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cine-hero-beam::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: 120vw;
+  height: 80vh;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(45% 55% at 50% 0%, rgba(71, 123, 255, 0.20) 0%, transparent 70%),
+    radial-gradient(30% 40% at 38% 10%, rgba(32, 217, 232, 0.12) 0%, transparent 70%),
+    radial-gradient(26% 36% at 63% 8%, rgba(255, 113, 61, 0.10) 0%, transparent 70%);
+  filter: blur(2px);
+  animation: cine-beam-breathe 9s ease-in-out infinite alternate;
+}
+@keyframes cine-beam-breathe {
+  0% { opacity: 0.55; transform: translateX(-50%) scale(1); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+.cine-film-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.cine-screen-arc {
+  background: linear-gradient(180deg, rgba(245, 247, 250, 0.85), rgba(221, 225, 232, 0.25));
+  clip-path: ellipse(58% 100% at 50% 0%);
+}
+.cine-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.cine-scroll::-webkit-scrollbar-thumb {
+  background: rgba(143, 163, 191, 0.25);
+  border-radius: 8px;
+}
+.cine-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cine-ring-focus:focus-visible {
+  outline: 2px solid #477BFF;
+  outline-offset: 2px;
+}
+.cine-marquee-screen {
+  background:
+    linear-gradient(100deg, rgba(71, 123, 255, 0.14), rgba(32, 217, 232, 0.10) 45%, rgba(255, 113, 61, 0.08)),
+    #0A0C10;
+}
+.cine-pulse-dot {
+  animation: cine-pulse 1.6s ease-in-out infinite;
+}
+@keyframes cine-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-hero-beam::before,
+  .cine-pulse-dot {
+    animation: none !important;
+  }
+  .cine-card-hover,
+  .cine-card-hover:hover {
+    transition: none;
+    transform: none;
+  }
+}
