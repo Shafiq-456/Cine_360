@@ -243,6 +243,9 @@ model Booking {
   showId      String
   holdId      String?
   totalAmount Float
+  // Food & beverage add-ons purchased with the booking (server-validated)
+  extrasJson  String?  // JSON [{ id, name, qty, price }]
+  extrasTotal Float    @default(0)
   // PENDING_PAYMENT | CONFIRMED | CANCELLED | REFUNDED
   status      String   @default("PENDING_PAYMENT")
   createdAt   DateTime @default(now())

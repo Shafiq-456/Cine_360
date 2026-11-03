@@ -3,6 +3,7 @@
 import { db } from "./db";
 import { SEAT_STATUS, generateBookingReference } from "./constants";
 import { HttpError } from "./api";
+import { withShowLock, runWrite } from "./lock";
 import { expireStaleHolds } from "./inventory";
 import { emitShowInventoryChanged } from "./events";
 import { randomUUID } from "crypto";
@@ -18,7 +19,11 @@ export async function createBookingFromHold(params: { holdId: string; userId: st
     throw new HttpError("Your seat hold has expired. Please select seats again.", 410);
   }
 
-  const booking = await db.$transaction(async (tx) => {
+  // Serialized with holds for the same show (shared single-writer DB) so a
+  // hold → booking race can never double-convert or lose inventory.
+  const booking = await withShowLock(hold.showId, () =>
+    runWrite(() =>
+      db.$transaction(async (tx) => {
     const held = await tx.showSeat.findMany({
       where: { holdId: hold.id, status: SEAT_STATUS.HELD },
       include: { seat: { include: { category: true } } },
@@ -58,14 +63,20 @@ export async function createBookingFromHold(params: { holdId: string; userId: st
     });
     await tx.seatHold.update({ where: { id: hold.id }, data: { status: "CONVERTED" } });
     return created;
-  });
+      })
+    )
+  );
 
   return booking;
 }
 
 /** Confirms a booking after verified payment: seats → BOOKED, tickets generated. Idempotent. */
 export async function confirmBookingPaid(bookingId: string, paymentId: string) {
-  return db.$transaction(async (tx) => {
+  const preloaded = await db.booking.findUnique({ where: { id: bookingId }, select: { showId: true } });
+  if (!preloaded) throw new HttpError("Booking not found", 404);
+  return withShowLock(preloaded.showId, () =>
+    runWrite(() =>
+      db.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -118,20 +129,29 @@ export async function confirmBookingPaid(bookingId: string, paymentId: string) {
     });
 
     return updated;
-  });
+      })
+    )
+  );
 }
 
 /** Cancels a pending (unpaid) booking and releases its seats. */
 export async function cancelPendingBooking(bookingId: string, reason: string) {
   const booking = await db.booking.findUnique({ where: { id: bookingId } });
   if (!booking || booking.status !== "PENDING_PAYMENT") return;
-  await db.$transaction([
-    db.showSeat.updateMany({
-      where: { id: { in: (await db.bookingSeat.findMany({ where: { bookingId }, select: { showSeatId: true } })).map((b) => b.showSeatId) }, status: SEAT_STATUS.HELD },
-      data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
-    }),
-    db.booking.update({ where: { id: bookingId }, data: { status: "CANCELLED" } }),
-  ]);
+  const seatIds = (
+    await db.bookingSeat.findMany({ where: { bookingId }, select: { showSeatId: true } })
+  ).map((b) => b.showSeatId);
+  await withShowLock(booking.showId, () =>
+    runWrite(() =>
+      db.$transaction([
+        db.showSeat.updateMany({
+          where: { id: { in: seatIds }, status: SEAT_STATUS.HELD },
+          data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
+        }),
+        db.booking.update({ where: { id: bookingId }, data: { status: "CANCELLED" } }),
+      ])
+    )
+  );
   emitShowInventoryChanged(booking.showId);
   console.log(`[booking] cancelled pending booking ${booking.reference}: ${reason}`);
 }
@@ -145,15 +165,19 @@ export async function refundBooking(bookingId: string, actorId: string) {
   if (!booking) throw new HttpError("Booking not found", 404);
   if (booking.status !== "CONFIRMED") throw new HttpError("Only confirmed bookings can be refunded", 409);
 
-  await db.$transaction([
-    db.showSeat.updateMany({
-      where: { id: { in: booking.seats.map((bs) => bs.showSeatId) }, status: SEAT_STATUS.BOOKED },
-      data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
-    }),
-    db.ticket.updateMany({ where: { bookingId }, data: { status: "VOID" } }),
-    db.payment.updateMany({ where: { bookingId }, data: { status: "REFUNDED" } }),
-    db.booking.update({ where: { id: bookingId }, data: { status: "REFUNDED" } }),
-  ]);
+  await withShowLock(booking.showId, () =>
+    runWrite(() =>
+      db.$transaction([
+        db.showSeat.updateMany({
+          where: { id: { in: booking.seats.map((bs) => bs.showSeatId) }, status: SEAT_STATUS.BOOKED },
+          data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
+        }),
+        db.ticket.updateMany({ where: { bookingId }, data: { status: "VOID" } }),
+        db.payment.updateMany({ where: { bookingId }, data: { status: "REFUNDED" } }),
+        db.booking.update({ where: { id: bookingId }, data: { status: "REFUNDED" } }),
+      ])
+    )
+  );
   emitShowInventoryChanged(booking.showId);
   await db.auditLog.create({
     data: {

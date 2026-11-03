@@ -5,6 +5,7 @@
 import { db } from "./db";
 import { SEAT_STATUS, HOLD_TTL_SECONDS } from "./constants";
 import { HttpError } from "./api";
+import { withShowLock, runWrite } from "./lock";
 import { emitShowInventoryChanged } from "./events";
 import type { LayoutConfig } from "./geometry";
 import { generateLayout } from "./geometry";
@@ -18,13 +19,15 @@ export async function expireStaleHolds(showId?: string): Promise<string[]> {
   if (expired.length === 0) return [];
   const ids = expired.map((h) => h.id);
   const showIds: string[] = Array.from(new Set<string>(expired.map((h) => h.showId)));
-  await db.$transaction([
-    db.showSeat.updateMany({
-      where: { holdId: { in: ids }, status: SEAT_STATUS.HELD },
-      data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
-    }),
-    db.seatHold.updateMany({ where: { id: { in: ids } }, data: { status: "EXPIRED" } }),
-  ]);
+  await runWrite(() =>
+    db.$transaction([
+      db.showSeat.updateMany({
+        where: { holdId: { in: ids }, status: SEAT_STATUS.HELD },
+        data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
+      }),
+      db.seatHold.updateMany({ where: { id: { in: ids } }, data: { status: "EXPIRED" } }),
+    ])
+  );
   showIds.forEach((sid) => emitShowInventoryChanged(sid));
   return ids;
 }
@@ -42,7 +45,12 @@ export async function createSeatHold(params: { showId: string; seatIds: string[]
   if (show.status !== "SCHEDULED") throw new HttpError("This show is no longer bookable", 409);
   if (show.startsAt.getTime() < Date.now()) throw new HttpError("This show has already started", 409);
 
-  const hold = await db.$transaction(async (tx) => {
+  // Serialize per-show so parallel hold attempts queue cleanly instead of
+  // colliding inside SQLite's single-writer lock; retry absorbs residual
+  // write conflicts. Exactly one concurrent attempt still wins.
+  const hold = await withShowLock(params.showId, () =>
+    runWrite(() =>
+      db.$transaction(async (tx) => {
     // Validate every requested seat belongs to this show and is currently free
     const rows = await tx.showSeat.findMany({
       where: { id: { in: params.seatIds }, showId: params.showId },
@@ -74,7 +82,9 @@ export async function createSeatHold(params: { showId: string; seatIds: string[]
       throw new HttpError("Seat conflict: one or more seats are no longer available", 409);
     }
     return created;
-  });
+      })
+    )
+  );
 
   emitShowInventoryChanged(params.showId);
   return hold;
@@ -86,13 +96,17 @@ export async function releaseSeatHold(holdId: string, userId: string) {
   if (!hold) throw new HttpError("Hold not found", 404);
   if (hold.userId !== userId) throw new HttpError("You can only release your own holds", 403);
   if (hold.status !== "ACTIVE") return; // already released/converted/expired
-  await db.$transaction([
-    db.showSeat.updateMany({
-      where: { holdId: hold.id, status: SEAT_STATUS.HELD },
-      data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
-    }),
-    db.seatHold.update({ where: { id: hold.id }, data: { status: "EXPIRED" } }),
-  ]);
+  await withShowLock(hold.showId, () =>
+    runWrite(() =>
+      db.$transaction([
+        db.showSeat.updateMany({
+          where: { holdId: hold.id, status: SEAT_STATUS.HELD },
+          data: { status: SEAT_STATUS.AVAILABLE, holdId: null },
+        }),
+        db.seatHold.update({ where: { id: hold.id }, data: { status: "EXPIRED" } }),
+      ])
+    )
+  );
   emitShowInventoryChanged(hold.showId);
 }
 

@@ -8,12 +8,24 @@ import { useAuth, useBookingSelection, type SelectedSeat } from "@/lib/store";
 import type { InventorySeat } from "@/lib/inventory";
 import type { LayoutConfig } from "@/lib/geometry";
 import { measureSeat, deriveSightline } from "@/lib/geometry";
-import AuditoriumCanvas, { type SceneMode, type MoveVector } from "@/components/cine/three/AuditoriumScene";
+import dynamicImport from "next/dynamic";
+import type { SceneMode, MoveVector } from "@/components/cine/three/AuditoriumScene";
 import SeatMap2D from "./SeatMap2D";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Spinner, EmptyState } from "./bits";
 import { toast } from "sonner";
+
+// The 3D engine (three.js + R3F ≈ 1MB) is code-split: it is fetched only when
+// the auditorium stage actually mounts, keeping movies/booking screens instant.
+const AuditoriumCanvas = dynamicImport(() => import("@/components/cine/three/AuditoriumScene"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center" aria-live="polite" aria-busy="true">
+      <Spinner label="Loading 3D auditorium" />
+    </div>
+  ),
+});
 import {
   Armchair, Orbit, Footprints, Eye, LayoutGrid, RotateCcw, Maximize, ChevronLeft, ChevronRight,
   Pin, PinOff, X, MousePointerClick, Loader2, Info, Accessibility,
