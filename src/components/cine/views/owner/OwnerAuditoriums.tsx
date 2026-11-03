@@ -21,6 +21,8 @@ type AuditoriumRow = {
   models?: { id: string; kind: string; status: string; version: number; fileUrl: string | null }[];
 };
 
+type TheatreOption = { id: string; name: string; status: string };
+
 const CATEGORY_CODES = ["SILVER", "GOLD", "RECLINER"];
 
 function defaultLayout(): LayoutConfig {
@@ -92,7 +94,7 @@ export default function OwnerAuditoriums() {
 
   useEffect(() => {
     load();
-    api.get<{ theatres: Theatre[] }>("/api/owner/theatres").then((d) => setTheatres(d.theatres.filter((t) => t.status === "APPROVED"))).catch(() => {});
+    api.get<{ theatres: TheatreOption[] }>("/api/owner/theatres").then((d) => setTheatres(d.theatres.filter((t) => t.status === "APPROVED"))).catch(() => {});
   }, [load]);
 
   const openBuilder = async (aud?: AuditoriumRow) => {

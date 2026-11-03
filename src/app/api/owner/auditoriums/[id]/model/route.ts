@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { ok, fail, handler, audit, HttpError } from "@/lib/api";
+import { ok, fail, handler, audit, parseBody, HttpError } from "@/lib/api";
 import { requireOwner, assertAuditoriumAccess } from "@/lib/owner";
 import { writeFileSync, mkdirSync } from "fs";
 import path from "path";

@@ -184,15 +184,14 @@ async function createAuditorium(theatreId: string, name: string, layout: typeof 
 }
 
 async function clean() {
-  // delete in dependency order
-  const tables = [
-    "ticketValidation", "ticket", "payment", "bookingSeat", "booking", "seatHold",
-    "showSeat", "show", "movie", "auditoriumModel", "seat", "seatCategory", "auditorium",
-    "theatreStaff", "theatre", "auditLog", "setting", "user",
-  ] as const;
-  for (const t of tables) {
-    // @ts-expect-error dynamic delegate access on typed client
-    await db[t].deleteMany({});
+  // delete in dependency order (typed delegates, no dynamic indexing)
+  const delegates = [
+    db.ticketValidation, db.ticket, db.payment, db.bookingSeat, db.booking, db.seatHold,
+    db.showSeat, db.show, db.movie, db.auditoriumModel, db.seat, db.seatCategory, db.auditorium,
+    db.theatreStaff, db.theatre, db.auditLog, db.setting, db.user,
+  ];
+  for (const t of delegates) {
+    await (t as unknown as { deleteMany: () => Promise<unknown> }).deleteMany();
   }
 }
 

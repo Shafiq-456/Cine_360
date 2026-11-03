@@ -18,6 +18,7 @@ type BookingDetail = {
   hold?: { expiresAt: string };
   seats: { rowLabel: string; seatNumber: number; categoryName: string; price: number }[];
   show: {
+    id: string;
     startsAt: string; format: string; language: string;
     movie: { title: string; posterUrl: string };
     auditorium: { name: string; theatre: { name: string; city: string } };
@@ -101,7 +102,7 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
         <div className={`cine-card p-4 mb-6 flex items-center gap-3 text-sm ${expired ? "border-[#E5484D]/40" : "border-[#F5C518]/30"}`}>
           {expired ? <AlertTriangle className="w-5 h-5 text-[#E5484D] shrink-0" /> : <Hourglass className="w-5 h-5 text-[#F5C518] shrink-0" />}
           {expired ? (
-            <span>This hold has expired and the seats were released. <button onClick={() => navigate(`/book/${booking.show ? "" : ""}`) || navigate("/movies")} className="text-[#477BFF] hover:underline cursor-pointer">Pick seats again</button>.</span>
+            <span>This hold has expired and the seats were released. <button onClick={() => navigate(booking.show ? `/book/${booking.show.id}` : "/movies")} className="text-[#477BFF] hover:underline cursor-pointer">Pick seats again</button>.</span>
           ) : (
             <span>
               Seats are held for another{" "}

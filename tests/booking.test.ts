@@ -2,6 +2,8 @@
 // bun test tests/booking.test.ts
 // Covers the spec's critical paths: concurrent double-booking prevention,
 // hold expiry, payment signature verification, ticket validation, RBAC.
+import { test, expect, beforeAll } from "bun:test";
+
 const BASE = process.env.TEST_BASE_URL || "http://localhost:3000";
 
 type Json = { ok: boolean; data?: Record<string, unknown>; error?: string };
@@ -16,7 +18,7 @@ async function req(
     body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
   });
   const setCookie = res.headers.get("set-cookie")?.split(";")[0];
-  let body: Json = {};
+  let body: Json = { ok: false };
   try {
     body = await res.json();
   } catch {

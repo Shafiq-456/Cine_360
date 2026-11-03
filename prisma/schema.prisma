@@ -212,7 +212,6 @@ model ShowSeat {
   seat         Seat          @relation(fields: [seatId], references: [id])
   hold         SeatHold?     @relation(fields: [holdId], references: [id])
   bookingSeats BookingSeat[]
-  tickets      Ticket[]
 
   @@unique([showId, seatId])
   @@index([showId, status])

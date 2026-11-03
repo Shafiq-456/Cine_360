@@ -48,7 +48,7 @@ export default function AdminView({ params }: { params: URLSearchParams }) {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => { setTab(t.key); navigate(`/admin?tab=${t.key}`, { replace: true }); }}
+            onClick={() => { navigate(`/admin?tab=${t.key}`, { replace: true }); }}
             className={`px-3.5 py-2 rounded-lg text-sm border transition-colors cursor-pointer ${tab === t.key ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white hover:border-[#477BFF]/40"}`}
           >
             {t.label}

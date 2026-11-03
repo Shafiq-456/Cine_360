@@ -17,7 +17,7 @@ export async function expireStaleHolds(showId?: string): Promise<string[]> {
   });
   if (expired.length === 0) return [];
   const ids = expired.map((h) => h.id);
-  const showIds = [...new Set(expired.map((h) => h.showId))];
+  const showIds: string[] = Array.from(new Set<string>(expired.map((h) => h.showId)));
   await db.$transaction([
     db.showSeat.updateMany({
       where: { holdId: { in: ids }, status: SEAT_STATUS.HELD },

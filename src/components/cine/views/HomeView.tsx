@@ -62,7 +62,7 @@ export default function HomeView() {
       try {
         const [movies, theatres] = await Promise.all([
           api.get<{ movies: Movie[] }>("/api/movies"),
-          api.get<{ theatres: HomeData["theatres"] }>("/api/theatres"),
+          api.get<{ theatres: { id: string; name: string; city: string; auditoriums: unknown[] }[] }>("/api/theatres"),
         ]);
         setData({
           featured: movies.movies.filter((m) => m.featured && m.status === "NOW_SHOWING"),
