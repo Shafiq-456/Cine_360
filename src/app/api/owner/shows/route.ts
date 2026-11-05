@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { ok, fail, handler, parseBody, audit, HttpError } from "@/lib/api";
 import { requireOwner, assertAuditoriumAccess } from "@/lib/owner";
@@ -65,9 +66,17 @@ export const POST = handler(async (req: NextRequest) => {
     }
   }
 
-  const show = await db.show.create({
-    data: { movieId: movie.id, auditoriumId: auditorium.id, startsAt, language: body.language, format: body.format },
-  });
+  let show;
+  try {
+    show = await db.show.create({
+      data: { movieId: movie.id, auditoriumId: auditorium.id, startsAt, language: body.language, format: body.format },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return fail("This auditorium already has a show starting at that exact time", 409);
+    }
+    throw e;
+  }
 
   const seats = await db.seat.findMany({ where: { auditoriumId: auditorium.id }, include: { category: true } });
   const overrides = body.priceOverrides || {};

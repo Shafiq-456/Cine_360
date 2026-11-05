@@ -10,6 +10,25 @@ const db = new PrismaClient();
 
 const DEMO_PASSWORD = "Demo@1234";
 
+// Official trailer YouTube IDs — verified from the films' official channels.
+const TRAILER_ID: Record<string, string> = {
+  interstellar: "2LqzF5WauAw",
+  inception: "YoHD9XEInc0",
+  oppenheimer: "uYPbbksJxIg",
+  jawan: "MWOlnZSnXJo",
+  leo: "Po3jStA673E",
+  "kalki-2898-ad": "kQDd1AhGIHk",
+  premalu: "rR_2ti4l3nM",
+  kantara: "8mrVmf239GU",
+};
+
+import { existsSync } from "fs";
+import path from "path";
+function posterPath(slug: string, variant: "" | "-backdrop"): string {
+  const jpg = path.join(process.cwd(), "public", "posters", `${slug}${variant}.jpg`);
+  return existsSync(jpg) ? `/posters/${slug}${variant}.jpg` : `/posters/${slug}${variant}.svg`;
+}
+
 const MOVIES = [
   { title: "Interstellar", slug: "interstellar", languages: ["English"], genres: ["Sci-Fi", "Adventure", "Drama"], durationMins: 169, certification: "UA", year: 2014, featured: true,
     synopsis: "When Earth becomes uninhabitable, a farmer and ex-NASA pilot is tasked to pilot a spacecraft, along with a team of researchers, to find a new planet for humans.",
@@ -80,11 +99,11 @@ async function main() {
       db.movie.create({
         data: {
           title: m.title, slug: m.slug, synopsis: m.synopsis,
-          posterUrl: `/posters/${m.slug}.svg`, backdropUrl: `/posters/${m.slug}-backdrop.svg`,
+          posterUrl: posterPath(m.slug, ""), backdropUrl: posterPath(m.slug, "-backdrop"),
           languages: JSON.stringify(m.languages), genres: JSON.stringify(m.genres),
           durationMins: m.durationMins, certification: m.certification,
           releaseDate: new Date(`${m.year}-06-15T00:00:00.000Z`),
-          trailerUrl: m.trailerUrl, status: "NOW_SHOWING", featured: m.featured,
+          trailerUrl: m.trailerUrl, trailerId: TRAILER_ID[m.slug] ?? null, status: "NOW_SHOWING", featured: m.featured,
         },
       })
     )

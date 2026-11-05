@@ -28,13 +28,13 @@ const AuditoriumCanvas = dynamicImport(() => import("@/components/cine/three/Aud
 });
 import {
   Armchair, Orbit, Footprints, Eye, LayoutGrid, RotateCcw, Maximize, ChevronLeft, ChevronRight,
-  Pin, PinOff, X, MousePointerClick, Loader2, Info, Accessibility,
+  Pin, PinOff, X, MousePointerClick, Loader2, Info, Accessibility, Sun, Moon, Flame, Play,
 } from "lucide-react";
 
 type Inventory = {
   show: {
     id: string; startsAt: string; language: string; format: string; status: string;
-    movie: { id: string; title: string; posterUrl: string; certification: string; durationMins: number };
+    movie: { id: string; title: string; posterUrl: string; backdropUrl?: string | null; trailerId?: string | null; trailerUrl?: string | null; certification: string; durationMins: number };
     auditorium: { id: string; name: string; geometrySource: string; theatre: { id: string; name: string; city: string; address: string } };
   };
   layout: LayoutConfig;
@@ -75,6 +75,19 @@ export default function BookView({ showId, params }: { showId: string; params: U
   const [holding, setHolding] = useState(false);
   const [live, setLive] = useState<"live" | "polling">("polling");
   const [showInstructions, setShowInstructions] = useState(true);
+  const [bright, setBright] = useState(true); // house lights up by default
+  const [heatmap, setHeatmap] = useState(false); // row-demand heat colouring
+  const [trailerOpen, setTrailerOpen] = useState(false);
+
+  // Close the trailer overlay with Escape (a11y)
+  useEffect(() => {
+    if (!trailerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTrailerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [trailerOpen]);
   const moveRef = useRef<MoveVector>({ x: 0, z: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -318,6 +331,10 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   isTouch={isTouch}
                   moveRef={moveRef}
                   resetKey={resetKey}
+                  bright={bright}
+                  heatmap={heatmap}
+                  backdropUrl={show.movie.backdropUrl}
+                  showLabel={fmtDateTime(show.startsAt)}
                 />
 
                 {/* floating controls */}
@@ -330,7 +347,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     <SceneModeButton active={mode === "preview"} icon={<Eye className="w-4 h-4" />} label="Seat view" disabled={!previewSeat && mode !== "preview"} onClick={() => previewSeat ? setMode("preview") : toast.info("Select a seat first, then press Preview This Seat.")} />
                     <SceneModeButton active={false} icon={<LayoutGrid className="w-4 h-4" />} label="2D" onClick={() => { setMode("orbit"); setForce2D(true); }} />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => { setResetKey((k) => k + 1); setPreviewSeat(null); setMode("orbit"); }}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#DDE1E8] hover:border-[#477BFF]/50 transition-colors cursor-pointer"
@@ -349,6 +366,34 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     >
                       <Maximize className="w-3.5 h-3.5" /> Fullscreen
                     </button>
+                    <button
+                      onClick={() => setBright((v) => !v)}
+                      aria-pressed={bright}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${bright ? "bg-[#FFF3D6] border-[#FFD59E] text-[#5A4300]" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+                      aria-label="Toggle house lights"
+                      title={bright ? "House lights: ON — click to dim the theatre" : "House lights: DIM — click to brighten"}
+                    >
+                      {bright ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />} Lights {bright ? "ON" : "DIM"}
+                    </button>
+                    <button
+                      onClick={() => setHeatmap((v) => !v)}
+                      aria-pressed={heatmap}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${heatmap ? "bg-[#FF713D] border-[#FF713D] text-white" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+                      aria-label="Toggle demand heatmap"
+                      title="Colour available seats by how busy each row is"
+                    >
+                      <Flame className="w-3.5 h-3.5" /> Heatmap
+                    </button>
+                    {(show.movie.trailerId || show.movie.trailerUrl) && (
+                      <button
+                        onClick={() => setTrailerOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E50914]/90 border border-[#E50914] text-xs text-white hover:bg-[#E50914] transition-colors cursor-pointer"
+                        aria-label="Play trailer on screen"
+                        title="Play the official trailer"
+                      >
+                        <Play className="w-3.5 h-3.5" /> Trailer
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -433,6 +478,11 @@ export default function BookView({ showId, params }: { showId: string; params: U
                 {l.label}
               </span>
             ))}
+            {heatmap && (
+              <span className="flex items-center gap-1.5 text-[11px] text-[#FF9A6B]" title="Available seats shift from green to orange as a row fills up">
+                <Flame className="w-3 h-3" /> Heatmap: warmer = busier row
+              </span>
+            )}
             <span className="text-[11px] text-[#8FA3BF] ml-auto flex items-center gap-1"><Info className="w-3 h-3" /> Availability also labelled on hover and in the 2D map</span>
           </div>
 
@@ -565,6 +615,52 @@ export default function BookView({ showId, params }: { showId: string; params: U
           </div>
         </aside>
       </div>
+
+      {/* ==================== TRAILER OVERLAY (YouTube embed of the official trailer) ==================== */}
+      {trailerOpen && (show.movie.trailerId || show.movie.trailerUrl) && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${show.movie.title} official trailer`}
+          onClick={() => setTrailerOpen(false)}
+        >
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold text-white flex items-center gap-2">
+                <Play className="w-4 h-4 text-[#E50914]" /> {show.movie.title} — Official trailer
+              </div>
+              <button
+                onClick={() => setTrailerOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                aria-label="Close trailer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="relative rounded-xl overflow-hidden border border-white/15 shadow-2xl bg-black" style={{ aspectRatio: "16 / 9" }}>
+              {show.movie.trailerId ? (
+                <iframe
+                  key={show.movie.trailerId}
+                  src={`https://www.youtube.com/embed/${show.movie.trailerId}?autoplay=1&rel=0`}
+                  title={`${show.movie.title} official trailer`}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-[#8FA3BF]">
+                  Open trailer:&nbsp;
+                  <a className="text-[#477BFF] underline" href={show.movie.trailerUrl || "#"} target="_blank" rel="noopener noreferrer">external link</a>
+                </div>
+              )}
+            </div>
+            <p className="mt-2 text-[11px] text-[#8FA3BF]">
+              Plays the film's publicly available trailer via YouTube. The in-theatre screen also runs a pre-show reel generated from the movie artwork.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

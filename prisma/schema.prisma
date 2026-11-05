@@ -162,6 +162,8 @@ model Movie {
   certification String    @default("UA")
   releaseDate   DateTime?
   trailerUrl    String?
+  // YouTube video id for the official trailer — embedded in-app, never encodes user data
+  trailerId     String?
   // NOW_SHOWING | UPCOMING | ARCHIVED
   status        String    @default("NOW_SHOWING")
   featured      Boolean   @default(false)
@@ -194,6 +196,10 @@ model Show {
   @@index([movieId, startsAt])
   @@index([auditoriumId, startsAt])
   @@index([status])
+
+  // One screen at a time per auditorium: prevents double-programming a hall
+  // and makes the rolling auto-scheduler race-safe.
+  @@unique([auditoriumId, startsAt])
 }
 
 // Show-specific inventory: availability + price per seat for ONE show.

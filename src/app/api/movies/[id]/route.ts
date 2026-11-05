@@ -1,9 +1,13 @@
 import { db } from "@/lib/db";
 import { ok, handler, HttpError } from "@/lib/api";
+import { ensureRollingSchedule } from "@/lib/schedule";
 
 // GET /api/movies/[id] — detail + showtime availability grouped by theatre
 export const GET = handler(async (_req, ctx: { params: Promise<{ id: string }> }) => {
   const { id } = await ctx.params;
+  // Self-healing programme: keeps a rolling week of showtimes so this page
+  // never degrades to "No upcoming shows yet" when seeded dates age out.
+  await ensureRollingSchedule();
   const movie = await db.movie.findFirst({
     where: { OR: [{ id }, { slug: id }] },
   });

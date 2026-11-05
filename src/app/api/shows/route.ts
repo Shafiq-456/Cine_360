@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { ok, handler } from "@/lib/api";
+import { ensureRollingSchedule } from "@/lib/schedule";
 
 // GET /api/shows?movieId=&date=YYYY-MM-DD&theatreId=
 export const GET = handler(async (req: NextRequest) => {
+  await ensureRollingSchedule();
   const sp = req.nextUrl.searchParams;
   const movieId = sp.get("movieId");
   const theatreId = sp.get("theatreId");

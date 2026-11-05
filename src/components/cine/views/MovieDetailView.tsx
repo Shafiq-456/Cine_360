@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState, Spinner } from "./bits";
 import type { Movie } from "./MoviesView";
-import { Clock, Languages, Ticket, ExternalLink, MapPin, Armchair } from "lucide-react";
+import { Clock, Languages, Ticket, Play, X, MapPin, Armchair, Flame } from "lucide-react";
 
 type ShowRow = {
   id: string;
@@ -21,7 +21,7 @@ type ShowRow = {
 };
 
 type DetailData = {
-  movie: Movie;
+  movie: Movie & { trailerId?: string | null };
   theatres: { theatre: { id: string; name: string; city: string; address: string }; shows: ShowRow[] }[];
 };
 
@@ -33,6 +33,17 @@ export default function MovieDetailView({ id }: { id: string }) {
   const [data, setData] = useState<DetailData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [date, setDate] = useState<string>("");
+  const [trailerOpen, setTrailerOpen] = useState(false);
+
+  // Close the trailer overlay with Escape (a11y)
+  useEffect(() => {
+    if (!trailerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTrailerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [trailerOpen]);
 
   useEffect(() => {
     api
@@ -82,13 +93,17 @@ export default function MovieDetailView({ id }: { id: string }) {
               {movie.releaseDate && <span>Released {new Date(movie.releaseDate).getFullYear()}</span>}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              {movie.trailerUrl && (
+              {movie.trailerId ? (
+                <Button variant="outline" className="border-[#E50914]/50 text-[#FF6B6B] hover:bg-[#E50914]/10 hover:text-[#FF6B6B]" onClick={() => setTrailerOpen(true)}>
+                  <Play className="w-4 h-4 mr-2" /> Watch trailer
+                </Button>
+              ) : movie.trailerUrl ? (
                 <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="border-white/15 hover:border-[#20D9E8]/60 hover:text-[#20D9E8]">
-                    <ExternalLink className="w-4 h-4 mr-2" /> Watch trailer
+                    <Play className="w-4 h-4 mr-2" /> Watch trailer
                   </Button>
                 </a>
-              )}
+              ) : null}
               <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
                 <Ticket className="w-4 h-4 mr-2" /> Book tickets
               </Button>
@@ -145,14 +160,21 @@ export default function MovieDetailView({ id }: { id: string }) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {dayShows.map((s) => {
                     const fill = s.totalSeats ? Math.round(((s.totalSeats - s.available) / s.totalSeats) * 100) : 0;
+                    const filling = fill >= 50 && fill < 85;
+                    const almostFull = fill >= 85;
                     return (
                       <button
                         key={s.id}
                         onClick={() => navigate(`/book/${s.id}`)}
-                        className={`border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#477BFF]/60 hover:bg-[#477BFF]/5 ${
-                          fill >= 90 ? "border-[#FF713D]/30" : "border-white/10"
+                        className={`relative border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#477BFF]/60 hover:bg-[#477BFF]/5 ${
+                          almostFull ? "border-[#FF713D]/30" : "border-white/10"
                         }`}
                       >
+                        {(filling || almostFull) && (
+                          <span className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide flex items-center gap-1 ${almostFull ? "bg-[#FF713D] text-white" : "bg-[#F5C518] text-[#3A2E00]"}`}>
+                            <Flame className="w-2.5 h-2.5" /> {almostFull ? "ALMOST FULL" : "FILLING FAST"}
+                          </span>
+                        )}
                         <div className="font-semibold text-lg">{fmtTime(s.startsAt)}</div>
                         <div className="text-xs text-[#8FA3BF] mt-0.5">{s.auditorium.name}</div>
                         <div className="text-xs text-[#20D9E8] mt-1">{s.format} · {s.language}</div>
@@ -172,9 +194,45 @@ export default function MovieDetailView({ id }: { id: string }) {
         </div>
         <Separator className="my-10 bg-white/5" />
         <p className="text-xs text-[#8FA3BF]">
-          Demo catalogue: real film metadata with procedurally generated demo artwork. Pricing shown per seat category in the booking view ({inr(180)}–{inr(420)}).
+          Demo catalogue: real film metadata and artwork for demonstration. Pricing shown per seat category in the booking view ({inr(180)}–{inr(420)}).
         </p>
       </section>
+
+      {/* ==================== TRAILER OVERLAY ==================== */}
+      {trailerOpen && movie.trailerId && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${movie.title} official trailer`}
+          onClick={() => setTrailerOpen(false)}
+        >
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold text-white flex items-center gap-2">
+                <Play className="w-4 h-4 text-[#E50914]" /> {movie.title} — Official trailer
+              </div>
+              <button
+                onClick={() => setTrailerOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+                aria-label="Close trailer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="relative rounded-xl overflow-hidden border border-white/15 shadow-2xl bg-black" style={{ aspectRatio: "16 / 9" }}>
+              <iframe
+                key={movie.trailerId}
+                src={`https://www.youtube.com/embed/${movie.trailerId}?autoplay=1&rel=0`}
+                title={`${movie.title} official trailer`}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

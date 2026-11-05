@@ -49,6 +49,9 @@ bypass authorization anywhere.
 ## 🎟️ The MVP demo journey (primary acceptance criterion)
 
 1. Open CINE 360 → hero → **ENTER 3D CINEMA EXPERIENCE**
+0. Showtimes are self-healing: a rolling 7-day programme is auto-generated
+   (`src/lib/schedule.ts`) whenever showtime APIs are hit, plus an
+   **Auto-programme** button for owners (`POST /api/owner/shows/generate`).
 2. Browse **Movies** (search / language / genre filters)
 3. Open a movie → see theatres & showtimes → pick a **show**
 4. The **3D auditorium** loads (procedural demo geometry, labelled as such)
@@ -162,6 +165,12 @@ The demo settle endpoint auto-disables when real keys are present.
 
 - Seats are ONE merged low-poly geometry rendered through instancing (1 draw call), each instance
   individually raycast-selectable and colour-coded (colour is always paired with text labels).
+- **House lights**: the auditorium defaults to a bright, readable theme ("Lights ON"); "Lights DIM"
+  switches to the classic cinematic mood for previews.
+- **The screen plays the movie**: an animated pre-show reel (ken-burns over the film's real backdrop,
+  title card, showtime ticker, grain + sweep at ~24 fps canvas texture) plus a **Trailer** button that
+  embeds the film's official YouTube trailer in-app (`Movie.trailerId`, verified IDs).
+- **Demand heatmap** (optional): available seats shift green → orange by how full each row is.
 - Camera modes: **Orbit** (drag/zoom/pan), **Walk** (pointer-lock + WASD/arrows, bounds + seat
   collision, stepped-floor eye height), **Seat Experience** (tween to the seat's eye position,
   look-at screen centre).
