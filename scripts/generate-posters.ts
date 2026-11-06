@@ -13,6 +13,15 @@ const MOVIES: Movie[] = [
   { slug: "kalki-2898-ad", title: "KALKI 2898 AD", tagline: "The future is written in myth.", c1: "#10101E", c2: "#2A2440", c3: "#9D7BFF" },
   { slug: "premalu", title: "PREMALU", tagline: "A love story for the confused.", c1: "#14090F", c2: "#3A1B2A", c3: "#FF8FB1" },
   { slug: "kantara", title: "KANTARA", tagline: "A legend of the forest.", c1: "#0C1208", c2: "#24361B", c3: "#7BC950" },
+  // ---- 2026-11 expansion: 8 additional titles ----
+  { slug: "rrr", title: "RRR", tagline: "Rise. Roar. Revolt.", c1: "#160B08", c2: "#3D1E12", c3: "#FF713D" },
+  { slug: "vikram", title: "VIKRAM", tagline: "Once upon a time, there lived a ghost.", c1: "#0A0A0D", c2: "#1F2430", c3: "#F5C518" },
+  { slug: "3-idiots", title: "3 IDIOTS", tagline: "All is well.", c1: "#0B1A12", c2: "#1E3A2A", c3: "#5BD97C" },
+  { slug: "dune-part-two", title: "DUNE: PART TWO", tagline: "Long live the fighters.", c1: "#1A120A", c2: "#40301C", c3: "#E8B56A" },
+  { slug: "the-dark-knight", title: "THE DARK KNIGHT", tagline: "Why so serious?", c1: "#0A0A0C", c2: "#1A1E28", c3: "#6F8DB4" },
+  { slug: "96", title: "96", tagline: "Two souls. One afternoon.", c1: "#140D0B", c2: "#33221C", c3: "#F0A32A" },
+  { slug: "manjummel-boys", title: "MANJUMMEL BOYS", tagline: "Friends who dive into darkness together.", c1: "#0A1214", c2: "#1C3238", c3: "#37C4D8" },
+  { slug: "kung-fu-panda-4", title: "KUNG FU PANDA 4", tagline: "The tale of the Dragon Warrior continues.", c1: "#101318", c2: "#2A3140", c3: "#FFD24D" },
 ];
 
 function poster(m: Movie): string {

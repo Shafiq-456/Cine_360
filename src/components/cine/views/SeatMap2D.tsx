@@ -3,17 +3,18 @@
 // Keyboard focusable buttons, screen-reader labels with status + price.
 import type { InventorySeat } from "@/lib/inventory";
 
-export default function SeatMap2D({ seats, selectedIds, onToggle, categories }: {
+export default function SeatMap2D({ seats, selectedIds, onToggle, categories, availableColor }: {
   seats: InventorySeat[];
   selectedIds: Set<string>;
   onToggle: (seat: InventorySeat) => void;
   categories: { code: string; name: string; color: string; basePrice: number }[];
+  availableColor?: string;
 }) {
   const rows = useMemoRows(seats);
 
   const stateOf = (s: InventorySeat): { color: string; label: string; enabled: boolean } => {
     if (selectedIds.has(s.id)) return { color: "#477BFF", label: "Selected by you", enabled: true };
-    if (s.status === "AVAILABLE") return { color: "#2FBF71", label: "Available", enabled: true };
+    if (s.status === "AVAILABLE") return { color: availableColor || "#2FBF71", label: "Available", enabled: true };
     if (s.status === "HELD") return { color: "#F5C518", label: "Temporarily held by another user", enabled: false };
     if (s.status === "BOOKED") return { color: "#E5484D", label: "Booked", enabled: false };
     return { color: "#3A3F4A", label: "Unavailable", enabled: false };

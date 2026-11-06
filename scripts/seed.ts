@@ -1,16 +1,21 @@
 // CINE 360 — seed/demo data.
-// Creates labelled demo accounts, 2 theatres, 3 auditoriums, a demo movie
-// catalogue (real films, factual metadata, procedural artwork), and shows for
-// today + tomorrow with complete per-show seat inventory.
+// Creates labelled demo accounts (3 owners), 4 theatres, 8 DISTINCT auditoriums
+// (each with its own layout, screen size, seat map and interior theme), a demo
+// movie catalogue (16 real films + 1 demo upcoming title, factual metadata,
+// real poster artwork with procedural SVG fallbacks, verified trailers), and
+// 32 shows for today with complete per-show seat inventory. The rolling
+// auto-scheduler keeps the 7-day window filled afterwards.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { DEMO_LAYOUTS, DEFAULT_PRICES, generateLayout } from "../src/lib/geometry";
+import type { LayoutConfig } from "../src/lib/geometry";
 
 const db = new PrismaClient();
 
 const DEMO_PASSWORD = "Demo@1234";
 
-// Official trailer YouTube IDs — verified from the films' official channels.
+// Official trailer YouTube IDs — verified from the films' official channels
+// (scripts/verify_trailers.ts + scripts/verify_new_trailers.ts via YouTube oembed).
 const TRAILER_ID: Record<string, string> = {
   interstellar: "2LqzF5WauAw",
   inception: "YoHD9XEInc0",
@@ -20,6 +25,15 @@ const TRAILER_ID: Record<string, string> = {
   "kalki-2898-ad": "kQDd1AhGIHk",
   premalu: "rR_2ti4l3nM",
   kantara: "8mrVmf239GU",
+  // 2026-11 expansion
+  rrr: "f_vbAtFSEc0",
+  vikram: "OKBMCL-frPU",
+  "3-idiots": "K0eDlFX9GMc",
+  "dune-part-two": "Way9Dexny3w",
+  "the-dark-knight": "EXeTwQWrcwY",
+  "96": "r0synl-lI4I",
+  "manjummel-boys": "id848Ww1YLo",
+  "kung-fu-panda-4": "_inKs4eeHiI",
 };
 
 import { existsSync } from "fs";
@@ -54,6 +68,31 @@ const MOVIES = [
   { title: "Kantara", slug: "kantara", languages: ["Kannada"], genres: ["Action", "Thriller", "Drama"], durationMins: 148, certification: "UA", year: 2022, featured: false,
     synopsis: "A fiery young man clashes with an unscrupulous police officer in a coastal village where nature and tradition collide.",
     trailerUrl: "https://www.youtube.com/results?search_query=kantara+official+trailer" },
+  // ---- 2026-11 expansion: 8 additional titles ----
+  { title: "RRR", slug: "rrr", languages: ["Telugu", "Hindi", "Tamil"], genres: ["Action", "Drama", "Adventure"], durationMins: 187, certification: "UA", year: 2022, featured: true,
+    synopsis: "A fearless revolutionary and an officer of the British colonial army, unaware of each other's true identities, join forces in a mission — then clash in an epic tale of friendship.",
+    trailerUrl: "https://www.youtube.com/results?search_query=rrr+official+trailer" },
+  { title: "Vikram", slug: "vikram", languages: ["Tamil", "Hindi"], genres: ["Action", "Thriller", "Crime"], durationMins: 175, certification: "UA", year: 2022, featured: false,
+    synopsis: "A special agent investigates a masked vigilante gang's murders, unearthing a conspiracy that ties back to a legendary black-ops operative presumed dead.",
+    trailerUrl: "https://www.youtube.com/results?search_query=vikram+official+trailer" },
+  { title: "3 Idiots", slug: "3-idiots", languages: ["Hindi"], genres: ["Comedy", "Drama"], durationMins: 170, certification: "U", year: 2009, featured: false,
+    synopsis: "Two friends search for their long-lost college companion, a free spirit whose unconventional outlook on education and life changed theirs forever.",
+    trailerUrl: "https://www.youtube.com/results?search_query=3+idiots+official+trailer" },
+  { title: "Dune: Part Two", slug: "dune-part-two", languages: ["English"], genres: ["Sci-Fi", "Adventure", "Drama"], durationMins: 166, certification: "UA", year: 2024, featured: true,
+    synopsis: "Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family — torn between the love of his life and the fate of the universe.",
+    trailerUrl: "https://www.youtube.com/results?search_query=dune+part+two+official+trailer" },
+  { title: "The Dark Knight", slug: "the-dark-knight", languages: ["English"], genres: ["Action", "Crime", "Drama"], durationMins: 152, certification: "UA", year: 2008, featured: false,
+    synopsis: "Batman's fight against the Joker — a criminal mastermind who plunges Gotham City into anarchy and pushes the Dark Knight closer to crossing the line between hero and vigilante.",
+    trailerUrl: "https://www.youtube.com/results?search_query=the+dark+knight+official+trailer" },
+  { title: "96", slug: "96", languages: ["Tamil"], genres: ["Romance", "Drama", "Music"], durationMins: 158, certification: "U", year: 2018, featured: false,
+    synopsis: "Two high-school sweethearts from the batch of 1996 meet at a class reunion 22 years later and spend one unforgettable evening reliving their past.",
+    trailerUrl: "https://www.youtube.com/results?search_query=96+tamil+official+trailer" },
+  { title: "Manjummel Boys", slug: "manjummel-boys", languages: ["Malayalam"], genres: ["Thriller", "Drama", "Survival"], durationMins: 135, certification: "UA", year: 2024, featured: false,
+    synopsis: "A group of friends on a trip to Kodaikanal descend into the Guna Caves to save one of their own — a daring real-life-inspired rescue.",
+    trailerUrl: "https://www.youtube.com/results?search_query=manjummel+boys+official+trailer" },
+  { title: "Kung Fu Panda 4", slug: "kung-fu-panda-4", languages: ["English", "Hindi"], genres: ["Animation", "Action", "Comedy"], durationMins: 94, certification: "U", year: 2024, featured: false,
+    synopsis: "Po must train a new Dragon Warrior while facing the shape-shifting Chameleon, who covets his Staff of Wisdom — with a quick-witted fox thief at his side.",
+    trailerUrl: "https://www.youtube.com/results?search_query=kung+fu+panda+4+official+trailer" },
 ];
 
 async function main() {
@@ -65,6 +104,7 @@ async function main() {
   const admin = await db.user.create({ data: { email: "admin@cine360.demo", passwordHash, name: "Platform Admin (demo)", role: "ADMIN" } });
   const ownerFrost = await db.user.create({ data: { email: "owner@cine360.demo", passwordHash, name: "Frost Cinemas Owner (demo)", role: "OWNER" } });
   const ownerFlame = await db.user.create({ data: { email: "owner2@cine360.demo", passwordHash, name: "Flame Multiplex Owner (demo)", role: "OWNER" } });
+  const ownerAurora = await db.user.create({ data: { email: "owner3@cine360.demo", passwordHash, name: "Aurora Group Owner (demo)", role: "OWNER" } });
   const staff = await db.user.create({ data: { email: "staff@cine360.demo", passwordHash, name: "Gate Staff (demo)", role: "STAFF" } });
   const customer = await db.user.create({ data: { email: "customer@cine360.demo", passwordHash, name: "Riya Kumar (demo)", role: "CUSTOMER" } });
   console.log("✓ demo users");
@@ -84,14 +124,35 @@ async function main() {
       status: "PENDING", // left pending so the super-admin approval flow can be demonstrated
     },
   });
+  const pearl = await db.theatre.create({
+    data: {
+      ownerId: ownerFrost.id, name: "Pearl Screens — T. Nagar", city: "Chennai",
+      address: "45 Usman Road, T. Nagar, Chennai 600017", amenities: JSON.stringify(["Single-screen Heritage Hall", "Dolby Digital", "Family Combos", "Parking"]),
+      status: "APPROVED",
+    },
+  });
+  const aurora = await db.theatre.create({
+    data: {
+      ownerId: ownerAurora.id, name: "Aurora Cineplex — VR Chennai", city: "Chennai",
+      address: "VR Chennai, 100 Feet Road, Anna Nagar, Chennai 600040", amenities: JSON.stringify(["Giant-Screen Hall", "Fan-shaped Atrium", "Boutique Screening Lounge", "Dolby Atmos", "Cafe", "Valet Parking"]),
+      status: "APPROVED",
+    },
+  });
   await db.theatreStaff.create({ data: { theatreId: frost.id, userId: staff.id } });
   console.log("✓ theatres (Flame Multiplex intentionally left PENDING for admin approval demo)");
 
-  // ---- Auditoriums ----
+  // ---- Auditoriums — every hall has its OWN layout, screen size and interior theme ----
   const frostA1 = await createAuditorium(frost.id, "Audi 1 · Grand", DEMO_LAYOUTS.grand);
   const frostA2 = await createAuditorium(frost.id, "Audi 2 · Classic", DEMO_LAYOUTS.classic);
-  const flameA1 = await createAuditorium(flame.id, "Audi 1 · Luxe", DEMO_LAYOUTS.luxe);
-  console.log(`✓ auditoriums + seats (${frostA1.seatCount}, ${frostA2.seatCount}, ${flameA1.seatCount} seats)`);
+  const flameA1 = await createAuditorium(flame.id, "Audi 1 · Luxe", DEMO_LAYOUTS.luxe, { SILVER: 220, GOLD: 320, RECLINER: 520 });
+  const pearlA1 = await createAuditorium(pearl.id, "Audi 1 · Retro Single Screen", DEMO_LAYOUTS.retro, { SILVER: 120, GOLD: 190, RECLINER: 280 });
+  const pearlA2 = await createAuditorium(pearl.id, "Audi 2 · Family", DEMO_LAYOUTS.family, { SILVER: 140, GOLD: 200, RECLINER: 300 });
+  const auroraA1 = await createAuditorium(aurora.id, "Audi 1 · IMAX Experience", DEMO_LAYOUTS.imax, { SILVER: 240, GOLD: 340, RECLINER: 480 });
+  const auroraA2 = await createAuditorium(aurora.id, "Audi 2 · Atrium Fan", DEMO_LAYOUTS.fan, { SILVER: 160, GOLD: 240, RECLINER: 380 });
+  const auroraA3 = await createAuditorium(aurora.id, "Audi 3 · Boutique Lounge", DEMO_LAYOUTS.boutique, { RECLINER: 650 });
+  console.log(
+    `✓ 8 auditoriums + seats (grand ${frostA1.seatCount}, classic ${frostA2.seatCount}, luxe ${flameA1.seatCount}, retro ${pearlA1.seatCount}, family ${pearlA2.seatCount}, imax ${auroraA1.seatCount}, fan ${auroraA2.seatCount}, boutique ${auroraA3.seatCount})`
+  );
 
   // ---- Movies ----
   const movieRows = await db.$transaction(
@@ -118,68 +179,100 @@ async function main() {
   });
   console.log(`✓ ${movieRows.length + 1} movies`);
 
-  // ---- Shows: today + tomorrow, staggered times ----
+  // ---- Shows: today, staggered times across every auditorium ----
+  // (the rolling auto-scheduler in src/lib/schedule.ts then keeps a 7-day
+  //  window filled for every PUBLISHED auditorium in APPROVED theatres)
   const base = new Date();
   base.setHours(0, 0, 0, 0);
   const slots = [10 * 60, 13 * 60 + 30, 17 * 60, 20 * 60 + 30]; // minutes from midnight
   let showCount = 0;
 
-  const plan: { movieIdx: number; aud: string; theatreName: string; language: string; format: string }[] = [
-    { movieIdx: 0, aud: frostA1.id, theatreName: "frost", language: "English", format: "IMAX 2D" },
-    { movieIdx: 4, aud: frostA2.id, theatreName: "frost", language: "Tamil", format: "2D" },
-    { movieIdx: 1, aud: frostA1.id, theatreName: "frost", language: "English", format: "3D" },
-    { movieIdx: 3, aud: frostA2.id, theatreName: "frost", language: "Hindi", format: "2D" },
-    { movieIdx: 5, aud: flameA1.id, theatreName: "flame", language: "Telugu", format: "2D" },
-    { movieIdx: 6, aud: flameA1.id, theatreName: "flame", language: "Malayalam", format: "2D" },
+  // Every auditorium gets 4 showtimes today — 32 shows with full seat inventory.
+  const plan: { movieIdx: number; aud: string; language: string; format: string }[] = [
+    // Frost Cinemas — City Centre (grand 206 · emerald, classic 140 · teal)
+    { movieIdx: 0, aud: frostA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+    { movieIdx: 1, aud: frostA1.id, language: "English", format: "3D" },        // Inception
+    { movieIdx: 2, aud: frostA1.id, language: "English", format: "2D" },        // Oppenheimer
+    { movieIdx: 12, aud: frostA1.id, language: "English", format: "2D" },       // The Dark Knight
+    { movieIdx: 4, aud: frostA2.id, language: "Tamil", format: "2D" },          // Leo
+    { movieIdx: 3, aud: frostA2.id, language: "Hindi", format: "2D" },          // Jawan
+    { movieIdx: 9, aud: frostA2.id, language: "Tamil", format: "2D" },          // Vikram
+    { movieIdx: 10, aud: frostA2.id, language: "Hindi", format: "2D" },         // 3 Idiots
+    // Pearl Screens — T. Nagar (retro 320 · crimson, family 140 · copper)
+    { movieIdx: 8, aud: pearlA1.id, language: "Telugu", format: "2D" },         // RRR
+    { movieIdx: 10, aud: pearlA1.id, language: "Hindi", format: "2D" },         // 3 Idiots
+    { movieIdx: 3, aud: pearlA1.id, language: "Hindi", format: "2D" },          // Jawan
+    { movieIdx: 5, aud: pearlA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+    { movieIdx: 15, aud: pearlA2.id, language: "English", format: "3D" },       // Kung Fu Panda 4
+    { movieIdx: 6, aud: pearlA2.id, language: "Malayalam", format: "2D" },      // Premalu
+    { movieIdx: 13, aud: pearlA2.id, language: "Tamil", format: "2D" },         // 96
+    { movieIdx: 14, aud: pearlA2.id, language: "Malayalam", format: "2D" },     // Manjummel Boys
+    // Aurora Cineplex — VR Chennai (imax 216 · azure, fan 144 · rose, boutique 48 · violet)
+    { movieIdx: 11, aud: auroraA1.id, language: "English", format: "IMAX 2D" }, // Dune: Part Two
+    { movieIdx: 0, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+    { movieIdx: 2, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Oppenheimer
+    { movieIdx: 8, aud: auroraA1.id, language: "Telugu", format: "IMAX 2D" },   // RRR
+    { movieIdx: 5, aud: auroraA2.id, language: "Telugu", format: "3D" },        // Kalki 2898 AD
+    { movieIdx: 9, aud: auroraA2.id, language: "Tamil", format: "2D" },         // Vikram
+    { movieIdx: 7, aud: auroraA2.id, language: "Kannada", format: "2D" },       // Kantara
+    { movieIdx: 4, aud: auroraA2.id, language: "Tamil", format: "2D" },         // Leo
+    { movieIdx: 13, aud: auroraA3.id, language: "Tamil", format: "2D" },        // 96
+    { movieIdx: 6, aud: auroraA3.id, language: "Malayalam", format: "2D" },     // Premalu
+    { movieIdx: 11, aud: auroraA3.id, language: "English", format: "2D" },      // Dune: Part Two
+    { movieIdx: 1, aud: auroraA3.id, language: "English", format: "2D" },       // Inception
+    // Flame Multiplex — Brookefields (luxe 88 · amber) — theatre is PENDING, hidden from customers
+    { movieIdx: 6, aud: flameA1.id, language: "Malayalam", format: "2D" },      // Premalu
+    { movieIdx: 5, aud: flameA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+    { movieIdx: 7, aud: flameA1.id, language: "Kannada", format: "2D" },        // Kantara
+    { movieIdx: 14, aud: flameA1.id, language: "Malayalam", format: "2D" },     // Manjummel Boys
   ];
 
-  for (let day = 0; day < 2; day++) {
-    const date = new Date(base.getTime() + day * 86400000);
-    for (let i = 0; i < plan.length; i++) {
-      const p = plan[i];
-      const slot = slots[(i + day) % slots.length];
-      const startsAt = new Date(date.getTime() + slot * 60000);
-      const movie = movieRows[p.movieIdx];
-      const audRow = await db.auditorium.findUnique({ where: { id: p.aud }, include: { categories: true, seats: { include: { category: true } } } });
-      if (!audRow) continue;
-      const show = await db.show.create({
-        data: {
-          movieId: movie.id, auditoriumId: p.aud, startsAt, language: p.language, format: p.format, status: "SCHEDULED",
-        },
-      });
-      // Per-show seat inventory priced by category (show-specific, separate from physical seats)
-      const seatRows = audRow.seats.map((s) => ({
-        showId: show.id, seatId: s.id, status: "AVAILABLE", price: s.category.basePrice,
-      }));
-      // chunk inserts to stay within SQLite parameter limits
-      for (let c = 0; c < seatRows.length; c += 60) {
-        await db.showSeat.createMany({ data: seatRows.slice(c, c + 60) });
-      }
-      showCount++;
+  const date = new Date(base.getTime());
+  for (let i = 0; i < plan.length; i++) {
+    const p = plan[i];
+    const slot = slots[i % slots.length];
+    const startsAt = new Date(date.getTime() + slot * 60000);
+    const movie = movieRows[p.movieIdx];
+    const audRow = await db.auditorium.findUnique({ where: { id: p.aud }, include: { categories: true, seats: { include: { category: true } } } });
+    if (!audRow) continue;
+    const show = await db.show.create({
+      data: {
+        movieId: movie.id, auditoriumId: p.aud, startsAt, language: p.language, format: p.format, status: "SCHEDULED",
+      },
+    });
+    // Per-show seat inventory priced by category (show-specific, separate from physical seats)
+    const seatRows = audRow.seats.map((s) => ({
+      showId: show.id, seatId: s.id, status: "AVAILABLE", price: s.category.basePrice,
+    }));
+    // chunk inserts to stay within SQLite parameter limits
+    for (let c = 0; c < seatRows.length; c += 60) {
+      await db.showSeat.createMany({ data: seatRows.slice(c, c + 60) });
     }
+    showCount++;
   }
-  console.log(`✓ ${showCount} shows with full per-show seat inventory`);
+  console.log(`✓ ${showCount} shows today with full per-show seat inventory (scheduler keeps the 7-day window rolling)`);
 
   // ---- Settings ----
   await db.setting.create({ data: { key: "platform.commissionPercent", value: "8" } });
 
   console.log("\n──────────────── DEMO ACCOUNTS (all use password: Demo@1234) ────────────────");
   console.log("  admin@cine360.demo    → Super-Admin dashboard");
-  console.log("  owner@cine360.demo    → Theatre Owner (Frost Cinemas — APPROVED)");
+  console.log("  owner@cine360.demo    → Theatre Owner (Frost Cinemas + Pearl Screens — APPROVED)");
   console.log("  owner2@cine360.demo   → Theatre Owner (Flame Multiplex — PENDING approval)");
+  console.log("  owner3@cine360.demo   → Theatre Owner (Aurora Cineplex — APPROVED)");
   console.log("  staff@cine360.demo    → Gate Staff (Frost Cinemas) — ticket scanner");
   console.log("  customer@cine360.demo → Customer (demo bookings)");
   console.log("──────────────────────────────────────────────────────────────────────────────");
 }
 
-async function createAuditorium(theatreId: string, name: string, layout: typeof DEMO_LAYOUTS.grand) {
+async function createAuditorium(theatreId: string, name: string, layout: LayoutConfig, priceOverrides?: Record<string, number>) {
   const { seats } = generateLayout(layout);
   const aud = await db.auditorium.create({
     data: {
       theatreId, name, layoutConfig: JSON.stringify(layout), geometrySource: "PROCEDURAL", status: "PUBLISHED",
       categories: {
         create: Object.entries(DEFAULT_PRICES).map(([code, v]) => ({
-          code, name: v.name, color: v.color, basePrice: v.price,
+          code, name: v.name, color: v.color, basePrice: priceOverrides?.[code] ?? v.price,
         })),
       },
       models: {

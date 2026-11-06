@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { SEAT_COLORS } from "@/lib/constants";
 import type { LayoutConfig } from "@/lib/geometry";
-import { seatEyePosition } from "@/lib/geometry";
+import { seatEyePosition, themeOf } from "@/lib/geometry";
 import type { InventorySeat } from "@/lib/inventory";
 import { buildSeatGeometry, makeLabelTexture, makeAisleTexture, createScreenReel } from "./seatAssets";
 
@@ -40,6 +40,8 @@ type SceneProps = {
   backdropUrl?: string | null;
   /** e.g. "Tue, 3 Nov · 5:00 pm" — shown on the screen reel. */
   showLabel?: string;
+  /** Auditorium interior theme — colours seats, walls and row labels. */
+  theme?: string | null;
 };
 
 /* Bright/dim material palettes. "Bright" keeps the house lights fully up so
@@ -77,8 +79,28 @@ const PALETTE = {
 /* ------------------------------------------------------------------ */
 /* Room shell: floor, stepped rows, walls, ceiling, screen, exits      */
 /* ------------------------------------------------------------------ */
-function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl, showLabel }: { layout: LayoutConfig; dimensions: SceneProps["dimensions"]; movieTitle: string; accent: string; bright: boolean; backdropUrl?: string | null; showLabel?: string }) {
+function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl, showLabel, theme }: { layout: LayoutConfig; dimensions: SceneProps["dimensions"]; movieTitle: string; accent: string; bright: boolean; backdropUrl?: string | null; showLabel?: string; theme: ReturnType<typeof themeOf> }) {
   const P = PALETTE[bright ? "bright" : "dim"];
+  // Theme tint: blend the auditorium's identity colour into walls/floor (bright mode only,
+  // so each hall reads as a genuinely different interior).
+  const tinted = useMemo(() => {
+    if (!bright || !theme) return null;
+    const tint = new THREE.Color(theme.tint);
+    const mix = (base: string, k = 0.22) =>
+      "#" + new THREE.Color(base).lerp(tint, k).getHexString();
+    return {
+      floor: mix(P.floor, 0.3),
+      floorAlt: mix(P.floorAlt, 0.3),
+      floorAlt2: mix(P.floorAlt2, 0.26),
+      wall: mix(P.wall, 0.24),
+      wallSide: mix(P.wallSide, 0.24),
+      ceiling: mix(P.ceiling, 0.18),
+      stage: mix(P.stage, 0.28),
+    };
+  }, [bright, theme, P]);
+  const C = { ...P, ...(tinted ?? {}) };
+  const rowLabelColor = bright && theme ? theme.label : bright ? "#155E8A" : "#20D9E8";
+  const rowLabelBg = bright ? (theme ? undefined : "#EAF2FB") : undefined;
   // Pre-show reel owns an animated canvas texture; recreated when the movie changes.
   const reel = useMemo(
     () => createScreenReel({ title: movieTitle, accent, backdropUrl, showLabel, bright }),
@@ -104,32 +126,32 @@ function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl
       {/* floor base */}
       <mesh position={[0, 0, dimensions.depthM / 2 - 2]} receiveShadow={false}>
         <boxGeometry args={[dimensions.widthM, 0.2, dimensions.depthM]} />
-        <meshStandardMaterial color={P.floor} roughness={0.95} />
+        <meshStandardMaterial color={C.floor} roughness={0.95} />
       </mesh>
       {/* stepped row platforms */}
       {stepPlanes.map((p, i) => (
         <mesh key={i} position={[0, p.y + 0.05, p.z]}>
           <boxGeometry args={[p.w, 0.3, layout.rowSpacingM]} />
-          <meshStandardMaterial color={i % 2 === 0 ? P.floorAlt : P.floorAlt2} roughness={0.9} />
+          <meshStandardMaterial color={i % 2 === 0 ? C.floorAlt : C.floorAlt2} roughness={0.9} />
         </mesh>
       ))}
       {/* walls */}
       <mesh position={[0, dimensions.heightM / 2, -0.35]}>
         <boxGeometry args={[dimensions.widthM + 1, dimensions.heightM, 0.4]} />
-        <meshStandardMaterial color={P.wall} roughness={1} />
+        <meshStandardMaterial color={C.wall} roughness={1} />
       </mesh>
       <mesh position={[-(dimensions.widthM / 2 + 0.35), dimensions.heightM / 2, dimensions.depthM / 2 - 2]}>
         <boxGeometry args={[0.4, dimensions.heightM, dimensions.depthM]} />
-        <meshStandardMaterial color={P.wallSide} roughness={1} />
+        <meshStandardMaterial color={C.wallSide} roughness={1} />
       </mesh>
       <mesh position={[dimensions.widthM / 2 + 0.35, dimensions.heightM / 2, dimensions.depthM / 2 - 2]}>
         <boxGeometry args={[0.4, dimensions.heightM, dimensions.depthM]} />
-        <meshStandardMaterial color={P.wallSide} roughness={1} />
+        <meshStandardMaterial color={C.wallSide} roughness={1} />
       </mesh>
       {/* ceiling */}
       <mesh position={[0, dimensions.heightM, dimensions.depthM / 2 - 2]}>
         <boxGeometry args={[dimensions.widthM + 1, 0.3, dimensions.depthM]} />
-        <meshStandardMaterial color={P.ceiling} roughness={1} />
+        <meshStandardMaterial color={C.ceiling} roughness={1} />
       </mesh>
       {/* ceiling downlights (emissive only — no real lights, cheap) */}
       {Array.from({ length: 6 }).map((_, i) => (
@@ -158,7 +180,7 @@ function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl
         {/* stage front */}
         <mesh position={[0, layout.screen.bottomY / 2, layout.screen.z + 0.6]}>
           <boxGeometry args={[layout.screen.widthM + 1.2, layout.screen.bottomY, 1.2]} />
-          <meshStandardMaterial color={P.stage} roughness={0.95} />
+          <meshStandardMaterial color={C.stage} roughness={0.95} />
         </mesh>
       </group>
 
@@ -188,7 +210,7 @@ function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl
         const rowWidth = layout.rows[i].seats * layout.seatSpacingM + (layout.centerAisle && layout.rows[i].seats >= 6 ? layout.aisleGapM : 0);
         const y = i * layout.rowStepUpM + 1.15;
         const z = layout.firstRowZ + i * layout.rowSpacingM;
-        const tex = makeLabelTexture(label, { color: bright ? "#155E8A" : "#20D9E8", bg: bright ? "#EAF2FB" : undefined, size: 96 });
+        const tex = makeLabelTexture(label, { color: rowLabelColor, bg: rowLabelBg, size: 96 });
         return (
           <group key={label}>
             <mesh position={[-(rowWidth / 2 + 0.55), y, z]} rotation={[0, Math.PI / 2, 0]}>
@@ -209,13 +231,14 @@ function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl
 /* ------------------------------------------------------------------ */
 /* Seats: one instanced mesh, per-instance events and colours          */
 /* ------------------------------------------------------------------ */
-function SeatInstances({ seats, selectedIds, onToggleSeat, onHoverSeat, interactive, heatmap }: {
+function SeatInstances({ seats, selectedIds, onToggleSeat, onHoverSeat, interactive, heatmap, availableColor }: {
   seats: InventorySeat[];
   selectedIds: Set<string>;
   onToggleSeat: (seat: InventorySeat) => void;
   onHoverSeat: (seat: InventorySeat | null) => void;
   interactive: boolean;
   heatmap: boolean;
+  availableColor: string;
 }) {
   const geometry = useMemo(() => buildSeatGeometry(), []);
 
@@ -232,7 +255,7 @@ function SeatInstances({ seats, selectedIds, onToggleSeat, onHoverSeat, interact
     return demand;
   }, [seats]);
 
-  const freeCool = new THREE.Color("#2FBF71");
+  const freeCool = new THREE.Color(availableColor);
   const freeWarm = new THREE.Color("#FF713D");
 
   const colorFor = (s: InventorySeat) => {
@@ -241,6 +264,7 @@ function SeatInstances({ seats, selectedIds, onToggleSeat, onHoverSeat, interact
       const d = rowDemand.get(s.rowLabel) || 0;
       return "#" + freeCool.clone().lerp(freeWarm, Math.min(1, d * 1.6)).getHexString();
     }
+    if (s.status === "AVAILABLE") return availableColor;
     return SEAT_COLORS[(s.status as keyof typeof SEAT_COLORS)] || SEAT_COLORS.UNAVAILABLE;
   };
 
@@ -480,6 +504,7 @@ export default function AuditoriumCanvas(props: SceneProps) {
   const { seats, layout, dimensions, mode, previewSeat, onHoverSeat } = props;
   const [hovered, setHovered] = useState<InventorySeat | null>(null);
   const bright = props.bright !== false; // default ON — readable theatre
+  const theme = themeOf(props.theme);
 
   useEffect(() => {
     onHoverSeat(hovered);
@@ -506,7 +531,7 @@ export default function AuditoriumCanvas(props: SceneProps) {
       <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM / 2, layout.screen.z + 1]} intensity={bright ? 8 : 18} distance={18} color="#477BFF" />
       <pointLight position={[0, dimensions.heightM - 1, dimensions.lastRowZ - 1]} intensity={bright ? 18 : 10} distance={22} color={bright ? "#FFE9C4" : "#20D9E8"} />
 
-      <RoomShell layout={layout} dimensions={dimensions} movieTitle={props.movieTitle} accent={props.accent} bright={bright} backdropUrl={props.backdropUrl} showLabel={props.showLabel} />
+      <RoomShell layout={layout} dimensions={dimensions} movieTitle={props.movieTitle} accent={props.accent} bright={bright} backdropUrl={props.backdropUrl} showLabel={props.showLabel} theme={theme} />
 
       <SeatInstances
         seats={seats}
@@ -515,6 +540,7 @@ export default function AuditoriumCanvas(props: SceneProps) {
         onHoverSeat={setHovered}
         interactive={mode !== "preview"}
         heatmap={props.heatmap === true}
+        availableColor={theme ? theme.seat : SEAT_COLORS.AVAILABLE}
       />
 
       {hovered && mode !== "preview" && <HoverBadge seat={hovered} layout={layout} />}

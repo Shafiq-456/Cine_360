@@ -16,7 +16,32 @@ export type LayoutConfig = {
   sideMarginM: number;
   eyeHeightM: number;
   rows: RowSpec[];
+  /** Interior design theme — colours the 3D seats, walls and row labels. */
+  theme?: AuditoriumThemeCode;
 };
+
+/** Every auditorium gets its own interior identity — seats, walls and labels
+ *  are tinted so guests instantly see which hall they are booking. */
+export type AuditoriumThemeCode =
+  | "emerald" | "teal" | "amber" | "crimson" | "azure" | "violet" | "rose" | "copper";
+
+export const AUDITORIUM_THEMES: Record<
+  AuditoriumThemeCode,
+  { name: string; seat: string; tint: string; label: string }
+> = {
+  emerald: { name: "Emerald Classic", seat: "#2FBF71", tint: "#9DBBA8", label: "#0B7A4A" },
+  teal:    { name: "Teal Modern",    seat: "#14B8A6", tint: "#9DC4C0", label: "#0B6E63" },
+  amber:   { name: "Amber Luxe",     seat: "#F0A32A", tint: "#C9B49A", label: "#8A5A00" },
+  crimson: { name: "Crimson Retro",  seat: "#E5484D", tint: "#C4A0A6", label: "#A31722" },
+  azure:   { name: "Azure IMAX",     seat: "#477BFF", tint: "#A0B4D0", label: "#1D4FD8" },
+  violet:  { name: "Violet Boutique", seat: "#8E6FD8", tint: "#AFA6C9", label: "#5B3FA8" },
+  rose:    { name: "Rose Atrium",    seat: "#F06D9C", tint: "#C9A6B4", label: "#C2185B" },
+  copper:  { name: "Copper Family",  seat: "#C97B4A", tint: "#C4AB98", label: "#8A4A1E" },
+};
+
+export function themeOf(code?: string | null) {
+  return (code && (AUDITORIUM_THEMES as Record<string, (typeof AUDITORIUM_THEMES)[AuditoriumThemeCode]>)[code]) || null;
+}
 
 export type SeatLayoutSeat = {
   rowLabel: string;
@@ -209,6 +234,7 @@ export function seatFootprintAt(
 }
 
 export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
+  /* Frost Cinemas Audi 1 — 206 seats, big 14 m screen, centre aisle */
   grand: {
     screen: { widthM: 14, heightM: 5.9, bottomY: 1.8, z: 0 },
     firstRowZ: 8,
@@ -219,12 +245,14 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
     aisleGapM: 1.4,
     sideMarginM: 1.6,
     eyeHeightM: 1.15,
+    theme: "emerald",
     rows: [
       ...["A", "B", "C", "D"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
       ...["E", "F", "G", "H", "I", "J", "K"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
       ...["L", "M", "N"].map((label) => ({ label, seats: 10, categoryCode: "RECLINER" })),
     ],
   },
+  /* Frost Cinemas Audi 2 — compact 140 seats, 12 m screen, centre aisle */
   classic: {
     screen: { widthM: 12, heightM: 5, bottomY: 1.7, z: 0 },
     firstRowZ: 7.5,
@@ -235,11 +263,13 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
     aisleGapM: 1.2,
     sideMarginM: 1.5,
     eyeHeightM: 1.15,
+    theme: "teal",
     rows: [
       ...["A", "B", "C"].map((label) => ({ label, seats: 14, categoryCode: "SILVER" })),
       ...["D", "E", "F", "G", "H", "I", "J"].map((label) => ({ label, seats: 14, categoryCode: "GOLD" })),
     ],
   },
+  /* Flame Multiplex Audi 1 — 88 recliner-heavy seats, generous 0.72 m pitch */
   luxe: {
     screen: { widthM: 13, heightM: 5.5, bottomY: 1.8, z: 0 },
     firstRowZ: 8.5,
@@ -250,10 +280,97 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
     aisleGapM: 1.5,
     sideMarginM: 1.6,
     eyeHeightM: 1.12,
+    theme: "amber",
     rows: [
       ...["A", "B"].map((label) => ({ label, seats: 12, categoryCode: "SILVER" })),
       ...["C", "D", "E", "F"].map((label) => ({ label, seats: 12, categoryCode: "GOLD" })),
       ...["G", "H"].map((label) => ({ label, seats: 8, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Aurora Audi 1 — towering 17 m × 7.6 m screen, steep 0.42 m rake, 216 seats */
+  imax: {
+    screen: { widthM: 17, heightM: 7.6, bottomY: 2.4, z: 0 },
+    firstRowZ: 11, // pushed back so the giant screen fits the field of view
+    rowSpacingM: 1.3,
+    rowStepUpM: 0.42,
+    seatSpacingM: 0.64,
+    centerAisle: true,
+    aisleGapM: 1.6,
+    sideMarginM: 2.0,
+    eyeHeightM: 1.15,
+    theme: "azure",
+    rows: [
+      ...["A", "B", "C", "D"].map((label) => ({ label, seats: 18, categoryCode: "SILVER" })),
+      ...["E", "F", "G", "H", "I", "J", "K", "L"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+    ],
+  },
+  /* Aurora Audi 3 — intimate 48-seat screening lounge, one small screen, all recliners, no centre aisle */
+  boutique: {
+    screen: { widthM: 8, heightM: 3.6, bottomY: 1.6, z: 0 },
+    firstRowZ: 7,
+    rowSpacingM: 1.25,
+    rowStepUpM: 0.26,
+    seatSpacingM: 0.8,
+    centerAisle: false,
+    aisleGapM: 1.2,
+    sideMarginM: 2.2,
+    eyeHeightM: 1.12,
+    theme: "violet",
+    rows: ["A", "B", "C", "D", "E", "F"].map((label) => ({ label, seats: 8, categoryCode: "RECLINER" })),
+  },
+  /* Pearl Audi 1 — classic single-screen hall: 320 seats, 16 m screen, long shallow rake */
+  retro: {
+    screen: { widthM: 16, heightM: 6.4, bottomY: 2.0, z: 0 },
+    firstRowZ: 9,
+    rowSpacingM: 1.05,
+    rowStepUpM: 0.24,
+    seatSpacingM: 0.58,
+    centerAisle: true,
+    aisleGapM: 1.8,
+    sideMarginM: 1.6,
+    eyeHeightM: 1.15,
+    theme: "crimson",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["L", "M", "N", "O", "P"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+    ],
+  },
+  /* Aurora Audi 2 — fan-shaped hall: rows widen 12 → 24 seats toward the back */
+  fan: {
+    screen: { widthM: 14, heightM: 6, bottomY: 1.8, z: 0 },
+    firstRowZ: 8,
+    rowSpacingM: 1.2,
+    rowStepUpM: 0.3,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.6,
+    eyeHeightM: 1.15,
+    theme: "rose",
+    rows: (
+      [
+        ["A", 12, "SILVER"], ["B", 14, "SILVER"], ["C", 16, "SILVER"],
+        ["D", 18, "GOLD"], ["E", 20, "GOLD"], ["F", 22, "GOLD"],
+        ["G", 22, "RECLINER"], ["H", 24, "RECLINER"],
+      ] as [string, number, string][]
+    ).map(([label, seats, categoryCode]) => ({ label, seats, categoryCode })),
+  },
+  /* Pearl Audi 2 — family hall: solid rows (side aisles only), 140 seats */
+  family: {
+    screen: { widthM: 11, heightM: 4.8, bottomY: 1.7, z: 0 },
+    firstRowZ: 7.5,
+    rowSpacingM: 1.1,
+    rowStepUpM: 0.36,
+    seatSpacingM: 0.6,
+    centerAisle: false,
+    aisleGapM: 1.2,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "copper",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 14, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 14, categoryCode: "GOLD" })),
+      ...["I", "J"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
     ],
   },
 };

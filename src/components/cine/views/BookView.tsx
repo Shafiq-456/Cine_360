@@ -7,7 +7,7 @@ import { api, inr, fmtDateTime } from "@/lib/client";
 import { useAuth, useBookingSelection, type SelectedSeat } from "@/lib/store";
 import type { InventorySeat } from "@/lib/inventory";
 import type { LayoutConfig } from "@/lib/geometry";
-import { measureSeat, deriveSightline } from "@/lib/geometry";
+import { measureSeat, deriveSightline, themeOf } from "@/lib/geometry";
 import dynamicImport from "next/dynamic";
 import type { SceneMode, MoveVector } from "@/components/cine/three/AuditoriumScene";
 import SeatMap2D from "./SeatMap2D";
@@ -45,11 +45,11 @@ type Inventory = {
 };
 
 const LEGEND = [
-  { color: "#2FBF71", label: "Available" },
-  { color: "#F5C518", label: "Held by others" },
-  { color: "#E5484D", label: "Booked" },
-  { color: "#477BFF", label: "Your selection" },
-  { color: "#3A3F4A", label: "Unavailable" },
+  { color: "#2FBF71", label: "Available", key: "AVAILABLE" as const },
+  { color: "#F5C518", label: "Held by others", key: null },
+  { color: "#E5484D", label: "Booked", key: null },
+  { color: "#477BFF", label: "Your selection", key: null },
+  { color: "#3A3F4A", label: "Unavailable", key: null },
 ];
 
 function hasWebGL(): boolean {
@@ -201,6 +201,9 @@ export default function BookView({ showId, params }: { showId: string; params: U
     const g = deriveSightline(m, inv.layout.screen);
     return { ...m, ...g };
   }, [inv, previewSeat]);
+
+  // Auditorium interior identity — seats, 2D map and legend all follow this colour.
+  const themeSeatColor = themeOf(inv?.layout.theme)?.seat || "#2FBF71";
 
   // preview navigation: next/prev AVAILABLE seat (falls back to any seat)
   const stepPreview = useCallback(
@@ -370,6 +373,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                 selectedIds={selectedIds}
                 onToggle={onToggleFromScene}
                 categories={inv.categories}
+                availableColor={themeSeatColor}
               />
             ) : (
               <>
@@ -391,6 +395,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   heatmap={heatmap}
                   backdropUrl={show.movie.backdropUrl}
                   showLabel={fmtDateTime(show.startsAt)}
+                  theme={inv.layout.theme ?? null}
                 />
 
                 {/* floating controls */}
@@ -530,7 +535,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
             {LEGEND.map((l) => (
               <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-[#8FA3BF]">
-                <span className="w-3 h-3 rounded-[4px] border border-white/20" style={{ background: l.color }} aria-hidden="true" />
+                <span className="w-3 h-3 rounded-[4px] border border-white/20" style={{ background: l.key === "AVAILABLE" ? themeSeatColor : l.color }} aria-hidden="true" />
                 {l.label}
               </span>
             ))}

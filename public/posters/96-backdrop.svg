@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#140D0B"/><stop offset="100%" stop-color="#33221C"/>
+    </linearGradient>
+    <radialGradient id="g" cx="72%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#F0A32A" stop-opacity="0.5"/><stop offset="100%" stop-color="#F0A32A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <g stroke="#F0A32A" stroke-opacity="0.14">
+    <line x1="0" y1="0" x2="1600" y2="-120"/><line x1="0" y1="38" x2="1600" y2="-82"/><line x1="0" y1="76" x2="1600" y2="-44"/><line x1="0" y1="114" x2="1600" y2="-6"/><line x1="0" y1="152" x2="1600" y2="32"/><line x1="0" y1="190" x2="1600" y2="70"/><line x1="0" y1="228" x2="1600" y2="108"/><line x1="0" y1="266" x2="1600" y2="146"/><line x1="0" y1="304" x2="1600" y2="184"/><line x1="0" y1="342" x2="1600" y2="222"/><line x1="0" y1="380" x2="1600" y2="260"/><line x1="0" y1="418" x2="1600" y2="298"/><line x1="0" y1="456" x2="1600" y2="336"/><line x1="0" y1="494" x2="1600" y2="374"/><line x1="0" y1="532" x2="1600" y2="412"/><line x1="0" y1="570" x2="1600" y2="450"/><line x1="0" y1="608" x2="1600" y2="488"/><line x1="0" y1="646" x2="1600" y2="526"/><line x1="0" y1="684" x2="1600" y2="564"/><line x1="0" y1="722" x2="1600" y2="602"/><line x1="0" y1="760" x2="1600" y2="640"/><line x1="0" y1="798" x2="1600" y2="678"/><line x1="0" y1="836" x2="1600" y2="716"/><line x1="0" y1="874" x2="1600" y2="754"/>
+  </g>
+  <rect x="880" y="240" width="600" height="338" rx="8" fill="none" stroke="#F0A32A" stroke-opacity="0.6" stroke-width="3"/>
+  <text x="1180" y="640" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" letter-spacing="8" fill="#F5F7FA" opacity="0.9">THE SCREEN</text>
+  <text x="100" y="470" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="84" fill="#F5F7FA">96</text>
+  <text x="102" y="530" font-family="Georgia, serif" font-size="30" fill="#DDE1E8" opacity="0.8">Two souls. One afternoon.</text>
+</svg>
