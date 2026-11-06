@@ -23,7 +23,8 @@ export type LayoutConfig = {
 /** Every auditorium gets its own interior identity — seats, walls and labels
  *  are tinted so guests instantly see which hall they are booking. */
 export type AuditoriumThemeCode =
-  | "emerald" | "teal" | "amber" | "crimson" | "azure" | "violet" | "rose" | "copper";
+  | "emerald" | "teal" | "amber" | "crimson" | "azure" | "violet" | "rose" | "copper"
+  | "indigo" | "saffron" | "orchid" | "sage" | "onyx" | "sandstone";
 
 export const AUDITORIUM_THEMES: Record<
   AuditoriumThemeCode,
@@ -37,6 +38,12 @@ export const AUDITORIUM_THEMES: Record<
   violet:  { name: "Violet Boutique", seat: "#8E6FD8", tint: "#AFA6C9", label: "#5B3FA8" },
   rose:    { name: "Rose Atrium",    seat: "#F06D9C", tint: "#C9A6B4", label: "#C2185B" },
   copper:  { name: "Copper Family",  seat: "#C97B4A", tint: "#C4AB98", label: "#8A4A1E" },
+  indigo:  { name: "Indigo Stadium",  seat: "#6366F1", tint: "#A5ACD8", label: "#3730A3" },
+  saffron: { name: "Saffron Premiere", seat: "#FF9933", tint: "#D8C0A0", label: "#9A5B00" },
+  orchid:  { name: "Orchid Lounge",   seat: "#C86BFA", tint: "#B8A6C9", label: "#7A1FA8" },
+  sage:    { name: "Sage Garden",     seat: "#9CB894", tint: "#B4C4AE", label: "#4A6B3F" },
+  onyx:    { name: "Onyx Heritage",   seat: "#5A6072", tint: "#8E95A8", label: "#C9A227" },
+  sandstone: { name: "Sandstone Heritage", seat: "#D9B380", tint: "#CDB9A0", label: "#8A6430" },
 };
 
 export function themeOf(code?: string | null) {
@@ -354,6 +361,121 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
         ["G", 22, "RECLINER"], ["H", 24, "RECLINER"],
       ] as [string, number, string][]
     ).map(([label, seats, categoryCode]) => ({ label, seats, categoryCode })),
+  },
+  /* ---- 2026-11 city expansion: one-of-a-kind halls for the new theatres ---- */
+
+  /* Lumière Audi 1 · Bengaluru — true stadium hall: steep 0.5 m rake,
+   * 15 rows × 16, deep 1.25 m row pitch, 15.5 m screen, 240 seats */
+  stadium: {
+    screen: { widthM: 15.5, heightM: 6.6, bottomY: 2.2, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.25,
+    rowStepUpM: 0.5,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "indigo",
+    rows: [
+      ...["A", "B", "C", "D"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["E", "F", "G", "H", "I", "J", "K"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["L", "M", "N", "O"].map((label) => ({ label, seats: 16, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Lumière Audi 2 · Bengaluru — sofa lounge: 1.15 m chair pitch (paired
+   * love-seats), 10 chairs per row, no centre aisle, 9.8 m screen, 60 seats */
+  lounge: {
+    screen: { widthM: 9.8, heightM: 4.4, bottomY: 1.7, z: 0 },
+    firstRowZ: 8,
+    rowSpacingM: 1.45,
+    rowStepUpM: 0.28,
+    seatSpacingM: 1.15,
+    centerAisle: false,
+    aisleGapM: 1.2,
+    sideMarginM: 2.4,
+    eyeHeightM: 1.1,
+    theme: "orchid",
+    rows: ["A", "B", "C", "D", "E", "F"].map((label) => ({ label, seats: 10, categoryCode: "RECLINER" })),
+  },
+  /* Galaxy Multiplex Audi 1 · Bengaluru — mixed-width neighbourhood hall:
+   * narrow front rows widening to 18 seats, 13.5 m screen, 174 seats */
+  galaxy: {
+    screen: { widthM: 13.5, heightM: 5.6, bottomY: 1.8, z: 0 },
+    firstRowZ: 8,
+    rowSpacingM: 1.18,
+    rowStepUpM: 0.32,
+    seatSpacingM: 0.6,
+    centerAisle: true,
+    aisleGapM: 1.3,
+    sideMarginM: 1.6,
+    eyeHeightM: 1.15,
+    theme: "sage",
+    rows: (
+      [
+        ["A", 14, "SILVER"], ["B", 14, "SILVER"], ["C", 16, "SILVER"],
+        ["D", 16, "GOLD"], ["E", 18, "GOLD"], ["F", 18, "GOLD"],
+        ["G", 18, "GOLD"], ["H", 18, "GOLD"], ["I", 18, "GOLD"],
+        ["J", 12, "RECLINER"], ["K", 12, "RECLINER"],
+      ] as [string, number, string][]
+    ).map(([label, seats, categoryCode]) => ({ label, seats, categoryCode })),
+  },
+  /* Nizam Grand Audi 1 · Hyderabad — XL premiere screen 18.5 m × 7.8 m,
+   * wide 20–22 seat rows, generous 0.38 m rake, 176 seats */
+  premiere: {
+    screen: { widthM: 18.5, heightM: 7.8, bottomY: 2.3, z: 0 },
+    firstRowZ: 11.5,
+    rowSpacingM: 1.3,
+    rowStepUpM: 0.38,
+    seatSpacingM: 0.66,
+    centerAisle: true,
+    aisleGapM: 1.7,
+    sideMarginM: 2.1,
+    eyeHeightM: 1.15,
+    theme: "saffron",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G"].map((label) => ({ label, seats: 22, categoryCode: "GOLD" })),
+      ...["H", "I"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Marine Marquee Audi 1 · Mumbai — heritage single-screen marquee:
+   * widest screen on the platform (22 m × 8.4 m), 26-seat rows, 324 seats */
+  marquee: {
+    screen: { widthM: 22, heightM: 8.4, bottomY: 2.6, z: 0 },
+    firstRowZ: 13,
+    rowSpacingM: 1.12,
+    rowStepUpM: 0.26,
+    seatSpacingM: 0.58,
+    centerAisle: true,
+    aisleGapM: 2,
+    sideMarginM: 1.9,
+    eyeHeightM: 1.15,
+    theme: "onyx",
+    rows: [
+      ...["A", "B", "C", "D", "E"].map((label) => ({ label, seats: 26, categoryCode: "SILVER" })),
+      ...["F", "G", "H", "I", "J"].map((label) => ({ label, seats: 26, categoryCode: "GOLD" })),
+      ...["K", "L", "M", "N"].map((label) => ({ label, seats: 16, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Tamil Screens Audi 1 · Madurai — compact neighbourhood single screen:
+   * 9.8 m screen, 14-seat rows, shallow rake, 108 seats */
+  cube: {
+    screen: { widthM: 9.8, heightM: 4.6, bottomY: 1.7, z: 0 },
+    firstRowZ: 7.5,
+    rowSpacingM: 1.08,
+    rowStepUpM: 0.24,
+    seatSpacingM: 0.58,
+    centerAisle: true,
+    aisleGapM: 1.1,
+    sideMarginM: 1.5,
+    eyeHeightM: 1.15,
+    theme: "sandstone",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 14, categoryCode: "SILVER" })),
+      ...["D", "E", "F"].map((label) => ({ label, seats: 14, categoryCode: "GOLD" })),
+      ...["G", "H"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
   },
   /* Pearl Audi 2 — family hall: solid rows (side aisles only), 140 seats */
   family: {

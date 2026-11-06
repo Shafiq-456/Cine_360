@@ -1,10 +1,11 @@
 // CINE 360 — seed/demo data.
-// Creates labelled demo accounts (3 owners), 4 theatres, 8 DISTINCT auditoriums
-// (each with its own layout, screen size, seat map and interior theme), a demo
-// movie catalogue (16 real films + 1 demo upcoming title, factual metadata,
-// real poster artwork with procedural SVG fallbacks, verified trailers), and
-// 32 shows for today with complete per-show seat inventory. The rolling
-// auto-scheduler keeps the 7-day window filled afterwards.
+// Creates labelled demo accounts (5 owners), 9 theatres across 6 cities
+// (Chennai, Bengaluru, Hyderabad, Mumbai, Madurai, Coimbatore) with 14 DISTINCT
+// auditoriums (each with its own layout, screen size, seat map and interior
+// theme), a demo movie catalogue (16 real films + 1 demo upcoming title,
+// factual metadata, real poster artwork with procedural SVG fallbacks, verified
+// trailers), and 56 shows for today with complete per-show seat inventory. The
+// rolling auto-scheduler keeps the 7-day window filled afterwards.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { DEMO_LAYOUTS, DEFAULT_PRICES, generateLayout } from "../src/lib/geometry";
@@ -105,6 +106,8 @@ async function main() {
   const ownerFrost = await db.user.create({ data: { email: "owner@cine360.demo", passwordHash, name: "Frost Cinemas Owner (demo)", role: "OWNER" } });
   const ownerFlame = await db.user.create({ data: { email: "owner2@cine360.demo", passwordHash, name: "Flame Multiplex Owner (demo)", role: "OWNER" } });
   const ownerAurora = await db.user.create({ data: { email: "owner3@cine360.demo", passwordHash, name: "Aurora Group Owner (demo)", role: "OWNER" } });
+  const ownerLumiere = await db.user.create({ data: { email: "owner4@cine360.demo", passwordHash, name: "Lumière Group Owner (demo)", role: "OWNER" } });
+  const ownerMeridian = await db.user.create({ data: { email: "owner5@cine360.demo", passwordHash, name: "Meridian Cinemas Owner (demo)", role: "OWNER" } });
   const staff = await db.user.create({ data: { email: "staff@cine360.demo", passwordHash, name: "Gate Staff (demo)", role: "STAFF" } });
   const customer = await db.user.create({ data: { email: "customer@cine360.demo", passwordHash, name: "Riya Kumar (demo)", role: "CUSTOMER" } });
   console.log("✓ demo users");
@@ -138,8 +141,45 @@ async function main() {
       status: "APPROVED",
     },
   });
+  // ---- 2026-11 city expansion: Bengaluru, Hyderabad, Mumbai, Madurai ----
+  const lumiere = await db.theatre.create({
+    data: {
+      ownerId: ownerLumiere.id, name: "Lumière Cinemas — Indiranagar", city: "Bengaluru",
+      address: "100 Feet Road, Indiranagar, Bengaluru 560038", amenities: JSON.stringify(["True Stadium Rake", "Dolby Atmos", "Sofa Lounge Hall", "Gourmet Kitchen", "Valet Parking"]),
+      status: "APPROVED",
+    },
+  });
+  const galaxy = await db.theatre.create({
+    data: {
+      ownerId: ownerLumiere.id, name: "Galaxy Multiplex — Koramangala", city: "Bengaluru",
+      address: "80 Feet Road, Koramangala 4th Block, Bengaluru 560034", amenities: JSON.stringify(["4K Laser Projection", "Dolby 7.1", "Gaming Lounge", "Cafe", "Parking"]),
+      status: "APPROVED",
+    },
+  });
+  const nizam = await db.theatre.create({
+    data: {
+      ownerId: ownerMeridian.id, name: "Nizam Grand — Banjara Hills", city: "Hyderabad",
+      address: "Road No. 12, Banjara Hills, Hyderabad 500034", amenities: JSON.stringify(["XL Premium Screen", "Dolby Atmos", "Fine Dining", "Valet Parking"]),
+      status: "APPROVED",
+    },
+  });
+  const marquee = await db.theatre.create({
+    data: {
+      ownerId: ownerMeridian.id, name: "Marine Marquee — Dadar", city: "Mumbai",
+      address: "Ranade Road, Dadar West, Mumbai 400028", amenities: JSON.stringify(["Heritage Marquee Hall", "22 m Screen", "Balcony Tier", "Classic Concessions"]),
+      status: "APPROVED",
+    },
+  });
+  const tamilScreens = await db.theatre.create({
+    data: {
+      ownerId: ownerFrost.id, name: "Tamil Screens — Simmakkal", city: "Madurai",
+      address: "Simmakkal North Street, Madurai 625001", amenities: JSON.stringify(["Neighbourhood Single Screen", "Digital 4K", "Snack Counter", "Parking"]),
+      status: "APPROVED",
+    },
+  });
   await db.theatreStaff.create({ data: { theatreId: frost.id, userId: staff.id } });
-  console.log("✓ theatres (Flame Multiplex intentionally left PENDING for admin approval demo)");
+  await db.theatreStaff.create({ data: { theatreId: tamilScreens.id, userId: staff.id } });
+  console.log("✓ 9 theatres across 6 cities (Flame Multiplex intentionally left PENDING for admin approval demo)");
 
   // ---- Auditoriums — every hall has its OWN layout, screen size and interior theme ----
   const frostA1 = await createAuditorium(frost.id, "Audi 1 · Grand", DEMO_LAYOUTS.grand);
@@ -150,8 +190,14 @@ async function main() {
   const auroraA1 = await createAuditorium(aurora.id, "Audi 1 · IMAX Experience", DEMO_LAYOUTS.imax, { SILVER: 240, GOLD: 340, RECLINER: 480 });
   const auroraA2 = await createAuditorium(aurora.id, "Audi 2 · Atrium Fan", DEMO_LAYOUTS.fan, { SILVER: 160, GOLD: 240, RECLINER: 380 });
   const auroraA3 = await createAuditorium(aurora.id, "Audi 3 · Boutique Lounge", DEMO_LAYOUTS.boutique, { RECLINER: 650 });
+  const lumiereA1 = await createAuditorium(lumiere.id, "Audi 1 · Stadium", DEMO_LAYOUTS.stadium);
+  const lumiereA2 = await createAuditorium(lumiere.id, "Audi 2 · Sofa Lounge", DEMO_LAYOUTS.lounge);
+  const galaxyA1 = await createAuditorium(galaxy.id, "Audi 1 · Galaxy", DEMO_LAYOUTS.galaxy);
+  const nizamA1 = await createAuditorium(nizam.id, "Audi 1 · XL Premiere", DEMO_LAYOUTS.premiere);
+  const marqueeA1 = await createAuditorium(marquee.id, "Audi 1 · Heritage Marquee", DEMO_LAYOUTS.marquee, { SILVER: 150, GOLD: 220, RECLINER: 320 });
+  const tamilA1 = await createAuditorium(tamilScreens.id, "Audi 1 · Neighbourhood", DEMO_LAYOUTS.cube, { SILVER: 130, GOLD: 180, RECLINER: 260 });
   console.log(
-    `✓ 8 auditoriums + seats (grand ${frostA1.seatCount}, classic ${frostA2.seatCount}, luxe ${flameA1.seatCount}, retro ${pearlA1.seatCount}, family ${pearlA2.seatCount}, imax ${auroraA1.seatCount}, fan ${auroraA2.seatCount}, boutique ${auroraA3.seatCount})`
+    `✓ 14 auditoriums + seats (grand ${frostA1.seatCount}, classic ${frostA2.seatCount}, luxe ${flameA1.seatCount}, retro ${pearlA1.seatCount}, family ${pearlA2.seatCount}, imax ${auroraA1.seatCount}, fan ${auroraA2.seatCount}, boutique ${auroraA3.seatCount}, stadium ${lumiereA1.seatCount}, lounge ${lumiereA2.seatCount}, galaxy ${galaxyA1.seatCount}, premiere ${nizamA1.seatCount}, marquee ${marqueeA1.seatCount}, cube ${tamilA1.seatCount})`
   );
 
   // ---- Movies ----
@@ -225,6 +271,35 @@ async function main() {
     { movieIdx: 5, aud: flameA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
     { movieIdx: 7, aud: flameA1.id, language: "Kannada", format: "2D" },        // Kantara
     { movieIdx: 14, aud: flameA1.id, language: "Malayalam", format: "2D" },     // Manjummel Boys
+    // Lumière Cinemas — Indiranagar, Bengaluru (stadium 240 · indigo, lounge 60 · orchid)
+    { movieIdx: 0, aud: lumiereA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+    { movieIdx: 1, aud: lumiereA1.id, language: "English", format: "3D" },       // Inception
+    { movieIdx: 11, aud: lumiereA1.id, language: "English", format: "IMAX 2D" }, // Dune: Part Two
+    { movieIdx: 15, aud: lumiereA1.id, language: "English", format: "3D" },      // Kung Fu Panda 4
+    { movieIdx: 7, aud: lumiereA2.id, language: "Kannada", format: "2D" },       // Kantara
+    { movieIdx: 6, aud: lumiereA2.id, language: "Malayalam", format: "2D" },     // Premalu
+    { movieIdx: 11, aud: lumiereA2.id, language: "English", format: "2D" },      // Dune: Part Two
+    { movieIdx: 13, aud: lumiereA2.id, language: "Tamil", format: "2D" },        // 96
+    // Galaxy Multiplex — Koramangala, Bengaluru (galaxy 162 · sage)
+    { movieIdx: 3, aud: galaxyA1.id, language: "Hindi", format: "2D" },          // Jawan
+    { movieIdx: 9, aud: galaxyA1.id, language: "Tamil", format: "2D" },          // Vikram
+    { movieIdx: 5, aud: galaxyA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+    { movieIdx: 4, aud: galaxyA1.id, language: "Tamil", format: "2D" },          // Leo
+    // Nizam Grand — Banjara Hills, Hyderabad (premiere 176 · saffron)
+    { movieIdx: 8, aud: nizamA1.id, language: "Telugu", format: "IMAX 2D" },     // RRR
+    { movieIdx: 5, aud: nizamA1.id, language: "Telugu", format: "3D" },          // Kalki 2898 AD
+    { movieIdx: 2, aud: nizamA1.id, language: "English", format: "2D" },         // Oppenheimer
+    { movieIdx: 3, aud: nizamA1.id, language: "Hindi", format: "2D" },           // Jawan
+    // Marine Marquee — Dadar, Mumbai (marquee 324 · onyx)
+    { movieIdx: 10, aud: marqueeA1.id, language: "Hindi", format: "2D" },        // 3 Idiots
+    { movieIdx: 12, aud: marqueeA1.id, language: "English", format: "2D" },      // The Dark Knight
+    { movieIdx: 3, aud: marqueeA1.id, language: "Hindi", format: "2D" },         // Jawan
+    { movieIdx: 8, aud: marqueeA1.id, language: "Hindi", format: "2D" },         // RRR
+    // Tamil Screens — Simmakkal, Madurai (cube 108 · sandstone)
+    { movieIdx: 4, aud: tamilA1.id, language: "Tamil", format: "2D" },           // Leo
+    { movieIdx: 9, aud: tamilA1.id, language: "Tamil", format: "2D" },           // Vikram
+    { movieIdx: 13, aud: tamilA1.id, language: "Tamil", format: "2D" },          // 96
+    { movieIdx: 6, aud: tamilA1.id, language: "Malayalam", format: "2D" },       // Premalu
   ];
 
   const date = new Date(base.getTime());
@@ -257,10 +332,12 @@ async function main() {
 
   console.log("\n──────────────── DEMO ACCOUNTS (all use password: Demo@1234) ────────────────");
   console.log("  admin@cine360.demo    → Super-Admin dashboard");
-  console.log("  owner@cine360.demo    → Theatre Owner (Frost Cinemas + Pearl Screens — APPROVED)");
-  console.log("  owner2@cine360.demo   → Theatre Owner (Flame Multiplex — PENDING approval)");
-  console.log("  owner3@cine360.demo   → Theatre Owner (Aurora Cineplex — APPROVED)");
-  console.log("  staff@cine360.demo    → Gate Staff (Frost Cinemas) — ticket scanner");
+  console.log("  owner@cine360.demo    → Theatre Owner (Frost Cinemas + Pearl Screens · Chennai, Tamil Screens · Madurai — APPROVED)");
+  console.log("  owner2@cine360.demo   → Theatre Owner (Flame Multiplex · Coimbatore — PENDING approval)");
+  console.log("  owner3@cine360.demo   → Theatre Owner (Aurora Cineplex · Chennai — APPROVED)");
+  console.log("  owner4@cine360.demo   → Theatre Owner (Lumière Cinemas + Galaxy Multiplex · Bengaluru — APPROVED)");
+  console.log("  owner5@cine360.demo   → Theatre Owner (Nizam Grand · Hyderabad + Marine Marquee · Mumbai — APPROVED)");
+  console.log("  staff@cine360.demo    → Gate Staff (Frost Cinemas + Tamil Screens) — ticket scanner");
   console.log("  customer@cine360.demo → Customer (demo bookings)");
   console.log("──────────────────────────────────────────────────────────────────────────────");
 }

@@ -12,6 +12,7 @@ type HomeData = {
   featured: Movie[];
   nowShowing: Movie[];
   upcoming: Movie[];
+  cities: { name: string; theatres: number; screens: number }[];
   theatres: { id: string; name: string; city: string; auditoriums: number }[];
 };
 
@@ -64,10 +65,18 @@ export default function HomeView() {
           api.get<{ movies: Movie[] }>("/api/movies"),
           api.get<{ theatres: { id: string; name: string; city: string; auditoriums: unknown[] }[] }>("/api/theatres"),
         ]);
+        const cityMap = new Map<string, { theatres: number; screens: number }>();
+        for (const t of theatres.theatres) {
+          const c = cityMap.get(t.city) || { theatres: 0, screens: 0 };
+          c.theatres += 1;
+          c.screens += Array.isArray(t.auditoriums) ? t.auditoriums.length : 0;
+          cityMap.set(t.city, c);
+        }
         setData({
           featured: movies.movies.filter((m) => m.featured && m.status === "NOW_SHOWING"),
           nowShowing: movies.movies.filter((m) => m.status === "NOW_SHOWING"),
           upcoming: movies.movies.filter((m) => m.status === "UPCOMING"),
+          cities: [...cityMap.entries()].map(([name, c]) => ({ name, ...c })).sort((a, b) => b.theatres - a.theatres || a.name.localeCompare(b.name)),
           theatres: theatres.theatres.map((t) => ({ id: t.id, name: t.name, city: t.city, auditoriums: t.auditoriums?.length ?? 0 })),
         });
       } catch {
@@ -155,6 +164,32 @@ export default function HomeView() {
           </>
         )}
 
+        {/* ================= CITIES ================= */}
+        {data && data.cities.length > 0 && (
+          <section className="mt-16" aria-label="Browse by city">
+            <div className="flex items-end justify-between mb-5">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">Browse by city</h2>
+                <p className="text-sm text-[#8FA3BF] mt-1">CINE 360 now screens in {data.cities.length} cities — pick yours and choose a hall</p>
+              </div>
+              <Button variant="ghost" size="sm" className="text-[#477BFF] hover:text-[#9FC0FF]" onClick={() => navigate("/theatres")}>
+                All theatres <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {data.cities.map((c) => (
+                <button key={c.name} onClick={() => navigate(`/theatres?city=${encodeURIComponent(c.name)}`)} className="cine-card cine-card-hover p-5 text-left cursor-pointer group">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-4 h-4 text-[#20D9E8]" />
+                    <h3 className="font-semibold group-hover:text-[#477BFF] transition-colors">{c.name}</h3>
+                  </div>
+                  <p className="text-xs text-[#8FA3BF]">{c.theatres} theatre{c.theatres === 1 ? "" : "s"} · {c.screens} screen{c.screens === 1 ? "" : "s"}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ================= THEATRES ================= */}
         {data && data.theatres.length > 0 && (
           <section className="mt-16" aria-label="Popular theatres">
@@ -167,7 +202,7 @@ export default function HomeView() {
                 All theatres <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.theatres.map((t) => (
                 <button key={t.id} onClick={() => navigate(`/theatres/${t.id}`)} className="cine-card cine-card-hover p-6 text-left cursor-pointer">
                   <div className="flex items-start justify-between">
