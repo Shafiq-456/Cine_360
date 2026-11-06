@@ -1,0 +1,721 @@
+     1→"use client";
+     2→// CINE 360 — THE booking experience: 3D auditorium + selection panel +
+     3→// Seat Experience Mode (SeatVision) + accessible 2D map + hold → checkout.
+     4→import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+     5→import { navigate } from "@/lib/router";
+     6→import { api, inr, fmtDateTime } from "@/lib/client";
+     7→import { useAuth, useBookingSelection, type SelectedSeat } from "@/lib/store";
+     8→import type { InventorySeat } from "@/lib/inventory";
+     9→import type { LayoutConfig } from "@/lib/geometry";
+    10→import { measureSeat, deriveSightline } from "@/lib/geometry";
+    11→import dynamicImport from "next/dynamic";
+    12→import type { SceneMode, MoveVector } from "@/components/cine/three/AuditoriumScene";
+    13→import SeatMap2D from "./SeatMap2D";
+    14→import { Button } from "@/components/ui/button";
+    15→import { Separator } from "@/components/ui/separator";
+    16→import { Spinner, EmptyState } from "./bits";
+    17→import { toast } from "sonner";
+    18→
+    19→// The 3D engine (three.js + R3F ≈ 1MB) is code-split: it is fetched only when
+    20→// the auditorium stage actually mounts, keeping movies/booking screens instant.
+    21→const AuditoriumCanvas = dynamicImport(() => import("@/components/cine/three/AuditoriumScene"), {
+    22→  ssr: false,
+    23→  loading: () => (
+    24→    <div className="w-full h-full flex items-center justify-center" aria-live="polite" aria-busy="true">
+    25→      <Spinner label="Loading 3D auditorium" />
+    26→    </div>
+    27→  ),
+    28→});
+    29→import {
+    30→  Armchair, Orbit, Footprints, Eye, LayoutGrid, RotateCcw, Maximize, ChevronLeft, ChevronRight,
+    31→  Pin, PinOff, X, MousePointerClick, Loader2, Info, Accessibility, Sun, Moon, Flame, Play,
+    32→} from "lucide-react";
+    33→
+    34→type Inventory = {
+    35→  show: {
+    36→    id: string; startsAt: string; language: string; format: string; status: string;
+    37→    movie: { id: string; title: string; posterUrl: string; backdropUrl?: string | null; trailerId?: string | null; trailerUrl?: string | null; certification: string; durationMins: number };
+    38→    auditorium: { id: string; name: string; geometrySource: string; theatre: { id: string; name: string; city: string; address: string } };
+    39→  };
+    40→  layout: LayoutConfig;
+    41→  dimensions: { widthM: number; depthM: number; heightM: number; lastRowZ: number; screenCenterY: number; maxRowWidthM: number };
+    42→  categories: { code: string; name: string; color: string; basePrice: number }[];
+    43→  seats: InventorySeat[];
+    44→  counts: Record<string, number>;
+    45→};
+    46→
+    47→const LEGEND = [
+    48→  { color: "#2FBF71", label: "Available" },
+    49→  { color: "#F5C518", label: "Held by others" },
+    50→  { color: "#E5484D", label: "Booked" },
+    51→  { color: "#477BFF", label: "Your selection" },
+    52→  { color: "#3A3F4A", label: "Unavailable" },
+    53→];
+    54→
+    55→function hasWebGL(): boolean {
+    56→  try {
+    57→    const canvas = document.createElement("canvas");
+    58→    return !!(window.WebGLRenderingContext && (canvas.getContext("webgl2") || canvas.getContext("webgl")));
+    59→  } catch {
+    60→    return false;
+    61→  }
+    62→}
+    63→
+    64→export default function BookView({ showId, params }: { showId: string; params: URLSearchParams }) {
+    65→  const { session } = useAuth();
+    66→  const { selected, toggleSeat, clearSeats, previewSeatId, setPreviewSeat, compare, addCompare, removeCompare } = useBookingSelection();
+    67→
+    68→  const [inv, setInv] = useState<Inventory | null>(null);
+    69→  const [error, setError] = useState<string | null>(null);
+    70→  const [force2D, setForce2D] = useState(params.get("mode") === "2d");
+    71→  const [webglOk, setWebglOk] = useState(true);
+    72→  const [mode, setMode] = useState<SceneMode>("orbit");
+    73→  const [hoveredSeat, setHoveredSeat] = useState<InventorySeat | null>(null);
+    74→  const [resetKey, setResetKey] = useState(0);
+    75→  const [holding, setHolding] = useState(false);
+    76→  const [live, setLive] = useState<"live" | "polling">("polling");
+    77→  const [showInstructions, setShowInstructions] = useState(true);
+    78→  const [bright, setBright] = useState(true); // house lights up by default
+    79→  const [heatmap, setHeatmap] = useState(false); // row-demand heat colouring
+    80→  const [trailerOpen, setTrailerOpen] = useState(false);
+    81→
+    82→  // Close the trailer overlay with Escape (a11y)
+    83→  useEffect(() => {
+    84→    if (!trailerOpen) return;
+    85→    const onKey = (e: KeyboardEvent) => {
+    86→      if (e.key === "Escape") setTrailerOpen(false);
+    87→    };
+    88→    window.addEventListener("keydown", onKey);
+    89→    return () => window.removeEventListener("keydown", onKey);
+    90→  }, [trailerOpen]);
+    91→  const moveRef = useRef<MoveVector>({ x: 0, z: 0 });
+    92→  const containerRef = useRef<HTMLDivElement | null>(null);
+    93→
+    94→  const isTouch = useMemo(
+    95→    () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
+    96→    []
+    97→  );
+    98→
+    99→  // ---------- data + realtime ----------
+   100→  const fetchInventory = useCallback(async () => {
+   101→    try {
+   102→      const data = await api.get<Inventory>(`/api/shows/${showId}/seats`);
+   103→      setInv(data);
+   104→    } catch (e) {
+   105→      setError(e instanceof Error ? e.message : "Could not load this show");
+   106→    }
+   107→  }, [showId]);
+   108→
+   109→  useEffect(() => {
+   110→    setWebglOk(hasWebGL());
+   111→    if (!hasWebGL()) {
+   112→      setForce2D(true);
+   113→      toast.info("WebGL is not available — switched to the accessible 2D seat map.");
+   114→    }
+   115→    fetchInventory();
+   116→  }, [fetchInventory]);
+   117→
+   118→  // socket.io live seat updates + polling fallback
+   119→  useEffect(() => {
+   120→    let cancelled = false;
+   121→    let socket: { emit: (e: string, d: unknown) => void; disconnect: () => void; connected: boolean } | null = null;
+   122→    (async () => {
+   123→      try {
+   124→        const { io } = await import("socket.io-client");
+   125→        const s = io("/?XTransformPort=3003", {
+   126→          transports: ["websocket", "polling"],
+   127→          reconnection: true,
+   128→          reconnectionAttempts: 3,
+   129→          timeout: 8000,
+   130→        });
+   131→        socket = s as unknown as typeof socket;
+   132→        s.on("connect", () => {
+   133→          if (!cancelled) {
+   134→            setLive("live");
+   135→            s.emit("join-show", showId);
+   136→          }
+   137→        });
+   138→        s.on("seats:changed", () => {
+   139→          if (!cancelled) fetchInventory();
+   140→        });
+   141→        s.on("disconnect", () => !cancelled && setLive("polling"));
+   142→      } catch {
+   143→        setLive("polling");
+   144→      }
+   145→    })();
+   146→    const poll = setInterval(() => {
+   147→      if (!cancelled && document.visibilityState === "visible") fetchInventory();
+   148→    }, 15000);
+   149→    return () => {
+   150→      cancelled = true;
+   151→      clearInterval(poll);
+   152→      socket?.disconnect();
+   153→    };
+   154→  }, [showId, fetchInventory]);
+   155→
+   156→  // keep the selection store in sync with fresh inventory (e.g., seat became HELD elsewhere)
+   157→  useEffect(() => {
+   158→    if (!inv) return;
+   159→    const byId = new Map(inv.seats.map((s) => [s.id, s]));
+   160→    const stale = selected.filter((sel) => {
+   161→      const live = byId.get(sel.showSeatId);
+   162→      return !live || live.status !== "AVAILABLE";
+   163→    });
+   164→    if (stale.length > 0) {
+   165→      toast.warning(`${stale.length === 1 ? "One seat is" : stale.length + " seats are"} no longer available and were removed from your selection.`);
+   166→      stale.forEach((s) => toggleSeat(s));
+   167→    }
+   168→     
+   169→  }, [inv]);
+   170→
+   171→  // ---------- derived ----------
+   172→  const selectedSeats = useMemo(() => {
+   173→    if (!inv) return [];
+   174→    const byId = new Map(inv.seats.map((s) => [s.id, s]));
+   175→    return selected
+   176→      .map((sel) => byId.get(sel.showSeatId))
+   177→      .filter((s): s is InventorySeat => !!s);
+   178→  }, [inv, selected]);
+   179→
+   180→  const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+   181→
+   182→  const previewSeat = useMemo(
+   183→    () => inv?.seats.find((s) => s.id === previewSeatId) || null,
+   184→    [inv, previewSeatId]
+   185→  );
+   186→
+   187→  useEffect(() => {
+   188→    if (previewSeatId) setMode("preview");
+   189→  }, [previewSeatId]);
+   190→
+   191→  const previewVision = useMemo(() => {
+   192→    if (!inv || !previewSeat) return null;
+   193→    const m = measureSeat(previewSeat, inv.layout.screen);
+   194→    const g = deriveSightline(m, inv.layout.screen);
+   195→    return { ...m, ...g };
+   196→  }, [inv, previewSeat]);
+   197→
+   198→  // preview navigation: next/prev AVAILABLE seat (falls back to any seat)
+   199→  const stepPreview = useCallback(
+   200→    (dir: 1 | -1) => {
+   201→      if (!inv || !previewSeat) return;
+   202→      const idx = inv.seats.findIndex((s) => s.id === previewSeat.id);
+   203→      const isSel = (s: InventorySeat) => s.status === "AVAILABLE";
+   204→      let j = idx;
+   205→      for (let n = 0; n < inv.seats.length; n++) {
+   206→        j = (j + dir + inv.seats.length) % inv.seats.length;
+   207→        if (isSel(inv.seats[j])) {
+   208→          setPreviewSeat(inv.seats[j].id);
+   209→          return;
+   210→        }
+   211→      }
+   212→    },
+   213→    [inv, previewSeat, setPreviewSeat]
+   214→  );
+   215→
+   216→  // keyboard: Esc exits preview/walk, arrows step preview
+   217→  useEffect(() => {
+   218→    const onKey = (e: KeyboardEvent) => {
+   219→      if (e.key === "Escape") {
+   220→        if (mode === "preview") setPreviewSeat(null);
+   221→        if (mode === "walk") setMode("orbit");
+   222→      }
+   223→      if (mode === "preview" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+   224→        e.preventDefault();
+   225→        stepPreview(e.key === "ArrowRight" ? 1 : -1);
+   226→      }
+   227→    };
+   228→    window.addEventListener("keydown", onKey);
+   229→    return () => window.removeEventListener("keydown", onKey);
+   230→  }, [mode, stepPreview, setPreviewSeat]);
+   231→
+   232→  const onToggleFromScene = useCallback(
+   233→    (seat: InventorySeat) => {
+   234→      if (seat.status !== "AVAILABLE" && !selected.some((x) => x.showSeatId === seat.id)) return;
+   235→      toggleSeat({
+   236→        showSeatId: seat.id, rowLabel: seat.rowLabel, seatNumber: seat.seatNumber,
+   237→        price: seat.price, category: seat.category, status: seat.status,
+   238→      });
+   239→    },
+   240→    [selected, toggleSeat]
+   241→  );
+   242→
+   243→  const selectedIds = useMemo(() => new Set(selected.map((s) => s.showSeatId)), [selected]);
+   244→
+   245→  // ---------- hold → booking → checkout ----------
+   246→  const holdAndCheckout = async () => {
+   247→    if (!session) {
+   248→      sessionStorage.setItem("c360_return", window.location.hash);
+   249→      toast.info("Please sign in to hold your seats — your selection will be kept.");
+   250→      navigate("/login");
+   251→      return;
+   252→    }
+   253→    if (selectedSeats.length === 0) return;
+   254→    setHolding(true);
+   255→    try {
+   256→      const hold = await api.post<{ holdId: string; expiresAt: string }>("/api/seat-holds", {
+   257→        showId,
+   258→        seatIds: selectedSeats.map((s) => s.id),
+   259→      });
+   260→      const { booking } = await api.post<{ booking: { id: string } }>("/api/bookings", { holdId: hold.holdId });
+   261→      toast.success(`Seats held for you until ${new Date(hold.expiresAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}`);
+   262→      clearSeats();
+   263→      setPreviewSeat(null);
+   264→      navigate(`/checkout/${booking.id}`);
+   265→    } catch (e) {
+   266→      toast.error(e instanceof Error ? e.message : "Could not hold these seats");
+   267→      fetchInventory();
+   268→    } finally {
+   269→      setHolding(false);
+   270→    }
+   271→  };
+   272→
+   273→  // ---------- render ----------
+   274→  if (error) return <EmptyState title="Show unavailable" hint={error} action={<Button onClick={() => navigate("/movies")}>Browse movies</Button>} />;
+   275→  if (!inv) return <div className="py-32 flex justify-center"><Spinner label="Loading auditorium…" /></div>;
+   276→
+   277→  const { show } = inv;
+   278→  const walkAvailable = !isTouch && webglOk;
+   279→
+   280→  return (
+   281→    <div className="max-w-[1500px] mx-auto px-3 md:px-4 py-6">
+   282→      {/* Header */}
+   283→      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+   284→        <div className="min-w-0">
+   285→          <button onClick={() => navigate(`/movies/${show.movie.id}`)} className="text-xs text-[#477BFF] hover:underline cursor-pointer">← {show.movie.title}</button>
+   286→          <h1 className="text-lg md:text-xl font-bold mt-0.5 truncate">
+   287→            {show.auditorium.theatre.name} · {show.auditorium.name}
+   288→          </h1>
+   289→          <p className="text-xs text-[#8FA3BF] mt-0.5">
+   290→            {fmtDateTime(show.startsAt)} · {show.format} · {show.language} · {show.movie.certification}
+   291→            <span className="ml-2 inline-flex items-center gap-1">
+   292→              <span className={`w-1.5 h-1.5 rounded-full cine-pulse-dot ${live === "live" ? "bg-[#2FBF71]" : "bg-[#F5C518]"}`} />
+   293→              {live === "live" ? "Live seat sync" : "Auto-refresh (15s)"}
+   294→            </span>
+   295→          </p>
+   296→        </div>
+   297→        <div className="flex items-center gap-2">
+   298→          <span className={`text-[10px] px-2 py-1 rounded-full border ${show.auditorium.geometrySource === "UPLOADED" ? "border-[#2FBF71]/40 text-[#2FBF71] bg-[#2FBF71]/10" : "border-white/15 text-[#8FA3BF] bg-white/5"}`}>
+   299→            {show.auditorium.geometrySource === "UPLOADED" ? "CALIBRATED 3D MODEL" : "DEMO GEOMETRY"}
+   300→          </span>
+   301→          <Button size="sm" variant={force2D ? "default" : "outline"} onClick={() => setForce2D((v) => !v)} className={force2D ? "bg-[#477BFF]" : "border-white/15"}>
+   302→            <Accessibility className="w-3.5 h-3.5 mr-1.5" /> {force2D ? "3D view" : "2D seat map"}
+   303→          </Button>
+   304→        </div>
+   305→      </div>
+   306→
+   307→      <div className="flex flex-col lg:flex-row gap-4">
+   308→        {/* ==================== 3D / 2D STAGE ==================== */}
+   309→        <div className="flex-1 min-w-0">
+   310→          <div ref={containerRef} className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#050609]" style={{ height: "min(72vh, 780px)" }}>
+   311→            {force2D || !webglOk ? (
+   312→              <SeatMap2D
+   313→                seats={inv.seats}
+   314→                selectedIds={selectedIds}
+   315→                onToggle={onToggleFromScene}
+   316→                categories={inv.categories}
+   317→              />
+   318→            ) : (
+   319→              <>
+   320→                <AuditoriumCanvas
+   321→                  seats={inv.seats}
+   322→                  layout={inv.layout}
+   323→                  dimensions={inv.dimensions}
+   324→                  selectedIds={selectedIds}
+   325→                  onToggleSeat={onToggleFromScene}
+   326→                  onHoverSeat={setHoveredSeat}
+   327→                  mode={mode}
+   328→                  previewSeat={previewSeat}
+   329→                  movieTitle={show.movie.title}
+   330→                  accent="#477BFF"
+   331→                  isTouch={isTouch}
+   332→                  moveRef={moveRef}
+   333→                  resetKey={resetKey}
+   334→                  bright={bright}
+   335→                  heatmap={heatmap}
+   336→                  backdropUrl={show.movie.backdropUrl}
+   337→                  showLabel={fmtDateTime(show.startsAt)}
+   338→                />
+   339→
+   340→                {/* floating controls */}
+   341→                <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+   342→                  <div className="flex rounded-xl overflow-hidden border border-white/10 bg-[#0B0D12]/90 backdrop-blur">
+   343→                    <SceneModeButton active={mode === "orbit"} icon={<Orbit className="w-4 h-4" />} label="Orbit" onClick={() => { setMode("orbit"); setPreviewSeat(null); }} disabled={!webglOk} />
+   344→                    {walkAvailable && (
+   345→                      <SceneModeButton active={mode === "walk"} icon={<Footprints className="w-4 h-4" />} label="Walk" onClick={() => { setMode("walk"); setPreviewSeat(null); }} />
+   346→                    )}
+   347→                    <SceneModeButton active={mode === "preview"} icon={<Eye className="w-4 h-4" />} label="Seat view" disabled={!previewSeat && mode !== "preview"} onClick={() => previewSeat ? setMode("preview") : toast.info("Select a seat first, then press Preview This Seat.")} />
+   348→                    <SceneModeButton active={false} icon={<LayoutGrid className="w-4 h-4" />} label="2D" onClick={() => { setMode("orbit"); setForce2D(true); }} />
+   349→                  </div>
+   350→                  <div className="flex gap-2 flex-wrap">
+   351→                    <button
+   352→                      onClick={() => { setResetKey((k) => k + 1); setPreviewSeat(null); setMode("orbit"); }}
+   353→                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#DDE1E8] hover:border-[#477BFF]/50 transition-colors cursor-pointer"
+   354→                      aria-label="Reset camera"
+   355→                    >
+   356→                      <RotateCcw className="w-3.5 h-3.5" /> Reset
+   357→                    </button>
+   358→                    <button
+   359→                      onClick={() => {
+   360→                        const el = containerRef.current;
+   361→                        if (!document.fullscreenElement) el?.requestFullscreen?.().catch(() => toast.error("Fullscreen is blocked by the browser"));
+   362→                        else document.exitFullscreen?.();
+   363→                      }}
+   364→                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#DDE1E8] hover:border-[#477BFF]/50 transition-colors cursor-pointer"
+   365→                      aria-label="Toggle fullscreen"
+   366→                    >
+   367→                      <Maximize className="w-3.5 h-3.5" /> Fullscreen
+   368→                    </button>
+   369→                    <button
+   370→                      onClick={() => setBright((v) => !v)}
+   371→                      aria-pressed={bright}
+   372→                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${bright ? "bg-[#FFF3D6] border-[#FFD59E] text-[#5A4300]" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+   373→                      aria-label="Toggle house lights"
+   374→                      title={bright ? "House lights: ON — click to dim the theatre" : "House lights: DIM — click to brighten"}
+   375→                    >
+   376→                      {bright ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />} Lights {bright ? "ON" : "DIM"}
+   377→                    </button>
+   378→                    <button
+   379→                      onClick={() => setHeatmap((v) => !v)}
+   380→                      aria-pressed={heatmap}
+   381→                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${heatmap ? "bg-[#FF713D] border-[#FF713D] text-white" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+   382→                      aria-label="Toggle demand heatmap"
+   383→                      title="Colour available seats by how busy each row is"
+   384→                    >
+   385→                      <Flame className="w-3.5 h-3.5" /> Heatmap
+   386→                    </button>
+   387→                    {(show.movie.trailerId || show.movie.trailerUrl) && (
+   388→                      <button
+   389→                        onClick={() => setTrailerOpen(true)}
+   390→                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E50914]/90 border border-[#E50914] text-xs text-white hover:bg-[#E50914] transition-colors cursor-pointer"
+   391→                        aria-label="Play trailer on screen"
+   392→                        title="Play the official trailer"
+   393→                      >
+   394→                        <Play className="w-3.5 h-3.5" /> Trailer
+   395→                      </button>
+   396→                    )}
+   397→                  </div>
+   398→                </div>
+   399→
+   400→                {/* walk instructions / touch dpad */}
+   401→                {mode === "walk" && (
+   402→                  <WalkHints moveRef={moveRef} isTouch={isTouch} onExit={() => setMode("orbit")} />
+   403→                )}
+   404→                {mode === "orbit" && showInstructions && (
+   405→                  <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md z-10 flex items-start gap-3 px-4 py-3 rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-white/10 text-xs text-[#B9C4D6]">
+   406→                    <MousePointerClick className="w-4 h-4 text-[#477BFF] shrink-0 mt-0.5" />
+   407→                    <div>
+   408→                      <b className="text-white">Drag</b> to orbit, <b className="text-white">scroll</b> to zoom, <b className="text-white">right-drag</b> to pan. <b className="text-white">Click any green seat</b> to select it. Hover a chair for details.
+   409→                      <button onClick={() => setShowInstructions(false)} className="ml-2 text-[#8FA3BF] hover:text-white cursor-pointer underline">Got it</button>
+   410→                    </div>
+   411→                  </div>
+   412→                )}
+   413→
+   414→                {/* ==================== SEAT EXPERIENCE HUD (compact, keeps screen visible) ==================== */}
+   415→                {mode === "preview" && previewSeat && previewVision && (
+   416→                  <div className="absolute inset-x-2 bottom-2 z-20 rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-[#477BFF]/30 px-3 py-2.5 shadow-2xl">
+   417→                    <div className="flex items-center justify-between gap-2 mb-2">
+   418→                      <div className="min-w-0">
+   419→                        <span className="text-[9px] uppercase tracking-widest text-[#20D9E8]">Seat Experience · eye-position preview</span>
+   420→                        <div className="font-bold text-sm leading-tight truncate">
+   421→                          Row {previewSeat.rowLabel} · Seat {previewSeat.seatNumber}
+   422→                          <span className="ml-2 text-xs font-medium text-[#F5C518]">{previewSeat.category}</span>
+   423→                          <span className="ml-2 text-xs text-[#2FBF71]">{inr(previewSeat.price)}</span>
+   424→                        </div>
+   425→                      </div>
+   426→                      <div className="flex items-center gap-1.5 shrink-0">
+   427→                        <button onClick={() => setPreviewSeat(null)} className="p-1.5 rounded-lg hover:bg-white/10 text-[#8FA3BF] cursor-pointer" aria-label="Return to auditorium" title="Return to auditorium (Esc)">
+   428→                          <X className="w-4 h-4" />
+   429→                        </button>
+   430→                      </div>
+   431→                    </div>
+   432→
+   433→                    <div className="grid grid-cols-4 gap-1.5 mb-2">
+   434→                      <Metric label="Distance" value={`${previewVision.distanceM} m`} />
+   435→                      <Metric label="Horiz. angle" value={`${previewVision.horizontalAngleDeg}°`} />
+   436→                      <Metric label="Vert. angle" value={`${previewVision.verticalAngleDeg}°`} />
+   437→                      <Metric label="Sightline" value={previewVision.grade} accent={previewVision.score >= 82 ? "#2FBF71" : previewVision.score >= 64 ? "#F5C518" : "#FF713D"} />
+   438→                    </div>
+   439→
+   440→                    <div className="flex flex-wrap items-center gap-1.5">
+   441→                      <Button size="sm" variant="outline" className="border-white/15 h-7 text-[11px] px-2.5" onClick={() => stepPreview(-1)}>
+   442→                        <ChevronLeft className="w-3 h-3" /> Prev
+   443→                      </Button>
+   444→                      <Button size="sm" variant="outline" className="border-white/15 h-7 text-[11px] px-2.5" onClick={() => stepPreview(1)}>
+   445→                        Next <ChevronRight className="w-3 h-3" />
+   446→                      </Button>
+   447→                      {compare.some((c) => c.showSeatId === previewSeat.id) ? (
+   448→                        <Button size="sm" variant="outline" className="border-[#FF713D]/40 text-[#FF713D] h-7 text-[11px] px-2.5" onClick={() => removeCompare(previewSeat.id)}>
+   449→                          <PinOff className="w-3 h-3 mr-1" /> Unpin
+   450→                        </Button>
+   451→                      ) : (
+   452→                        <Button size="sm" variant="outline" className="border-[#20D9E8]/40 text-[#20D9E8] h-7 text-[11px] px-2.5" onClick={() => addCompare({ showSeatId: previewSeat.id, label: `R${previewSeat.rowLabel}·S${previewSeat.seatNumber}`, distanceM: previewVision.distanceM, hAngle: previewVision.horizontalAngleDeg, vAngle: previewVision.verticalAngleDeg, score: previewVision.score, grade: previewVision.grade })}>
+   453→                          <Pin className="w-3 h-3 mr-1" /> Compare
+   454→                        </Button>
+   455→                      )}
+   456→                      <Button
+   457→                        size="sm"
+   458→                        className={`h-7 text-[11px] px-2.5 ${selectedIds.has(previewSeat.id) ? "bg-[#E5484D] hover:bg-[#F05A5F]" : "bg-[#477BFF] hover:bg-[#5C89FF]"}`}
+   459→                        onClick={() => onToggleFromScene(previewSeat)}
+   460→                      >
+   461→                        {selectedIds.has(previewSeat.id) ? "Deselect seat" : "Select this seat"}
+   462→                      </Button>
+   463→                      <span className="text-[9px] text-[#8FA3BF]/80 ml-auto hidden md:inline" title="Measured from the configured auditorium geometry (eye height). Sightline grade is a derived indicator using THX/SMPTE-style bands — not a guaranteed experience.">
+   464→                        Measured from configured geometry · derived indicator
+   465→                      </span>
+   466→                    </div>
+   467→                  </div>
+   468→                )}
+   469→              </>
+   470→            )}
+   471→          </div>
+   472→
+   473→          {/* Legend + compare strip */}
+   474→          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+   475→            {LEGEND.map((l) => (
+   476→              <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-[#8FA3BF]">
+   477→                <span className="w-3 h-3 rounded-[4px] border border-white/20" style={{ background: l.color }} aria-hidden="true" />
+   478→                {l.label}
+   479→              </span>
+   480→            ))}
+   481→            {heatmap && (
+   482→              <span className="flex items-center gap-1.5 text-[11px] text-[#FF9A6B]" title="Available seats shift from green to orange as a row fills up">
+   483→                <Flame className="w-3 h-3" /> Heatmap: warmer = busier row
+   484→              </span>
+   485→            )}
+   486→            <span className="text-[11px] text-[#8FA3BF] ml-auto flex items-center gap-1"><Info className="w-3 h-3" /> Availability also labelled on hover and in the 2D map</span>
+   487→          </div>
+   488→
+   489→          {compare.length > 0 && (
+   490→            <div className="mt-3 cine-card p-4">
+   491→              <div className="flex items-center justify-between mb-2">
+   492→                <h3 className="text-sm font-semibold flex items-center gap-1.5"><Pin className="w-3.5 h-3.5 text-[#20D9E8]" /> SeatVision comparison</h3>
+   493→                <button onClick={() => useBookingSelection.getState().clearCompare()} className="text-xs text-[#8FA3BF] hover:text-white cursor-pointer">Clear</button>
+   494→              </div>
+   495→              <div className="overflow-x-auto">
+   496→                <table className="w-full text-xs">
+   497→                  <thead>
+   498→                    <tr className="text-[#8FA3BF] text-left">
+   499→                      <th className="py-1.5 pr-3 font-medium">Seat</th>
+   500→                      <th className="py-1.5 pr-3 font-medium">Distance</th>
+   501→                      <th className="py-1.5 pr-3 font-medium">Horiz. angle</th>
+   502→                      <th className="py-1.5 pr-3 font-medium">Vert. angle</th>
+   503→                      <th className="py-1.5 pr-3 font-medium">Grade</th>
+   504→                      <th className="py-1.5 font-medium"></th>
+   505→                    </tr>
+   506→                  </thead>
+   507→                  <tbody>
+   508→                    {compare.map((c) => (
+   509→                      <tr key={c.showSeatId} className="border-t border-white/5">
+   510→                        <td className="py-1.5 pr-3 font-semibold text-white">{c.label}</td>
+   511→                        <td className="py-1.5 pr-3">{c.distanceM} m</td>
+   512→                        <td className="py-1.5 pr-3">{c.hAngle}°</td>
+   513→                        <td className="py-1.5 pr-3">{c.vAngle}°</td>
+   514→                        <td className="py-1.5 pr-3" style={{ color: c.score >= 82 ? "#2FBF71" : c.score >= 64 ? "#F5C518" : "#FF713D" }}>{c.grade}</td>
+   515→                        <td className="py-1.5">
+   516→                          <button onClick={() => removeCompare(c.showSeatId)} className="text-[#8FA3BF] hover:text-white cursor-pointer" aria-label={`Remove ${c.label} from comparison`}><X className="w-3.5 h-3.5" /></button>
+   517→                        </td>
+   518→                      </tr>
+   519→                    ))}
+   520→                  </tbody>
+   521→                </table>
+   522→              </div>
+   523→            </div>
+   524→          )}
+   525→        </div>
+   526→
+   527→        {/* ==================== SELECTION PANEL ==================== */}
+   528→        <aside className="w-full lg:w-[360px] shrink-0 space-y-4" aria-label="Seat selection and checkout">
+   529→          <div className="cine-card p-5">
+   530→            <div className="flex items-center justify-between">
+   531→              <h2 className="font-bold flex items-center gap-2"><Armchair className="w-4 h-4 text-[#477BFF]" /> Your selection</h2>
+   532→              {selected.length > 0 && (
+   533→                <button onClick={clearSeats} className="text-xs text-[#8FA3BF] hover:text-white cursor-pointer">Clear all</button>
+   534→              )}
+   535→            </div>
+   536→
+   537→            <div className="mt-3 text-xs text-[#8FA3BF]">
+   538→              {inv.counts.AVAILABLE ?? 0} of {inv.seats.length} seats available right now
+   539→            </div>
+   540→
+   541→            <div className="mt-4 min-h-[92px] max-h-56 overflow-y-auto cine-scroll space-y-1.5" aria-live="polite">
+   542→              {selectedSeats.length === 0 ? (
+   543→                <p className="text-sm text-[#8FA3BF] py-4 text-center">
+   544→                  {force2D ? "Tap seats on the 2D map" : "Click seats in the 3D auditorium"} to add them here, then use <b className="text-[#20D9E8]">Preview This Seat</b> to experience the view.
+   545→                </p>
+   546→              ) : (
+   547→                selectedSeats.map((s) => (
+   548→                  <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.04] border border-white/5 text-sm">
+   549→                    <div className="flex items-center gap-2.5 min-w-0">
+   550→                      <span className="w-8 h-8 rounded-md bg-[#477BFF]/15 border border-[#477BFF]/40 text-[#9FC0FF] text-[11px] font-bold flex items-center justify-center shrink-0">
+   551→                        {s.rowLabel}{s.seatNumber}
+   552→                      </span>
+   553→                      <div className="min-w-0">
+   554→                        <div className="font-medium truncate">{s.category}</div>
+   555→                        <div className="text-[11px] text-[#8FA3BF]">Row {s.rowLabel} · Seat {s.seatNumber}</div>
+   556→                      </div>
+   557→                    </div>
+   558→                    <div className="flex items-center gap-2 shrink-0">
+   559→                      <button
+   560→                        onClick={() => setPreviewSeat(s.id)}
+   561→                        className="text-[11px] px-2 py-1 rounded-md border border-[#20D9E8]/40 text-[#20D9E8] hover:bg-[#20D9E8]/10 transition-colors cursor-pointer"
+   562→                        disabled={force2D}
+   563→                        title={force2D ? "Preview is available in the 3D view" : "Preview the screen from this seat"}
+   564→                      >
+   565→                        <Eye className="w-3 h-3 inline mr-1" />Preview
+   566→                      </button>
+   567→                      <span className="font-semibold">{inr(s.price)}</span>
+   568→                      <button onClick={() => onToggleFromScene(s)} className="text-[#8FA3BF] hover:text-[#E5484D] cursor-pointer" aria-label={`Remove seat ${s.rowLabel}${s.seatNumber}`}>
+   569→                        <X className="w-3.5 h-3.5" />
+   570→                      </button>
+   571→                    </div>
+   572→                  </div>
+   573→                ))
+   574→              )}
+   575→            </div>
+   576→
+   577→            <Separator className="my-4 bg-white/5" />
+   578→
+   579→            <div className="flex items-center justify-between text-sm">
+   580→              <span className="text-[#8FA3BF]">{selectedSeats.length} ticket{selectedSeats.length === 1 ? "" : "s"}</span>
+   581→              <span className="font-bold text-xl">{inr(total)}</span>
+   582→            </div>
+   583→            {selectedSeats.length > 0 && selectedSeats.length < 4 && (
+   584→              <p className="text-[11px] text-[#8FA3BF] mt-1">Convenience fee: none in demo · taxes included</p>
+   585→            )}
+   586→
+   587→            <Button
+   588→              className="w-full mt-4 h-11 bg-[#477BFF] hover:bg-[#5C89FF] font-semibold"
+   589→              disabled={selectedSeats.length === 0 || holding}
+   590→              onClick={holdAndCheckout}
+   591→            >
+   592→              {holding ? (
+   593→                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Securing seats…</>
+   594→              ) : (
+   595→                <>Hold {selectedSeats.length > 0 ? `${selectedSeats.length} seat${selectedSeats.length === 1 ? "" : "s"}` : "seats"} · {inr(total)} <span className="text-[#DDE1E8]/70 font-normal ml-1">(5 min)</span></>
+   596→              )}
+   597→            </Button>
+   598→            <p className="text-[11px] text-[#8FA3BF] mt-2.5 leading-relaxed">
+   599→              Seats are protected for 5 minutes while you check out. Unpaid holds expire automatically and seats return to inventory.
+   600→            </p>
+   601→          </div>
+   602→
+   603→          {/* mini show card */}
+   604→          <div className="cine-card p-4 flex gap-3">
+   605→            { }
+   606→            <img src={show.movie.posterUrl} alt={`${show.movie.title} poster`} className="w-14 h-20 rounded-lg object-cover border border-white/10" />
+   607→            <div className="text-sm min-w-0">
+   608→              <div className="font-semibold truncate">{show.movie.title}</div>
+   609→              <div className="text-xs text-[#8FA3BF] mt-0.5">{show.movie.durationMins} min · {show.movie.certification}</div>
+   610→              <div className="text-xs text-[#20D9E8] mt-1">{show.format} · {show.language}</div>
+   611→              <button onClick={() => navigate(`/theatres/${show.auditorium.theatre.id}`)} className="text-xs text-[#477BFF] hover:underline mt-1.5 cursor-pointer">
+   612→                {show.auditorium.theatre.name}
+   613→              </button>
+   614→            </div>
+   615→          </div>
+   616→        </aside>
+   617→      </div>
+   618→
+   619→      {/* ==================== TRAILER OVERLAY (YouTube embed of the official trailer) ==================== */}
+   620→      {trailerOpen && (show.movie.trailerId || show.movie.trailerUrl) && (
+   621→        <div
+   622→          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+   623→          role="dialog"
+   624→          aria-modal="true"
+   625→          aria-label={`${show.movie.title} official trailer`}
+   626→          onClick={() => setTrailerOpen(false)}
+   627→        >
+   628→          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+   629→            <div className="flex items-center justify-between mb-2">
+   630→              <div className="text-sm font-semibold text-white flex items-center gap-2">
+   631→                <Play className="w-4 h-4 text-[#E50914]" /> {show.movie.title} — Official trailer
+   632→              </div>
+   633→              <button
+   634→                onClick={() => setTrailerOpen(false)}
+   635→                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+   636→                aria-label="Close trailer"
+   637→              >
+   638→                <X className="w-4 h-4" />
+   639→              </button>
+   640→            </div>
+   641→            <div className="relative rounded-xl overflow-hidden border border-white/15 shadow-2xl bg-black" style={{ aspectRatio: "16 / 9" }}>
+   642→              {show.movie.trailerId ? (
+   643→                <iframe
+   644→                  key={show.movie.trailerId}
+   645→                  src={`https://www.youtube.com/embed/${show.movie.trailerId}?autoplay=1&rel=0`}
+   646→                  title={`${show.movie.title} official trailer`}
+   647→                  className="absolute inset-0 w-full h-full"
+   648→                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+   649→                  allowFullScreen
+   650→                />
+   651→              ) : (
+   652→                <div className="absolute inset-0 flex items-center justify-center text-sm text-[#8FA3BF]">
+   653→                  Open trailer:&nbsp;
+   654→                  <a className="text-[#477BFF] underline" href={show.movie.trailerUrl || "#"} target="_blank" rel="noopener noreferrer">external link</a>
+   655→                </div>
+   656→              )}
+   657→            </div>
+   658→            <p className="mt-2 text-[11px] text-[#8FA3BF]">
+   659→              Plays the film's publicly available trailer via YouTube. The in-theatre screen also runs a pre-show reel generated from the movie artwork.
+   660→            </p>
+   661→          </div>
+   662→        </div>
+   663→      )}
+   664→    </div>
+   665→  );
+   666→}
+   667→
+   668→function SceneModeButton({ active, icon, label, onClick, disabled }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }) {
+   669→  return (
+   670→    <button
+   671→      onClick={onClick}
+   672→      disabled={disabled}
+   673→      aria-pressed={active}
+   674→      className={`flex items-center gap-1.5 px-3 py-2 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+   675→        active ? "bg-[#477BFF] text-white" : "text-[#B9C4D6] hover:bg-white/10"
+   676→      }`}
+   677→    >
+   678→      {icon} {label}
+   679→    </button>
+   680→  );
+   681→}
+   682→
+   683→function Metric({ label, value, accent = "#F5F7FA" }: { label: string; value: string; accent?: string }) {
+   684→  return (
+   685→    <div className="rounded-lg bg-white/[0.04] border border-white/5 px-3 py-2">
+   686→      <div className="text-[10px] uppercase tracking-wider text-[#8FA3BF]">{label}</div>
+   687→      <div className="text-sm font-bold mt-0.5" style={{ color: accent }}>{value}</div>
+   688→    </div>
+   689→  );
+   690→}
+   691→
+   692→function WalkHints({ moveRef, isTouch, onExit }: { moveRef: React.MutableRefObject<MoveVector>; isTouch: boolean; onExit: () => void }) {
+   693→  const set = (x: number, z: number) => {
+   694→    moveRef.current = { x, z };
+   695→  };
+   696→  const btn = "w-11 h-11 rounded-lg bg-[#0B0D12]/90 border border-white/15 text-white flex items-center justify-center active:bg-[#477BFF] select-none touch-none";
+   697→  return (
+   698→    <div className="absolute inset-0 z-10 pointer-events-none">
+   699→      {!isTouch && (
+   700→        <div className="absolute top-3 right-3 px-4 py-3 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#B9C4D6] max-w-[260px] pointer-events-auto">
+   701→          <b className="text-white">Walk mode.</b> Click to capture the mouse · <b>WASD / arrows</b> to move · <b>Esc</b> to release & exit. You cannot walk through walls or seats.
+   702→          <button onClick={onExit} className="block mt-2 text-[#477BFF] hover:underline cursor-pointer">Exit walk mode</button>
+   703→        </div>
+   704→      )}
+   705→      {isTouch && (
+   706→        <div className="absolute bottom-4 left-4 pointer-events-auto" style={{ touchAction: "none" }}>
+   707→          <div className="grid grid-cols-3 gap-1 w-[132px]">
+   708→            <span />
+   709→            <button className={btn} aria-label="Move forward" onPointerDown={() => set(0, 1)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>▲</button>
+   710→            <span />
+   711→            <button className={btn} aria-label="Move left" onPointerDown={() => set(-1, 0)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>◀</button>
+   712→            <button className={btn} aria-label="Move back" onPointerDown={() => set(0, -1)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>▼</button>
+   713→            <button className={btn} aria-label="Move right" onPointerDown={() => set(1, 0)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>▶</button>
+   714→          </div>
+   715→          <button onClick={onExit} className="mt-2 w-full py-2 rounded-lg bg-[#0B0D12]/90 border border-white/15 text-xs text-white cursor-pointer">Exit walk</button>
+   716→        </div>
+   717→      )}
+   718→    </div>
+   719→  );
+   720→}
+   721→

@@ -188,6 +188,13 @@ export default function BookView({ showId, params }: { showId: string; params: U
     if (previewSeatId) setMode("preview");
   }, [previewSeatId]);
 
+  // Safety net: if the preview target disappears while still in preview mode
+  // (✕ pressed, seat removed, hold completed) return to the orbit overview
+  // instead of leaving the camera frozen at a seat with no HUD.
+  useEffect(() => {
+    if (mode === "preview" && !previewSeat) setMode("orbit");
+  }, [mode, previewSeat]);
+
   const previewVision = useMemo(() => {
     if (!inv || !previewSeat) return null;
     const m = measureSeat(previewSeat, inv.layout.screen);
@@ -217,7 +224,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (mode === "preview") setPreviewSeat(null);
+        if (mode === "preview") { setPreviewSeat(null); setMode("orbit"); }
         if (mode === "walk") setMode("orbit");
       }
       if (mode === "preview" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
@@ -228,6 +235,55 @@ export default function BookView({ showId, params }: { showId: string; params: U
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, stepPreview, setPreviewSeat]);
+
+  /** Geometrically best AVAILABLE seat (centre distance + smallest off-axis angles). */
+  const recommendedSeat = (seats: InventorySeat[], screen: LayoutConfig["screen"]) => {
+    let best: InventorySeat | null = null;
+    let bestScore = Infinity;
+    for (const s of seats) {
+      if (s.status !== "AVAILABLE") continue;
+      const m = measureSeat(s, screen);
+      const score =
+        Math.abs(m.horizontalDistanceM - screen.widthM * 1.5) +
+        Math.abs(m.horizontalAngleDeg) * 0.45 +
+        Math.abs(m.verticalAngleDeg) * 0.25;
+      if (score < bestScore) {
+        bestScore = score;
+        best = s;
+      }
+    }
+    return best;
+  };
+
+  // "Seat view" must ALWAYS respond. Priority:
+  //   1. already previewing (keep the target, even if it was stepped via Next/Prev)
+  //   2. a freshly selected seat
+  //   3. geometrically recommended seat (with an explanatory toast)
+  const enterSeatView = useCallback(() => {
+    if (!inv) return;
+    if (mode === "preview" && previewSeat) {
+      setMode("preview");
+      return;
+    }
+    const sel = selectedSeats[0];
+    if (sel) {
+      if (previewSeat?.id !== sel.id) setPreviewSeat(sel.id);
+      setMode("preview");
+      return;
+    }
+    if (previewSeat) {
+      setMode("preview");
+      return;
+    }
+    const best = recommendedSeat(inv.seats, inv.layout.screen);
+    if (best) {
+      setPreviewSeat(best.id);
+      setMode("preview");
+      toast.info(`No seat picked yet — showing the view from recommended seat ${best.rowLabel}${best.seatNumber}. Click any green seat to choose your own.`, { duration: 6000 });
+    } else {
+      toast.info("Click any green seat in the auditorium first, then press Seat view.");
+    }
+  }, [inv, mode, previewSeat, selectedSeats, setPreviewSeat]);
 
   const onToggleFromScene = useCallback(
     (seat: InventorySeat) => {
@@ -344,7 +400,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     {walkAvailable && (
                       <SceneModeButton active={mode === "walk"} icon={<Footprints className="w-4 h-4" />} label="Walk" onClick={() => { setMode("walk"); setPreviewSeat(null); }} />
                     )}
-                    <SceneModeButton active={mode === "preview"} icon={<Eye className="w-4 h-4" />} label="Seat view" disabled={!previewSeat && mode !== "preview"} onClick={() => previewSeat ? setMode("preview") : toast.info("Select a seat first, then press Preview This Seat.")} />
+                    <SceneModeButton active={mode === "preview"} icon={<Eye className="w-4 h-4" />} label="Seat view" onClick={enterSeatView} title={previewSeat ? "Return to the eye-position view" : selectedSeats.length > 0 ? "See the screen from your selected seat" : "See the view from the recommended centre seat"} />
                     <SceneModeButton active={false} icon={<LayoutGrid className="w-4 h-4" />} label="2D" onClick={() => { setMode("orbit"); setForce2D(true); }} />
                   </div>
                   <div className="flex gap-2 flex-wrap">
@@ -413,7 +469,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
 
                 {/* ==================== SEAT EXPERIENCE HUD (compact, keeps screen visible) ==================== */}
                 {mode === "preview" && previewSeat && previewVision && (
-                  <div className="absolute inset-x-2 bottom-2 z-20 rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-[#477BFF]/30 px-3 py-2.5 shadow-2xl">
+                  <div className="absolute inset-x-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto cine-scroll rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-[#477BFF]/30 px-3 py-2.5 shadow-2xl">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="min-w-0">
                         <span className="text-[9px] uppercase tracking-widest text-[#20D9E8]">Seat Experience · eye-position preview</span>
@@ -424,13 +480,13 @@ export default function BookView({ showId, params }: { showId: string; params: U
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={() => setPreviewSeat(null)} className="p-1.5 rounded-lg hover:bg-white/10 text-[#8FA3BF] cursor-pointer" aria-label="Return to auditorium" title="Return to auditorium (Esc)">
+                        <button onClick={() => { setPreviewSeat(null); setMode("orbit"); }} className="p-1.5 rounded-lg hover:bg-white/10 text-[#8FA3BF] cursor-pointer" aria-label="Return to auditorium" title="Return to auditorium (Esc)">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-1.5 mb-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
                       <Metric label="Distance" value={`${previewVision.distanceM} m`} />
                       <Metric label="Horiz. angle" value={`${previewVision.horizontalAngleDeg}°`} />
                       <Metric label="Vert. angle" value={`${previewVision.verticalAngleDeg}°`} />
@@ -665,11 +721,12 @@ export default function BookView({ showId, params }: { showId: string; params: U
   );
 }
 
-function SceneModeButton({ active, icon, label, onClick, disabled }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }) {
+function SceneModeButton({ active, icon, label, onClick, disabled, title }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      title={title}
       aria-pressed={active}
       className={`flex items-center gap-1.5 px-3 py-2 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
         active ? "bg-[#477BFF] text-white" : "text-[#B9C4D6] hover:bg-white/10"

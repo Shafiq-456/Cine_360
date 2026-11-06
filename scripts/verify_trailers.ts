@@ -30,3 +30,4 @@ for (const [movie, ids] of Object.entries(CANDIDATES)) {
     if (r.ok) break;
   }
 }
+export {};

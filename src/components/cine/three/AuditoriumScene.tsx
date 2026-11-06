@@ -347,7 +347,9 @@ function CameraRig({ mode, previewSeat, layout, dimensions, seats, moveRef, isTo
       // the frame, clear of the compact measurement HUD at the bottom
       look.lookAt(0, layout.screen.bottomY + layout.screen.heightM * 0.45, layout.screen.z);
       goTo(pos, look.quaternion.clone(), 1.2);
-    } else if (mode !== "preview" && homeRef.current) {
+    } else if (homeRef.current && (mode !== "preview" || !previewSeat)) {
+      // Leaving preview (mode switched OR target cleared) — glide back home so
+      // the camera is never stranded at a seat with no way out.
       const home = homeRef.current;
       homeRef.current = null;
       goTo(home.pos.clone(), home.quat.clone(), 1.0);
