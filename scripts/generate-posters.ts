@@ -22,12 +22,35 @@ const MOVIES: Movie[] = [
   { slug: "96", title: "96", tagline: "Two souls. One afternoon.", c1: "#140D0B", c2: "#33221C", c3: "#F0A32A" },
   { slug: "manjummel-boys", title: "MANJUMMEL BOYS", tagline: "Friends who dive into darkness together.", c1: "#0A1214", c2: "#1C3238", c3: "#37C4D8" },
   { slug: "kung-fu-panda-4", title: "KUNG FU PANDA 4", tagline: "The tale of the Dragon Warrior continues.", c1: "#101318", c2: "#2A3140", c3: "#FFD24D" },
+  { slug: "brahmastra", title: "BRAHMĀSTRA", tagline: "The fire awakens.", c1: "#160E08", c2: "#3A2414", c3: "#FFB03D" },
+  // ---- 2026-11 third expansion: 18 new releases ----
+  { slug: "ramayana-rise-of-a-legend", title: "RAMAYANA", tagline: "Dharma rises.\nA legend is born.", c1: "#0E0A14", c2: "#2A1C3A", c3: "#E8B56A" },
+  { slug: "nakhrewaalii", title: "NAKHREWAALII", tagline: "Small town. Big dreams.\nFull masti.", c1: "#1C0A14", c2: "#4A1B33", c3: "#FF8FB1" },
+  { slug: "pyre", title: "PYRE", tagline: "A melancholic ballad\nof undying love.", c1: "#120E0C", c2: "#33261E", c3: "#F0A32A" },
+  { slug: "gajab-raat", title: "GAJAB RAAT", tagline: "One night.\nNo way back.", c1: "#0A0A0F", c2: "#1C2438", c3: "#E5484D" },
+  { slug: "mirzapur-the-movie", title: "MIRZAPUR", tagline: "The throne of Mirzapur\ncalls once more.", c1: "#140B0B", c2: "#3A1A1A", c3: "#FF713D" },
+  { slug: "paradise-lost", title: "PARADISE LOST", tagline: "Every paradise hides\nits own inferno.", c1: "#0A1214", c2: "#1E3238", c3: "#37C4D8" },
+  { slug: "raise-the-red-lantern", title: "RAISE THE RED LANTERN", tagline: "The lanterns light.\nThe walls watch.", c1: "#160808", c2: "#4A1010", c3: "#E5484D" },
+  { slug: "nurture", title: "NURTURE", tagline: "Love grows.\nSo does hunger.", c1: "#0C1208", c2: "#24361B", c3: "#7BC950" },
+  { slug: "scene", title: "SCENE", tagline: "Every life deserves\nits defining scene.", c1: "#14100A", c2: "#3A2E1C", c3: "#FFD166" },
+  { slug: "mookuthi-amman-2", title: "MOOKUTHI AMMAN 2", tagline: "The goddess returns.", c1: "#140F1E", c2: "#3A2A50", c3: "#F2B04C" },
+  { slug: "jailer-2", title: "JAILER 2", tagline: "The tiger is back.", c1: "#0D0D0D", c2: "#262A30", c3: "#FF8A3D" },
+  { slug: "karuppu", title: "KARUPPU", tagline: "Justice wears black.", c1: "#0A0A0A", c2: "#1F1F24", c3: "#F5C518" },
+  { slug: "vishwanath-and-sons", title: "VISHWANATH & SONS", tagline: "A legacy forged\nin family.", c1: "#140F0A", c2: "#3A2C1E", c3: "#D9A05B" },
+  { slug: "mandaadi", title: "MANDAADI", tagline: "The sea decides\nwho is king.", c1: "#0A1216", c2: "#1C3242", c3: "#4FB3D9" },
+  { slug: "thaai-kizhavi", title: "THAAI KIZHAVI", tagline: "A mother's love\nknows no bounds.", c1: "#140C0A", c2: "#3A221A", c3: "#F07B5A" },
+  { slug: "haiku", title: "HAIKU", tagline: "Life in verse.\nLove in silence.", c1: "#120A14", c2: "#331A3E", c3: "#C77DFF" },
+  { slug: "dorothy", title: "DOROTHY", tagline: "Follow the trail.\nTrust no one.", c1: "#0E1014", c2: "#262E3A", c3: "#F0659A" },
+  { slug: "sardar-2", title: "SARDAR 2", tagline: "The spy returns.", c1: "#0A0E14", c2: "#1E2A3E", c3: "#5B8DEF" },
 ];
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
 function poster(m: Movie): string {
   const lines = m.tagline.split("\n").map((t, i) =>
-    `<text x="60" y="${760 + i * 34}" font-family="Georgia, serif" font-size="24" fill="#DDE1E8" opacity="0.85">${t}</text>`
+    `<text x="60" y="${760 + i * 34}" font-family="Georgia, serif" font-size="24" fill="#DDE1E8" opacity="0.85">${esc(t)}</text>`
   ).join("");
+  const titleFs = m.title.length > 17 ? 34 : m.title.length > 13 ? 42 : m.title.length > 9 ? 48 : 52;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -46,7 +69,7 @@ function poster(m: Movie): string {
   <circle cx="300" cy="310" r="6" fill="${m.c3}"/>
   <path d="M0 640 L600 560 L600 900 L0 900 Z" fill="#000" opacity="0.35"/>
   <text x="60" y="120" font-family="Helvetica, Arial, sans-serif" font-size="18" letter-spacing="6" fill="#DDE1E8" opacity="0.7">CINE 360 PRESENTS</text>
-  <text x="58" y="700" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="52" fill="#F5F7FA" letter-spacing="2">${m.title}</text>
+  <text x="58" y="700" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="${titleFs}" fill="#F5F7FA" letter-spacing="2">${esc(m.title)}</text>
   ${lines}
   <rect x="60" y="840" width="180" height="3" fill="${m.c3}"/>
   <text x="60" y="872" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="3" fill="#8FA3BF">DEMO ARTWORK — PROCEDURALLY GENERATED</text>
@@ -70,8 +93,8 @@ function backdrop(m: Movie): string {
   </g>
   <rect x="880" y="240" width="600" height="338" rx="8" fill="none" stroke="${m.c3}" stroke-opacity="0.6" stroke-width="3"/>
   <text x="1180" y="640" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" letter-spacing="8" fill="#F5F7FA" opacity="0.9">THE SCREEN</text>
-  <text x="100" y="470" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="84" fill="#F5F7FA">${m.title}</text>
-  <text x="102" y="530" font-family="Georgia, serif" font-size="30" fill="#DDE1E8" opacity="0.8">${m.tagline.split("\n")[0]}</text>
+  <text x="100" y="470" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="${m.title.length > 14 ? 52 : 84}" fill="#F5F7FA">${esc(m.title)}</text>
+  <text x="102" y="530" font-family="Georgia, serif" font-size="30" fill="#DDE1E8" opacity="0.8">${esc(m.tagline.split("\n")[0])}</text>
 </svg>`;
 }
 

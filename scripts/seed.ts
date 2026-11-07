@@ -2,11 +2,11 @@
 // Creates labelled demo accounts (7 owners), 15 theatres across 12 cities
 // (Chennai, Bengaluru, Hyderabad, Mumbai, Madurai, Coimbatore, Delhi, Kolkata,
 // Pune, Kochi, Jaipur) with 21 DISTINCT auditoriums (each with its own layout,
-// screen size, seat map and interior theme), a demo movie catalogue (28 real
-// films + 1 demo upcoming title, factual metadata, real poster artwork with
-// procedural SVG fallbacks, verified trailers), and 84 shows for today with
-// complete per-show seat inventory. The rolling auto-scheduler keeps the
-// 7-day window filled afterwards.
+// screen size, seat map and interior theme), a demo movie catalogue (46 films —
+// 28 established favourites and 18 new 2026 releases — with factual metadata
+// where published, procedural SVG fallback artwork, search-link trailers), and
+// 84 shows for today with complete per-show seat inventory. The rolling
+// auto-scheduler keeps the 7-day window filled afterwards.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { DEMO_LAYOUTS, DEFAULT_PRICES, generateLayout } from "../src/lib/geometry";
@@ -145,6 +145,64 @@ const MOVIES = [
   { title: "Super Deluxe", slug: "super-deluxe", languages: ["Tamil"], genres: ["Drama", "Anthology"], durationMins: 176, certification: "UA", year: 2019, featured: false,
     synopsis: "Several parallel lives — a lost lover, an unsatisfied wife, a boy and his absent father — collide over one eventful day in Chennai.",
     trailerUrl: "https://www.youtube.com/results?search_query=super+deluxe+2019+official+trailer" },
+  // ---- 2026-11 third expansion: 18 new releases (user-supplied list) ----
+  // Metadata sourced from public listings where available (Wikipedia/IMDb/BookMyShow,
+  // Nov 2026); runtime/cert marked est. where not yet published. trailerId left null
+  // (no verified embed IDs) — the search-link trailerUrl is shown instead.
+  { title: "Ramayana: Rise of a Legend", slug: "ramayana-rise-of-a-legend", languages: ["Hindi", "Tamil", "Telugu"], genres: ["Mythological", "Epic", "Drama"], durationMins: 195, certification: "UA", year: 2026, featured: true,
+    synopsis: "Adapted from Valmiki's epic, part one of the two-part saga follows Prince Rama's marriage, exile and the beginning of a legendary journey — with music by Hans Zimmer and A. R. Rahman.",
+    trailerUrl: "https://www.youtube.com/results?search_query=ramayana+rise+of+a+legend+official+trailer" },
+  { title: "Nakhrewaalii", slug: "nakhrewaalii", languages: ["Hindi"], genres: ["Comedy", "Romance"], durationMins: 129, certification: "A", year: 2026, featured: false,
+    synopsis: "A small-town Hindi romantic comedy about big dreams and bigger attitude, presented by Aanand L Rai's Colour Yellow Productions.",
+    trailerUrl: "https://www.youtube.com/results?search_query=nakhrewaalii+official+trailer" },
+  { title: "Pyre", slug: "pyre", languages: ["Hindi", "Kumaoni"], genres: ["Drama"], durationMins: 115, certification: "UA", year: 2026, featured: false,
+    synopsis: "Vinod Kapri's quiet, devastating tale of an elderly couple's undying love in a dying Himalayan village — the festival favourite finally reaches Indian cinemas.",
+    trailerUrl: "https://www.youtube.com/results?search_query=pyre+chita+official+trailer" },
+  { title: "Gajab Raat", slug: "gajab-raat", languages: ["Hindi"], genres: ["Thriller", "Crime"], durationMins: 123, certification: "UA", year: 2026, featured: false,
+    synopsis: "A corrupt, troubled cop's night spirals out of control when one reluctant act of mercy pulls him into a deadly web of crime, in this single-night suspense thriller.",
+    trailerUrl: "https://www.youtube.com/results?search_query=gajab+raat+official+trailer" },
+  { title: "Mirzapur: The Movie", slug: "mirzapur-the-movie", languages: ["Hindi", "Telugu"], genres: ["Action", "Crime", "Drama"], durationMins: 197, certification: "A", year: 2026, featured: true,
+    synopsis: "Kaleen Bhaiyya, Guddu and Munna return in an interquel set during the first season of the cult series — power, opium and betrayal in the badlands of Purvanchal.",
+    trailerUrl: "https://www.youtube.com/results?search_query=mirzapur+the+movie+official+trailer" },
+  { title: "Paradise Lost", slug: "paradise-lost", languages: ["Korean"], genres: ["Thriller", "Mystery"], durationMins: 120, certification: "UA", year: 2026, featured: false,
+    synopsis: "Yeon Sang-ho's psychological thriller, adapted from the novel Black Inferno, follows a mind unravelling at the border between paradise and inferno.",
+    trailerUrl: "https://www.youtube.com/results?search_query=paradise+lost+yeon+sang+ho+official+trailer" },
+  { title: "Raise the Red Lantern", slug: "raise-the-red-lantern", languages: ["Mandarin"], genres: ["Drama", "Period"], durationMins: 125, certification: "UA", year: 2026, featured: false,
+    synopsis: "Zhang Yimou's 1991 masterpiece returns to the big screen in a 2026 re-release — a young woman becomes the fourth wife of a wealthy 1920s household where the lanterns decide everything.",
+    trailerUrl: "https://www.youtube.com/results?search_query=raise+the+red+lantern+trailer" },
+  { title: "Nurture", slug: "nurture", languages: ["English"], genres: ["Horror", "Drama"], durationMins: 95, certification: "A", year: 2026, featured: false,
+    synopsis: "A dialogue-free folk-horror fable: on a remote Oregon farm, a grieving couple pins their hopes on a mysterious flower — and it takes root.",
+    trailerUrl: "https://www.youtube.com/results?search_query=nurture+folk+horror+film+trailer" },
+  { title: "Scene", slug: "scene", languages: ["Tamil"], genres: ["Drama"], durationMins: 135, certification: "UA", year: 2026, featured: false,
+    synopsis: "A 2026 Tamil drama from the fresh-release slate, centred on the moments that become the defining scenes of a life.",
+    trailerUrl: "https://www.youtube.com/results?search_query=scene+tamil+movie+trailer" },
+  { title: "Mookuthi Amman 2", slug: "mookuthi-amman-2", languages: ["Tamil"], genres: ["Fantasy", "Drama"], durationMins: 150, certification: "UA", year: 2026, featured: false,
+    synopsis: "The goddess returns: a queen sacrifices herself to save her son from invaders, and Mookuthi Amman descends to confront a mysterious new evil power — Nayanthara in a dual avatar.",
+    trailerUrl: "https://www.youtube.com/results?search_query=mookuthi+amman+2+official+trailer" },
+  { title: "Jailer 2", slug: "jailer-2", languages: ["Tamil", "Telugu", "Hindi", "Kannada"], genres: ["Action", "Thriller"], durationMins: 165, certification: "UA", year: 2026, featured: true,
+    synopsis: "Tiger Muthuvel Pandian's peaceful retirement is shattered when a dangerous syndicate threatens his family — the one-man army returns, with Mohanlal, Shivarajkumar and Jackie Shroff.",
+    trailerUrl: "https://www.youtube.com/results?search_query=jailer+2+official+trailer" },
+  { title: "Karuppu", slug: "karuppu", languages: ["Tamil"], genres: ["Fantasy", "Action", "Drama"], durationMins: 152, certification: "UA", year: 2026, featured: true,
+    synopsis: "The guardian deity Vettai Karuppu walks into a corrupt courtroom disguised as a young lawyer to fight for a family stripped of everything — Suriya in RJ Balaji's fantasy action drama.",
+    trailerUrl: "https://www.youtube.com/results?search_query=karuppu+tamil+official+trailer" },
+  { title: "Vishwanath & Sons", slug: "vishwanath-and-sons", languages: ["Tamil"], genres: ["Drama", "Family"], durationMins: 140, certification: "UA", year: 2026, featured: false,
+    synopsis: "A 2026 Tamil family drama about legacy, craft and the ties that bind a household whose name is its promise.",
+    trailerUrl: "https://www.youtube.com/results?search_query=vishwanath+and+sons+tamil+movie+trailer" },
+  { title: "Mandaadi", slug: "mandaadi", languages: ["Tamil"], genres: ["Drama", "Action"], durationMins: 145, certification: "UA", year: 2026, featured: false,
+    synopsis: "A seasoned fishing captain leads his six-member crew into a traditional boat race along Tamil Nadu's coast, where the sea alone decides who is king.",
+    trailerUrl: "https://www.youtube.com/results?search_query=mandaadi+official+trailer" },
+  { title: "Thaai Kizhavi", slug: "thaai-kizhavi", languages: ["Tamil"], genres: ["Drama"], durationMins: 130, certification: "UA", year: 2026, featured: false,
+    synopsis: "A 2026 Tamil drama that salutes motherhood — a mother's love stretched to its farthest limits.",
+    trailerUrl: "https://www.youtube.com/results?search_query=thaai+kizhavi+tamil+movie+trailer" },
+  { title: "Haiku", slug: "haiku", languages: ["Tamil"], genres: ["Drama"], durationMins: 125, certification: "U", year: 2026, featured: false,
+    synopsis: "A 2026 Tamil drama told with the quiet brevity of its namesake — small moments, vast feelings.",
+    trailerUrl: "https://www.youtube.com/results?search_query=haiku+tamil+movie+trailer" },
+  { title: "Dorothy", slug: "dorothy", languages: ["Tamil"], genres: ["Drama", "Thriller"], durationMins: 128, certification: "UA", year: 2026, featured: false,
+    synopsis: "A 2026 Tamil thriller that follows its title character down a trail where nothing is quite what it seems.",
+    trailerUrl: "https://www.youtube.com/results?search_query=dorothy+tamil+movie+trailer" },
+  { title: "Sardar 2", slug: "sardar-2", languages: ["Tamil"], genres: ["Action", "Thriller"], durationMins: 179, certification: "UA", year: 2026, featured: false,
+    synopsis: "RAW's 1981 Black Operation returns with a threat to 1.4 billion lives — Karthi reprises his dual role as the spy saga continues.",
+    trailerUrl: "https://www.youtube.com/results?search_query=sardar+2+official+trailer" },
 ];
 
 async function main() {
@@ -337,106 +395,106 @@ async function main() {
   const slots = [10 * 60, 13 * 60 + 30, 17 * 60, 20 * 60 + 30]; // minutes from midnight
   let showCount = 0;
 
-  // Every auditorium gets 4 showtimes today — 32 shows with full seat inventory.
+  // Every auditorium gets 4 showtimes today — 84 shows with full seat inventory.
   const plan: { movieIdx: number; aud: string; language: string; format: string }[] = [
     // Frost Cinemas — City Centre (grand 206 · emerald, classic 140 · teal)
     { movieIdx: 0, aud: frostA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
     { movieIdx: 1, aud: frostA1.id, language: "English", format: "3D" },        // Inception
-    { movieIdx: 2, aud: frostA1.id, language: "English", format: "2D" },        // Oppenheimer
-    { movieIdx: 12, aud: frostA1.id, language: "English", format: "2D" },       // The Dark Knight
+    { movieIdx: 38, aud: frostA1.id, language: "Tamil", format: "IMAX 2D" },   // Jailer 2
+    { movieIdx: 39, aud: frostA1.id, language: "Tamil", format: "2D" },        // Karuppu
     { movieIdx: 4, aud: frostA2.id, language: "Tamil", format: "2D" },          // Leo
-    { movieIdx: 3, aud: frostA2.id, language: "Hindi", format: "2D" },          // Jawan
+    { movieIdx: 36, aud: frostA2.id, language: "Tamil", format: "2D" },       // Scene
     { movieIdx: 9, aud: frostA2.id, language: "Tamil", format: "2D" },          // Vikram
-    { movieIdx: 10, aud: frostA2.id, language: "Hindi", format: "2D" },         // 3 Idiots
+    { movieIdx: 45, aud: frostA2.id, language: "Tamil", format: "2D" },       // Sardar 2
     // Pearl Screens — T. Nagar (retro 320 · crimson, family 140 · copper)
     { movieIdx: 8, aud: pearlA1.id, language: "Telugu", format: "2D" },         // RRR
     { movieIdx: 10, aud: pearlA1.id, language: "Hindi", format: "2D" },         // 3 Idiots
-    { movieIdx: 3, aud: pearlA1.id, language: "Hindi", format: "2D" },          // Jawan
-    { movieIdx: 5, aud: pearlA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+    { movieIdx: 37, aud: pearlA1.id, language: "Tamil", format: "2D" },       // Mookuthi Amman 2
+    { movieIdx: 41, aud: pearlA1.id, language: "Tamil", format: "2D" },       // Mandaadi
     { movieIdx: 15, aud: pearlA2.id, language: "English", format: "3D" },       // Kung Fu Panda 4
     { movieIdx: 6, aud: pearlA2.id, language: "Malayalam", format: "2D" },      // Premalu
     { movieIdx: 13, aud: pearlA2.id, language: "Tamil", format: "2D" },         // 96
-    { movieIdx: 14, aud: pearlA2.id, language: "Malayalam", format: "2D" },     // Manjummel Boys
+    { movieIdx: 42, aud: pearlA2.id, language: "Tamil", format: "2D" },       // Thaai Kizhavi
     // Aurora Cineplex — VR Chennai (imax 216 · azure, fan 144 · rose, boutique 48 · violet)
-    { movieIdx: 11, aud: auroraA1.id, language: "English", format: "IMAX 2D" }, // Dune: Part Two
+    { movieIdx: 38, aud: auroraA1.id, language: "Tamil", format: "IMAX 2D" }, // Jailer 2
     { movieIdx: 0, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
     { movieIdx: 2, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Oppenheimer
-    { movieIdx: 8, aud: auroraA1.id, language: "Telugu", format: "IMAX 2D" },   // RRR
+    { movieIdx: 28, aud: auroraA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
     { movieIdx: 5, aud: auroraA2.id, language: "Telugu", format: "3D" },        // Kalki 2898 AD
-    { movieIdx: 9, aud: auroraA2.id, language: "Tamil", format: "2D" },         // Vikram
+    { movieIdx: 39, aud: auroraA2.id, language: "Tamil", format: "2D" },      // Karuppu
     { movieIdx: 7, aud: auroraA2.id, language: "Kannada", format: "2D" },       // Kantara
-    { movieIdx: 4, aud: auroraA2.id, language: "Tamil", format: "2D" },         // Leo
+    { movieIdx: 45, aud: auroraA2.id, language: "Tamil", format: "2D" },      // Sardar 2
     { movieIdx: 13, aud: auroraA3.id, language: "Tamil", format: "2D" },        // 96
     { movieIdx: 6, aud: auroraA3.id, language: "Malayalam", format: "2D" },     // Premalu
-    { movieIdx: 11, aud: auroraA3.id, language: "English", format: "2D" },      // Dune: Part Two
-    { movieIdx: 1, aud: auroraA3.id, language: "English", format: "2D" },       // Inception
+    { movieIdx: 34, aud: auroraA3.id, language: "Mandarin", format: "2D" },   // Raise the Red Lantern
+    { movieIdx: 33, aud: auroraA3.id, language: "Korean", format: "2D" },     // Paradise Lost
     // Flame Multiplex — Brookefields (luxe 88 · amber) — theatre is PENDING, hidden from customers
     { movieIdx: 6, aud: flameA1.id, language: "Malayalam", format: "2D" },      // Premalu
-    { movieIdx: 5, aud: flameA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+    { movieIdx: 38, aud: flameA1.id, language: "Tamil", format: "2D" },       // Jailer 2
     { movieIdx: 7, aud: flameA1.id, language: "Kannada", format: "2D" },        // Kantara
-    { movieIdx: 14, aud: flameA1.id, language: "Malayalam", format: "2D" },     // Manjummel Boys
+    { movieIdx: 36, aud: flameA1.id, language: "Tamil", format: "2D" },       // Scene
     // Lumière Cinemas — Indiranagar, Bengaluru (stadium 240 · indigo, lounge 60 · orchid)
     { movieIdx: 0, aud: lumiereA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
     { movieIdx: 1, aud: lumiereA1.id, language: "English", format: "3D" },       // Inception
-    { movieIdx: 11, aud: lumiereA1.id, language: "English", format: "IMAX 2D" }, // Dune: Part Two
+    { movieIdx: 28, aud: lumiereA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
     { movieIdx: 15, aud: lumiereA1.id, language: "English", format: "3D" },      // Kung Fu Panda 4
     { movieIdx: 7, aud: lumiereA2.id, language: "Kannada", format: "2D" },       // Kantara
     { movieIdx: 6, aud: lumiereA2.id, language: "Malayalam", format: "2D" },     // Premalu
-    { movieIdx: 11, aud: lumiereA2.id, language: "English", format: "2D" },      // Dune: Part Two
-    { movieIdx: 13, aud: lumiereA2.id, language: "Tamil", format: "2D" },        // 96
+    { movieIdx: 39, aud: lumiereA2.id, language: "Tamil", format: "2D" },     // Karuppu
+    { movieIdx: 43, aud: lumiereA2.id, language: "Tamil", format: "2D" },     // Haiku
     // Galaxy Multiplex — Koramangala, Bengaluru (galaxy 162 · sage)
-    { movieIdx: 3, aud: galaxyA1.id, language: "Hindi", format: "2D" },          // Jawan
-    { movieIdx: 9, aud: galaxyA1.id, language: "Tamil", format: "2D" },          // Vikram
+    { movieIdx: 37, aud: galaxyA1.id, language: "Tamil", format: "2D" },      // Mookuthi Amman 2
+    { movieIdx: 44, aud: galaxyA1.id, language: "Tamil", format: "2D" },      // Dorothy
     { movieIdx: 5, aud: galaxyA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
     { movieIdx: 4, aud: galaxyA1.id, language: "Tamil", format: "2D" },          // Leo
     // Nizam Grand — Banjara Hills, Hyderabad (premiere 176 · saffron)
     { movieIdx: 8, aud: nizamA1.id, language: "Telugu", format: "IMAX 2D" },     // RRR
     { movieIdx: 5, aud: nizamA1.id, language: "Telugu", format: "3D" },          // Kalki 2898 AD
-    { movieIdx: 2, aud: nizamA1.id, language: "English", format: "2D" },         // Oppenheimer
-    { movieIdx: 3, aud: nizamA1.id, language: "Hindi", format: "2D" },           // Jawan
+    { movieIdx: 28, aud: nizamA1.id, language: "Telugu", format: "2D" },      // Ramayana: Rise of a Legend
+    { movieIdx: 32, aud: nizamA1.id, language: "Telugu", format: "2D" },      // Mirzapur: The Movie
     // Marine Marquee — Dadar, Mumbai (marquee 324 · onyx)
     { movieIdx: 10, aud: marqueeA1.id, language: "Hindi", format: "2D" },        // 3 Idiots
     { movieIdx: 12, aud: marqueeA1.id, language: "English", format: "2D" },      // The Dark Knight
-    { movieIdx: 3, aud: marqueeA1.id, language: "Hindi", format: "2D" },         // Jawan
-    { movieIdx: 8, aud: marqueeA1.id, language: "Hindi", format: "2D" },         // RRR
+    { movieIdx: 32, aud: marqueeA1.id, language: "Hindi", format: "2D" },     // Mirzapur: The Movie
+    { movieIdx: 38, aud: marqueeA1.id, language: "Hindi", format: "2D" },     // Jailer 2
     // Tamil Screens — Simmakkal, Madurai (cube 108 · sandstone)
     { movieIdx: 4, aud: tamilA1.id, language: "Tamil", format: "2D" },           // Leo
-    { movieIdx: 9, aud: tamilA1.id, language: "Tamil", format: "2D" },           // Vikram
+    { movieIdx: 41, aud: tamilA1.id, language: "Tamil", format: "2D" },       // Mandaadi
     { movieIdx: 13, aud: tamilA1.id, language: "Tamil", format: "2D" },          // 96
-    { movieIdx: 6, aud: tamilA1.id, language: "Malayalam", format: "2D" },       // Premalu
+    { movieIdx: 40, aud: tamilA1.id, language: "Tamil", format: "2D" },       // Vishwanath & Sons
     // Imperial Cines — Connaught Place, Delhi (spectrum 264 · garnet, diamond 192 · mint)
     { movieIdx: 16, aud: imperialA1.id, language: "Hindi", format: "IMAX 2D" },  // Pathaan
-    { movieIdx: 17, aud: imperialA1.id, language: "Hindi", format: "3D" },       // Brahmāstra
+    { movieIdx: 38, aud: imperialA1.id, language: "Hindi", format: "2D" },    // Jailer 2
     { movieIdx: 18, aud: imperialA1.id, language: "Telugu", format: "2D" },      // Baahubali 2
-    { movieIdx: 11, aud: imperialA1.id, language: "English", format: "IMAX 2D" },// Dune: Part Two
+    { movieIdx: 28, aud: imperialA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
     { movieIdx: 23, aud: imperialA2.id, language: "Hindi", format: "2D" },       // Andhadhun
     { movieIdx: 24, aud: imperialA2.id, language: "Hindi", format: "2D" },       // Drishyam 2
-    { movieIdx: 25, aud: imperialA2.id, language: "Hindi", format: "2D" },       // ZNMD
-    { movieIdx: 26, aud: imperialA2.id, language: "Hindi", format: "2D" },       // Queen
+    { movieIdx: 31, aud: imperialA2.id, language: "Hindi", format: "2D" },    // Gajab Raat
+    { movieIdx: 29, aud: imperialA2.id, language: "Hindi", format: "2D" },    // Nakhrewaalii
     // Yamuna Prime — Dwarka, Delhi (opus 198 · cocoa)
-    { movieIdx: 16, aud: yamunaA1.id, language: "Hindi", format: "2D" },         // Pathaan
+    { movieIdx: 28, aud: yamunaA1.id, language: "Hindi", format: "2D" },      // Ramayana: Rise of a Legend
     { movieIdx: 8, aud: yamunaA1.id, language: "Hindi", format: "2D" },          // RRR
     { movieIdx: 19, aud: yamunaA1.id, language: "Telugu", format: "2D" },        // Sita Ramam
-    { movieIdx: 3, aud: yamunaA1.id, language: "Hindi", format: "2D" },          // Jawan
+    { movieIdx: 32, aud: yamunaA1.id, language: "Hindi", format: "2D" },      // Mirzapur: The Movie
     // Bengal Grand — Esplanade, Kolkata (heritage 284 · garnet)
     { movieIdx: 20, aud: bengalA1.id, language: "Tamil", format: "2D" },         // Ponniyin Selvan: Part I
     { movieIdx: 21, aud: bengalA1.id, language: "Tamil", format: "2D" },         // Jai Bhim
-    { movieIdx: 27, aud: bengalA1.id, language: "Tamil", format: "2D" },         // Super Deluxe
-    { movieIdx: 10, aud: bengalA1.id, language: "Hindi", format: "2D" },         // 3 Idiots
+    { movieIdx: 34, aud: bengalA1.id, language: "Mandarin", format: "2D" },   // Raise the Red Lantern
+    { movieIdx: 35, aud: bengalA1.id, language: "English", format: "2D" },    // Nurture
     // Deccan Reels — FC Road, Pune (velocity 160 · sky)
     { movieIdx: 22, aud: deccanA1.id, language: "Hindi", format: "2D" },         // Tumbbad
-    { movieIdx: 23, aud: deccanA1.id, language: "Hindi", format: "2D" },         // Andhadhun
-    { movieIdx: 25, aud: deccanA1.id, language: "Hindi", format: "2D" },         // ZNMD
+    { movieIdx: 31, aud: deccanA1.id, language: "Hindi", format: "2D" },      // Gajab Raat
+    { movieIdx: 29, aud: deccanA1.id, language: "Hindi", format: "2D" },      // Nakhrewaalii
     { movieIdx: 15, aud: deccanA1.id, language: "English", format: "3D" },       // Kung Fu Panda 4
     // Backwater Screens — Marine Drive, Kochi (lagoon 124 · moss)
     { movieIdx: 6, aud: backwaterA1.id, language: "Malayalam", format: "2D" },   // Premalu
-    { movieIdx: 14, aud: backwaterA1.id, language: "Malayalam", format: "2D" },  // Manjummel Boys
+    { movieIdx: 44, aud: backwaterA1.id, language: "Tamil", format: "2D" },   // Dorothy
     { movieIdx: 19, aud: backwaterA1.id, language: "Tamil", format: "2D" },      // Sita Ramam
-    { movieIdx: 13, aud: backwaterA1.id, language: "Tamil", format: "2D" },      // 96
+    { movieIdx: 37, aud: backwaterA1.id, language: "Tamil", format: "2D" },   // Mookuthi Amman 2
     // Rajmahal Cinema — MI Road, Jaipur (palace 240 · pearl)
     { movieIdx: 18, aud: rajmahalA1.id, language: "Hindi", format: "2D" },       // Baahubali 2
-    { movieIdx: 16, aud: rajmahalA1.id, language: "Hindi", format: "2D" },       // Pathaan
-    { movieIdx: 3, aud: rajmahalA1.id, language: "Hindi", format: "2D" },        // Jawan
+    { movieIdx: 28, aud: rajmahalA1.id, language: "Hindi", format: "2D" },    // Ramayana: Rise of a Legend
+    { movieIdx: 30, aud: rajmahalA1.id, language: "Hindi", format: "2D" },    // Pyre
     { movieIdx: 8, aud: rajmahalA1.id, language: "Hindi", format: "2D" },        // RRR
   ];
 

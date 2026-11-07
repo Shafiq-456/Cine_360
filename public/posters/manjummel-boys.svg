@@ -16,7 +16,7 @@
   <circle cx="300" cy="310" r="6" fill="#37C4D8"/>
   <path d="M0 640 L600 560 L600 900 L0 900 Z" fill="#000" opacity="0.35"/>
   <text x="60" y="120" font-family="Helvetica, Arial, sans-serif" font-size="18" letter-spacing="6" fill="#DDE1E8" opacity="0.7">CINE 360 PRESENTS</text>
-  <text x="58" y="700" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="52" fill="#F5F7FA" letter-spacing="2">MANJUMMEL BOYS</text>
+  <text x="58" y="700" font-family="Helvetica, Arial, sans-serif" font-weight="bold" font-size="42" fill="#F5F7FA" letter-spacing="2">MANJUMMEL BOYS</text>
   <text x="60" y="760" font-family="Georgia, serif" font-size="24" fill="#DDE1E8" opacity="0.85">Friends who dive into darkness together.</text>
   <rect x="60" y="840" width="180" height="3" fill="#37C4D8"/>
   <text x="60" y="872" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="3" fill="#8FA3BF">DEMO ARTWORK — PROCEDURALLY GENERATED</text>
