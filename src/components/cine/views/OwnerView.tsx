@@ -39,12 +39,12 @@ export default function OwnerView({ params }: { params: URLSearchParams }) {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Owner Console</h1>
-        <p className="text-sm text-[#8FA3BF] mt-1">Run your venues: auditoriums, 3D models, showtimes, bookings and staff.</p>
+        <p className="text-sm text-[#B4A6D4] mt-1">Run your venues: auditoriums, 3D models, showtimes, bookings and staff.</p>
       </div>
       <Tabs value={tab} onValueChange={(v) => { navigate(`/owner?tab=${v}`, { replace: true }); }}>
-        <TabsList className="bg-[#101218] border border-white/10 h-auto flex-wrap">
+        <TabsList className="bg-[#1A1029] border border-white/10 h-auto flex-wrap">
           {TABS.map((t) => (
-            <TabsTrigger key={t} value={t} className="capitalize data-[state=active]:bg-[#477BFF] data-[state=active]:text-white px-4 py-2 cursor-pointer">
+            <TabsTrigger key={t} value={t} className="capitalize data-[state=active]:bg-[#8B5CF6] data-[state=active]:text-white px-4 py-2 cursor-pointer">
               {t}
             </TabsTrigger>
           ))}

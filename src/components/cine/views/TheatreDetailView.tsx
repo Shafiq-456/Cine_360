@@ -33,7 +33,7 @@ export default function TheatreDetailView({ id }: { id: string }) {
       <PageTitle title={data.theatre.name} subtitle={`${data.theatre.address} · operated by ${data.theatre.ownerName}`} />
       <div className="flex flex-wrap gap-1.5 mb-8">
         {data.theatre.amenities.map((a) => (
-          <span key={a} className="text-[11px] px-2.5 py-1 rounded-md bg-[#477BFF]/10 border border-[#477BFF]/25 text-[#9FC0FF] flex items-center gap-1"><Sparkles className="w-3 h-3" />{a}</span>
+          <span key={a} className="text-[11px] px-2.5 py-1 rounded-md bg-[#8B5CF6]/10 border border-[#8B5CF6]/25 text-[#C4B5FD] flex items-center gap-1"><Sparkles className="w-3 h-3" />{a}</span>
         ))}
       </div>
 
@@ -44,11 +44,11 @@ export default function TheatreDetailView({ id }: { id: string }) {
             <div key={a.id} className="cine-card p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">{a.name}</h3>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${a.geometrySource === "UPLOADED" ? "border-[#2FBF71]/40 text-[#2FBF71] bg-[#2FBF71]/10" : "border-white/15 text-[#8FA3BF] bg-white/5"}`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${a.geometrySource === "UPLOADED" ? "border-[#34D399]/40 text-[#34D399] bg-[#34D399]/10" : "border-white/15 text-[#B4A6D4] bg-white/5"}`}>
                   {a.geometrySource === "UPLOADED" ? "CALIBRATED MODEL" : "DEMO GEOMETRY"}
                 </span>
               </div>
-              <p className="text-sm text-[#8FA3BF] mt-2 flex items-center gap-1.5"><Armchair className="w-4 h-4" /> {a.seatCount} seats</p>
+              <p className="text-sm text-[#B4A6D4] mt-2 flex items-center gap-1.5"><Armchair className="w-4 h-4" /> {a.seatCount} seats</p>
             </div>
           ))}
         </div>
@@ -62,7 +62,7 @@ export default function TheatreDetailView({ id }: { id: string }) {
           <div className="space-y-8">
             {days.map((d) => (
               <div key={d}>
-                <h3 className="text-sm font-semibold text-[#20D9E8] uppercase tracking-wider mb-3">{fmtDate(d)}</h3>
+                <h3 className="text-sm font-semibold text-[#F2B04C] uppercase tracking-wider mb-3">{fmtDate(d)}</h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {data.shows.filter((s) => s.startsAt.slice(0, 10) === d).map((s) => (
                     <button key={s.id} onClick={() => navigate(`/book/${s.id}`)} className="cine-card cine-card-hover p-4 flex gap-4 text-left cursor-pointer">
@@ -70,9 +70,9 @@ export default function TheatreDetailView({ id }: { id: string }) {
                       <img src={s.movie.posterUrl} alt="" className="w-14 h-20 rounded-lg object-cover border border-white/10" loading="lazy" />
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold truncate">{s.movie.title}</div>
-                        <div className="text-xs text-[#8FA3BF] mt-0.5">{fmtTime(s.startsAt)} · {s.auditorium}</div>
-                        <div className="text-xs text-[#20D9E8] mt-1">{s.format} · {s.language}</div>
-                        <div className="text-[11px] text-[#8FA3BF] mt-1">{s.available}/{s.total} seats free</div>
+                        <div className="text-xs text-[#B4A6D4] mt-0.5">{fmtTime(s.startsAt)} · {s.auditorium}</div>
+                        <div className="text-xs text-[#F2B04C] mt-1">{s.format} · {s.language}</div>
+                        <div className="text-[11px] text-[#B4A6D4] mt-1">{s.available}/{s.total} seats free</div>
                       </div>
                     </button>
                   ))}

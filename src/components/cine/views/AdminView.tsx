@@ -49,7 +49,7 @@ export default function AdminView({ params }: { params: URLSearchParams }) {
           <button
             key={t.key}
             onClick={() => { navigate(`/admin?tab=${t.key}`, { replace: true }); }}
-            className={`px-3.5 py-2 rounded-lg text-sm border transition-colors cursor-pointer ${tab === t.key ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white hover:border-[#477BFF]/40"}`}
+            className={`px-3.5 py-2 rounded-lg text-sm border transition-colors cursor-pointer ${tab === t.key ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white hover:border-[#8B5CF6]/40"}`}
           >
             {t.label}
           </button>
@@ -83,16 +83,16 @@ function Overview() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <MetricCard label="Users" value={m.users} hint={`${m.customers} customers · ${m.owners} owners · ${m.staff} staff`} />
-        <MetricCard label="Theatres" value={m.theatres} hint={`${m.approvedTheatres} approved · ${m.pendingTheatres} pending`} accent={m.pendingTheatres > 0 ? "#F5C518" : "#477BFF"} />
-        <MetricCard label="Movies" value={m.movies} accent="#20D9E8" />
-        <MetricCard label="Scheduled shows" value={m.shows} accent="#F5C518" />
+        <MetricCard label="Theatres" value={m.theatres} hint={`${m.approvedTheatres} approved · ${m.pendingTheatres} pending`} accent={m.pendingTheatres > 0 ? "#FFD166" : "#8B5CF6"} />
+        <MetricCard label="Movies" value={m.movies} accent="#F2B04C" />
+        <MetricCard label="Scheduled shows" value={m.shows} accent="#FFD166" />
         <MetricCard label="Bookings" value={m.bookings} hint={`${m.confirmedBookings} confirmed`} />
-        <MetricCard label="Gross revenue" value={inr(m.grossRevenue)} hint={`Platform commission (${m.commissionPercent}%): ${inr(m.platformCommission)}`} accent="#2FBF71" />
+        <MetricCard label="Gross revenue" value={inr(m.grossRevenue)} hint={`Platform commission (${m.commissionPercent}%): ${inr(m.platformCommission)}`} accent="#34D399" />
       </div>
       {m.pendingTheatres > 0 && (
-        <div className="cine-card p-4 border-[#F5C518]/30 flex items-center justify-between">
+        <div className="cine-card p-4 border-[#FFD166]/30 flex items-center justify-between">
           <span className="text-sm">{m.pendingTheatres} theatre registration{m.pendingTheatres === 1 ? "" : "s"} awaiting approval.</span>
-          <Button size="sm" className="bg-[#F5C518] text-black hover:bg-[#FFD34D]" onClick={() => document.getElementById("goto-theatres")?.scrollIntoView()}>
+          <Button size="sm" className="bg-[#FFD166] text-black hover:bg-[#FFD166]" onClick={() => document.getElementById("goto-theatres")?.scrollIntoView()}>
             Review in Theatres tab
           </Button>
         </div>
@@ -134,20 +134,20 @@ function Theatres() {
               <h3 className="font-semibold">{t.name}</h3>
               <StatusBadge status={t.status} />
             </div>
-            <p className="text-xs text-[#8FA3BF] mt-0.5">{t.city} · {t.address}</p>
-            <p className="text-xs text-[#8FA3BF]">Owner: {t.owner.name} ({t.owner.email})</p>
+            <p className="text-xs text-[#B4A6D4] mt-0.5">{t.city} · {t.address}</p>
+            <p className="text-xs text-[#B4A6D4]">Owner: {t.owner.name} ({t.owner.email})</p>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {t.auditoriums.map((a) => (
-                <span key={a.id} className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[#B9C4D6]">{a.name} · {a._count.seats} seats · {a._count.shows} shows</span>
+                <span key={a.id} className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[#D5C9F0]">{a.name} · {a._count.seats} seats · {a._count.shows} shows</span>
               ))}
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
             {t.status !== "APPROVED" && (
-              <Button size="sm" className="bg-[#2FBF71] hover:bg-[#3BD482] text-black" onClick={() => setStatus(t.id, "APPROVED")}><Check className="w-3.5 h-3.5 mr-1" /> Approve</Button>
+              <Button size="sm" className="bg-[#34D399] hover:bg-[#3BD482] text-black" onClick={() => setStatus(t.id, "APPROVED")}><Check className="w-3.5 h-3.5 mr-1" /> Approve</Button>
             )}
             {t.status === "APPROVED" && (
-              <Button size="sm" variant="outline" className="border-[#FF713D]/40 text-[#FF713D]" onClick={() => setStatus(t.id, "SUSPENDED")}><Ban className="w-3.5 h-3.5 mr-1" /> Suspend</Button>
+              <Button size="sm" variant="outline" className="border-[#F0659A]/40 text-[#F0659A]" onClick={() => setStatus(t.id, "SUSPENDED")}><Ban className="w-3.5 h-3.5 mr-1" /> Suspend</Button>
             )}
             {t.status === "PENDING" && (
               <Button size="sm" variant="outline" className="border-[#E5484D]/40 text-[#E5484D]" onClick={() => setStatus(t.id, "REJECTED")}><X className="w-3.5 h-3.5 mr-1" /> Reject</Button>
@@ -184,7 +184,7 @@ function Users() {
     <div className="space-y-4">
       <div className="flex gap-1.5">
         {["", "CUSTOMER", "OWNER", "STAFF", "ADMIN"].map((r) => (
-          <button key={r || "all"} onClick={() => setRole(r)} className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer ${role === r ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white"}`}>
+          <button key={r || "all"} onClick={() => setRole(r)} className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer ${role === r ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white"}`}>
             {r || "All roles"}
           </button>
         ))}
@@ -192,7 +192,7 @@ function Users() {
       <div className="overflow-x-auto cine-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-[#8FA3BF] uppercase tracking-wider">
+            <tr className="text-left text-xs text-[#B4A6D4] uppercase tracking-wider">
               <th className="p-4 font-medium">User</th>
               <th className="p-4 font-medium">Role</th>
               <th className="p-4 font-medium">Bookings</th>
@@ -205,15 +205,15 @@ function Users() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id} className="border-t border-white/5">
-                <td className="p-4">{u.name}<div className="text-xs text-[#8FA3BF]">{u.email}</div></td>
+                <td className="p-4">{u.name}<div className="text-xs text-[#B4A6D4]">{u.email}</div></td>
                 <td className="p-4"><StatusBadge status={u.role} /></td>
                 <td className="p-4">{u._count.bookings}</td>
                 <td className="p-4">{u._count.theatres}</td>
-                <td className="p-4 text-xs text-[#8FA3BF]">{fmtDateTime(u.createdAt)}</td>
+                <td className="p-4 text-xs text-[#B4A6D4]">{fmtDateTime(u.createdAt)}</td>
                 <td className="p-4"><StatusBadge status={u.status} /></td>
                 <td className="p-4">
                   {u.role !== "ADMIN" && (
-                    <Button size="sm" variant="outline" className={`h-7 ${u.status === "ACTIVE" ? "border-[#E5484D]/40 text-[#E5484D]" : "border-[#2FBF71]/40 text-[#2FBF71]"}`} onClick={() => toggle(u)}>
+                    <Button size="sm" variant="outline" className={`h-7 ${u.status === "ACTIVE" ? "border-[#E5484D]/40 text-[#E5484D]" : "border-[#34D399]/40 text-[#34D399]"}`} onClick={() => toggle(u)}>
                       {u.status === "ACTIVE" ? "Deactivate" : "Activate"}
                     </Button>
                   )}
@@ -282,12 +282,12 @@ function Movies() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Movie catalogue</h2>
-        <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-1.5" /> Add movie</Button>
+        <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-1.5" /> Add movie</Button>
       </div>
       <div className="overflow-x-auto cine-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-[#8FA3BF] uppercase tracking-wider">
+            <tr className="text-left text-xs text-[#B4A6D4] uppercase tracking-wider">
               <th className="p-4 font-medium">Title</th>
               <th className="p-4 font-medium">Meta</th>
               <th className="p-4 font-medium">Shows</th>
@@ -298,8 +298,8 @@ function Movies() {
           <tbody>
             {movies.map((m) => (
               <tr key={m.id} className="border-t border-white/5">
-                <td className="p-4 font-medium">{m.title}{m.featured && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#FF713D]/15 text-[#FF713D] border border-[#FF713D]/30">FEATURED</span>}</td>
-                <td className="p-4 text-xs text-[#8FA3BF]">{m.durationMins} min · {m.languages.join(", ")} · {m.genres.slice(0, 3).join(", ")}</td>
+                <td className="p-4 font-medium">{m.title}{m.featured && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#F0659A]/15 text-[#F0659A] border border-[#F0659A]/30">FEATURED</span>}</td>
+                <td className="p-4 text-xs text-[#B4A6D4]">{m.durationMins} min · {m.languages.join(", ")} · {m.genres.slice(0, 3).join(", ")}</td>
                 <td className="p-4">{m._count.shows}</td>
                 <td className="p-4"><StatusBadge status={m.status} /></td>
                 <td className="p-4">
@@ -318,7 +318,7 @@ function Movies() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#101218] border-white/10">
+        <DialogContent className="bg-[#1A1029] border-white/10">
           <DialogHeader>
             <DialogTitle>Add a movie</DialogTitle>
             <DialogDescription>Demo artwork is applied automatically (procedural poster). Real poster uploads belong in the production asset pipeline.</DialogDescription>
@@ -328,17 +328,17 @@ function Movies() {
               <div key={k} className="space-y-1.5">
                 <Label>{label}</Label>
                 {k === "synopsis" ? (
-                  <textarea value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} rows={3} className="w-full rounded-md bg-[#0B0D12] border border-white/10 px-3 py-2 text-sm" />
+                  <textarea value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} rows={3} className="w-full rounded-md bg-[#150C22] border border-white/10 px-3 py-2 text-sm" />
                 ) : (
-                  <Input value={String(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} className="bg-[#0B0D12]" />
+                  <Input value={String(form[k])} onChange={(e) => setForm({ ...form, [k]: e.target.value })} className="bg-[#150C22]" />
                 )}
               </div>
             ))}
             <div className="space-y-1.5">
               <Label>Duration (minutes)</Label>
-              <Input type="number" value={form.durationMins} onChange={(e) => setForm({ ...form, durationMins: Number(e.target.value) })} className="bg-[#0B0D12]" />
+              <Input type="number" value={form.durationMins} onChange={(e) => setForm({ ...form, durationMins: Number(e.target.value) })} className="bg-[#150C22]" />
             </div>
-            <Button className="w-full bg-[#477BFF] hover:bg-[#5C89FF]" onClick={create} disabled={form.title.length < 1 || form.synopsis.length < 10}>Add movie</Button>
+            <Button className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={create} disabled={form.title.length < 1 || form.synopsis.length < 10}>Add movie</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -379,7 +379,7 @@ function Bookings() {
         <h2 className="text-lg font-semibold">Bookings &amp; refunds</h2>
         <div className="flex gap-1.5 flex-wrap">
           {["CONFIRMED", "PENDING_PAYMENT", "CANCELLED", "REFUNDED", ""].map((s) => (
-            <button key={s || "all"} onClick={() => setStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer ${status === s ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white"}`}>
+            <button key={s || "all"} onClick={() => setStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer ${status === s ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white"}`}>
               {s || "All"}
             </button>
           ))}
@@ -391,7 +391,7 @@ function Bookings() {
         <div className="overflow-x-auto cine-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[#8FA3BF] uppercase tracking-wider">
+              <tr className="text-left text-xs text-[#B4A6D4] uppercase tracking-wider">
                 <th className="p-4 font-medium">Ref</th>
                 <th className="p-4 font-medium">Customer</th>
                 <th className="p-4 font-medium">Show</th>
@@ -406,15 +406,15 @@ function Bookings() {
               {bookings.map((b) => (
                 <tr key={b.id} className="border-t border-white/5">
                   <td className="p-4 font-mono text-xs">{b.reference}</td>
-                  <td className="p-4">{b.user.name}<div className="text-xs text-[#8FA3BF]">{b.user.email}</div></td>
-                  <td className="p-4">{b.show.movie.title}<div className="text-xs text-[#8FA3BF]">{b.show.auditorium.theatre.name} · {fmtDateTime(b.show.startsAt)}</div></td>
+                  <td className="p-4">{b.user.name}<div className="text-xs text-[#B4A6D4]">{b.user.email}</div></td>
+                  <td className="p-4">{b.show.movie.title}<div className="text-xs text-[#B4A6D4]">{b.show.auditorium.theatre.name} · {fmtDateTime(b.show.startsAt)}</div></td>
                   <td className="p-4 text-xs">{b.seats.map((s) => `${s.rowLabel}${s.seatNumber}`).join(", ")}</td>
                   <td className="p-4">{inr(b.totalAmount)}</td>
                   <td className="p-4 text-xs">{b.payment ? `${b.payment.status} · ${b.payment.provider}` : "—"}</td>
                   <td className="p-4"><StatusBadge status={b.status} /></td>
                   <td className="p-4">
                     {b.status === "CONFIRMED" && (
-                      <Button size="sm" variant="outline" className="h-7 border-[#FF713D]/40 text-[#FF713D]" onClick={() => refund(b)}>
+                      <Button size="sm" variant="outline" className="h-7 border-[#F0659A]/40 text-[#F0659A]" onClick={() => refund(b)}>
                         <RotateCcw className="w-3 h-3 mr-1" /> Refund
                       </Button>
                     )}
@@ -447,14 +447,14 @@ function Settings() {
   };
   return (
     <div className="cine-card p-6 max-w-md space-y-4">
-      <h2 className="font-semibold flex items-center gap-2"><Settings2 className="w-4 h-4 text-[#477BFF]" /> Platform settings</h2>
+      <h2 className="font-semibold flex items-center gap-2"><Settings2 className="w-4 h-4 text-[#8B5CF6]" /> Platform settings</h2>
       <div className="space-y-1.5">
         <Label>Commission on owner revenue (%)</Label>
-        <Input type="number" min={0} max={30} value={percent} onChange={(e) => setPercent(e.target.value)} className="bg-[#0B0D12]" />
+        <Input type="number" min={0} max={30} value={percent} onChange={(e) => setPercent(e.target.value)} className="bg-[#150C22]" />
       </div>
-      <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={save}>Save settings</Button>
-      {saved !== null && <p className="text-xs text-[#2FBF71]">Saved: owner analytics now show net revenue after {saved}% commission.</p>}
-      <p className="text-[11px] text-[#8FA3BF]">Commission is applied in owner analytics and the admin overview. Payment gateway fees are out of scope for the demo ledger.</p>
+      <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={save}>Save settings</Button>
+      {saved !== null && <p className="text-xs text-[#34D399]">Saved: owner analytics now show net revenue after {saved}% commission.</p>}
+      <p className="text-[11px] text-[#B4A6D4]">Commission is applied in owner analytics and the admin overview. Payment gateway fees are out of scope for the demo ledger.</p>
     </div>
   );
 }
@@ -471,7 +471,7 @@ function Audit() {
     <div className="cine-card overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[#8FA3BF] uppercase tracking-wider">
+          <tr className="text-left text-xs text-[#B4A6D4] uppercase tracking-wider">
             <th className="p-4 font-medium">Time</th>
             <th className="p-4 font-medium">Actor</th>
             <th className="p-4 font-medium">Action</th>
@@ -484,13 +484,13 @@ function Audit() {
             <tr key={l.id} className="border-t border-white/5">
               <td className="p-4 text-xs whitespace-nowrap">{fmtDateTime(l.createdAt)}</td>
               <td className="p-4 text-xs">{l.actorEmail || "system"}</td>
-              <td className="p-4 font-medium"><span className="flex items-center gap-1.5"><ScrollText className="w-3 h-3 text-[#20D9E8]" />{l.action}</span></td>
+              <td className="p-4 font-medium"><span className="flex items-center gap-1.5"><ScrollText className="w-3 h-3 text-[#F2B04C]" />{l.action}</span></td>
               <td className="p-4 text-xs">{l.entity}{l.entityId ? ` · ${l.entityId.slice(0, 10)}…` : ""}</td>
-              <td className="p-4 text-xs text-[#8FA3BF] font-mono max-w-[280px] truncate">{l.meta}</td>
+              <td className="p-4 text-xs text-[#B4A6D4] font-mono max-w-[280px] truncate">{l.meta}</td>
             </tr>
           ))}
           {logs.length === 0 && (
-            <tr><td colSpan={5} className="p-8 text-center text-[#8FA3BF]">No audit events yet.</td></tr>
+            <tr><td colSpan={5} className="p-8 text-center text-[#B4A6D4]">No audit events yet.</td></tr>
           )}
         </tbody>
       </table>

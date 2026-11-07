@@ -46,15 +46,15 @@ export default function TicketDetailView({ id }: { id: string }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <button onClick={() => navigate("/tickets")} className="text-xs text-[#477BFF] hover:underline cursor-pointer mb-4">← All bookings</button>
+      <button onClick={() => navigate("/tickets")} className="text-xs text-[#8B5CF6] hover:underline cursor-pointer mb-4">← All bookings</button>
 
       <div className="cine-card overflow-hidden">
         {/* stub */}
-        <div className="bg-gradient-to-r from-[#477BFF]/25 via-[#20D9E8]/15 to-transparent px-6 py-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#8B5CF6]/25 via-[#F2B04C]/15 to-transparent px-6 py-5 flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-[#20D9E8] mb-1">CINE 360 e-ticket</div>
+            <div className="text-[10px] uppercase tracking-widest text-[#F2B04C] mb-1">CINE 360 e-ticket</div>
             <h1 className="text-2xl font-bold">{booking.show.movie.title}</h1>
-            <p className="text-xs text-[#8FA3BF] mt-1">Ref {booking.reference} · <StatusBadge status={booking.status} /></p>
+            <p className="text-xs text-[#B4A6D4] mt-1">Ref {booking.reference} · <StatusBadge status={booking.status} /></p>
           </div>
           { }
           <img src={booking.show.movie.posterUrl} alt="" className="w-16 h-24 rounded-lg object-cover border border-white/10 hidden sm:block" />
@@ -69,8 +69,8 @@ export default function TicketDetailView({ id }: { id: string }) {
 
         {/* perforation */}
         <div className="relative h-px bg-white/10 mx-6">
-          <span className="absolute -left-8 -top-2 w-4 h-4 rounded-full bg-[#08090C] border border-white/10" />
-          <span className="absolute -right-8 -top-2 w-4 h-4 rounded-full bg-[#08090C] border border-white/10" />
+          <span className="absolute -left-8 -top-2 w-4 h-4 rounded-full bg-[#120A1C] border border-white/10" />
+          <span className="absolute -right-8 -top-2 w-4 h-4 rounded-full bg-[#120A1C] border border-white/10" />
         </div>
 
         {/* QR tickets */}
@@ -80,9 +80,9 @@ export default function TicketDetailView({ id }: { id: string }) {
               { }
               <img src={t.qrDataUrl} alt={`QR code for seat ${t.rowLabel}${t.seatNumber}`} className="w-44 h-44" />
               <div className="text-center">
-                <div className="text-[#0B0D12] font-bold">Row {t.rowLabel} · Seat {t.seatNumber}</div>
+                <div className="text-[#150C22] font-bold">Row {t.rowLabel} · Seat {t.seatNumber}</div>
                 <div className="text-[10px] text-[#5A6572] font-mono mt-0.5 break-all max-w-[200px]">{t.code}</div>
-                <div className="text-xs mt-1 font-semibold" style={{ color: t.status === "VALID" ? "#1B7F4D" : t.status === "REDEEMED" ? "#477BFF" : "#888" }}>
+                <div className="text-xs mt-1 font-semibold" style={{ color: t.status === "VALID" ? "#1B7F4D" : t.status === "REDEEMED" ? "#8B5CF6" : "#888" }}>
                   {t.status === "VALID" ? "Show this QR at the gate" : t.status === "REDEEMED" ? "Already redeemed" : "Void"}
                 </div>
               </div>
@@ -92,10 +92,10 @@ export default function TicketDetailView({ id }: { id: string }) {
 
         <div className="px-6 pb-6">
           <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 flex items-center justify-between text-sm">
-            <span className="text-[#8FA3BF]">Total paid</span>
+            <span className="text-[#B4A6D4]">Total paid</span>
             <b className="text-lg">{inr(booking.totalAmount)}</b>
           </div>
-          <p className="text-[11px] text-[#8FA3BF] mt-3 leading-relaxed">
+          <p className="text-[11px] text-[#B4A6D4] mt-3 leading-relaxed">
             The QR contains only an opaque ticket code — no personal or payment data. Staff scan it against the backend, which rejects duplicates and voided tickets.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function TicketDetailView({ id }: { id: string }) {
 function Info({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-lg bg-white/[0.03] border border-white/5 p-3">
-      <div className="text-[10px] uppercase tracking-wider text-[#8FA3BF] flex items-center gap-1.5">{icon} {label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-[#B4A6D4] flex items-center gap-1.5">{icon} {label}</div>
       <div className="font-medium mt-1">{value}</div>
     </div>
   );

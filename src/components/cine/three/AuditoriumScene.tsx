@@ -49,25 +49,25 @@ type SceneProps = {
    cinematic mood for the Seat Experience preview. */
 const PALETTE = {
   bright: {
-    bg: "#C9D3E0",
-    fog: "#C9D3E0",
+    bg: "#E4DAF7",
+    fog: "#E4DAF7",
     floor: "#8E97A8",
-    floorAlt: "#9AA3B4",
-    floorAlt2: "#98A1B2",
-    wall: "#B4BDCD",
-    wallSide: "#AEB7C8",
-    ceiling: "#C2CAD8",
+    floorAlt: "#A99BC6",
+    floorAlt2: "#A79AC5",
+    wall: "#B4A8D6",
+    wallSide: "#BBAEDA",
+    ceiling: "#C9BEE4",
     downlight: "#FFF3D6",
-    stage: "#98A2B4",
+    stage: "#A79AC5",
     screenFrame: "#7E8798",
   },
   dim: {
-    bg: "#050609",
-    fog: "#050609",
-    floor: "#101218",
+    bg: "#0E0817",
+    fog: "#0E0817",
+    floor: "#1A1029",
     floorAlt: "#14171F",
     floorAlt2: "#111319",
-    wall: "#0B0D12",
+    wall: "#150C22",
     wallSide: "#0C0E14",
     ceiling: "#07080B",
     downlight: "#8A94AC",
@@ -99,8 +99,8 @@ function RoomShell({ layout, dimensions, movieTitle, accent, bright, backdropUrl
     };
   }, [bright, theme, P]);
   const C = { ...P, ...(tinted ?? {}) };
-  const rowLabelColor = bright && theme ? theme.label : bright ? "#155E8A" : "#20D9E8";
-  const rowLabelBg = bright ? (theme ? undefined : "#EAF2FB") : undefined;
+  const rowLabelColor = bright && theme ? theme.label : bright ? "#155E8A" : "#F2B04C";
+  const rowLabelBg = bright ? (theme ? undefined : "#F1EBFD") : undefined;
   // Pre-show reel owns an animated canvas texture; recreated when the movie changes.
   const reel = useMemo(
     () => createScreenReel({ title: movieTitle, accent, backdropUrl, showLabel, bright }),
@@ -256,7 +256,7 @@ function SeatInstances({ seats, selectedIds, onToggleSeat, onHoverSeat, interact
   }, [seats]);
 
   const freeCool = new THREE.Color(availableColor);
-  const freeWarm = new THREE.Color("#FF713D");
+  const freeWarm = new THREE.Color("#F0659A");
 
   const colorFor = (s: InventorySeat) => {
     if (selectedIds.has(s.id)) return SEAT_COLORS.SELECTED;
@@ -485,13 +485,13 @@ function HoverBadge({ seat, layout }: { seat: InventorySeat; layout: LayoutConfi
   const dist = Math.sqrt(dz * dz + dx * dx + dy * dy);
   return (
     <Html position={[seat.x, seat.baseY + 1.5, seat.z]} center distanceFactor={9} zIndexRange={[10, 0]}>
-      <div className="pointer-events-none px-3 py-2 rounded-lg bg-[#0B0D12]/95 border border-white/15 text-[11px] leading-relaxed whitespace-nowrap shadow-xl">
+      <div className="pointer-events-none px-3 py-2 rounded-lg bg-[#150C22]/95 border border-white/15 text-[11px] leading-relaxed whitespace-nowrap shadow-xl">
         <div className="font-semibold text-white">Row {seat.rowLabel} · Seat {seat.seatNumber}</div>
-        <div className="text-[#20D9E8]">{seat.category} · ₹{seat.price}</div>
-        <div className={seat.status === "AVAILABLE" ? "text-[#2FBF71]" : seat.status === "HELD" ? "text-[#F5C518]" : "text-[#E5484D]"}>
+        <div className="text-[#F2B04C]">{seat.category} · ₹{seat.price}</div>
+        <div className={seat.status === "AVAILABLE" ? "text-[#34D399]" : seat.status === "HELD" ? "text-[#FFD166]" : "text-[#E5484D]"}>
           {stateLabels[seat.status] || seat.status}
         </div>
-        <div className="text-[#8FA3BF]">{dist.toFixed(1)} m from screen centre</div>
+        <div className="text-[#B4A6D4]">{dist.toFixed(1)} m from screen centre</div>
       </div>
     </Html>
   );
@@ -521,15 +521,15 @@ export default function AuditoriumCanvas(props: SceneProps) {
       onPointerMissed={() => setHovered(null)}
       aria-label="3D auditorium view"
     >
-      <color attach="background" args={[bright ? "#C9D3E0" : "#050609"]} />
-      <fog attach="fog" args={[bright ? "#C9D3E0" : "#050609", dimensions.depthM * 1.9, dimensions.depthM * 3.4]} />
+      <color attach="background" args={[bright ? "#E4DAF7" : "#0E0817"]} />
+      <fog attach="fog" args={[bright ? "#E4DAF7" : "#0E0817", dimensions.depthM * 1.9, dimensions.depthM * 3.4]} />
 
       <ambientLight intensity={bright ? 1.25 : 0.55} />
-      <hemisphereLight args={bright ? ["#F2F6FC", "#9AA3B4", 0.95] : ["#33415C", "#08090C", 0.5]} />
+      <hemisphereLight args={bright ? ["#F6F1FE", "#A99BC6", 0.95] : ["#33415C", "#120A1C", 0.5]} />
       {/* projector glow */}
-      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM * 0.7, layout.screen.z + 2.2]} intensity={bright ? 10 : 26} distance={26} color="#9FC0FF" />
-      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM / 2, layout.screen.z + 1]} intensity={bright ? 8 : 18} distance={18} color="#477BFF" />
-      <pointLight position={[0, dimensions.heightM - 1, dimensions.lastRowZ - 1]} intensity={bright ? 18 : 10} distance={22} color={bright ? "#FFE9C4" : "#20D9E8"} />
+      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM * 0.7, layout.screen.z + 2.2]} intensity={bright ? 10 : 26} distance={26} color="#C4B5FD" />
+      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM / 2, layout.screen.z + 1]} intensity={bright ? 8 : 18} distance={18} color="#8B5CF6" />
+      <pointLight position={[0, dimensions.heightM - 1, dimensions.lastRowZ - 1]} intensity={bright ? 18 : 10} distance={22} color={bright ? "#FFE9C4" : "#F2B04C"} />
 
       <RoomShell layout={layout} dimensions={dimensions} movieTitle={props.movieTitle} accent={props.accent} bright={bright} backdropUrl={props.backdropUrl} showLabel={props.showLabel} theme={theme} />
 

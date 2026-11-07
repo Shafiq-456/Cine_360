@@ -91,7 +91,7 @@ function Shows() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Showtimes</h2>
-        <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => setOpen(true)} disabled={auditoriums.length === 0}>
+        <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => setOpen(true)} disabled={auditoriums.length === 0}>
           <Plus className="w-4 h-4 mr-1.5" /> Schedule show
         </Button>
       </div>
@@ -106,11 +106,11 @@ function Shows() {
               <img src={s.movie.posterUrl} alt="" className="w-12 h-18 rounded-lg object-cover border border-white/10" style={{ aspectRatio: "2/3" }} />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm truncate">{s.movie.title}</div>
-                <div className="text-xs text-[#8FA3BF] mt-0.5">{fmtDateTime(s.startsAt)}</div>
-                <div className="text-xs text-[#20D9E8]">{s.auditorium.theatre.name} · {s.auditorium.name} · {s.format}/{s.language}</div>
-                <div className="text-xs mt-1.5 flex gap-3 text-[#8FA3BF]">
-                  <span className="text-[#2FBF71]">{s.available} free</span>
-                  <span className="text-[#F5C518]">{s.held} held</span>
+                <div className="text-xs text-[#B4A6D4] mt-0.5">{fmtDateTime(s.startsAt)}</div>
+                <div className="text-xs text-[#F2B04C]">{s.auditorium.theatre.name} · {s.auditorium.name} · {s.format}/{s.language}</div>
+                <div className="text-xs mt-1.5 flex gap-3 text-[#B4A6D4]">
+                  <span className="text-[#34D399]">{s.available} free</span>
+                  <span className="text-[#FFD166]">{s.held} held</span>
                   <span className="text-[#E5484D]">{s.booked} booked</span>
                 </div>
               </div>
@@ -125,7 +125,7 @@ function Shows() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#101218] border-white/10">
+        <DialogContent className="bg-[#1A1029] border-white/10">
           <DialogHeader>
             <DialogTitle>Schedule a show</DialogTitle>
             <DialogDescription>A per-show seat inventory is generated from the auditorium&apos;s physical seats. Overlapping slots in the same auditorium are rejected.</DialogDescription>
@@ -133,7 +133,7 @@ function Shows() {
           <div className="space-y-3.5 pt-1">
             <div className="space-y-1.5">
               <Label>Auditorium</Label>
-              <select value={form.auditoriumId} onChange={(e) => setForm({ ...form, auditoriumId: e.target.value })} className="w-full h-9 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-sm">
+              <select value={form.auditoriumId} onChange={(e) => setForm({ ...form, auditoriumId: e.target.value })} className="w-full h-9 rounded-md bg-[#150C22] border border-white/10 px-2 text-sm">
                 <option value="">Select…</option>
                 {auditoriums.map((a) => <option key={a.id} value={a.id}>{a.theatre.name} · {a.name} ({a._count?.seats} seats)</option>)}
               </select>
@@ -146,7 +146,7 @@ function Shows() {
                   const m = movies.find((x) => x.id === e.target.value);
                   setForm({ ...form, movieId: e.target.value, language: m?.languages[0] || "" });
                 }}
-                className="w-full h-9 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-sm"
+                className="w-full h-9 rounded-md bg-[#150C22] border border-white/10 px-2 text-sm"
               >
                 <option value="">Select…</option>
                 {movies.map((m) => <option key={m.id} value={m.id}>{m.title} ({m.durationMins} min)</option>)}
@@ -155,35 +155,35 @@ function Shows() {
             <div className="grid grid-cols-3 gap-2.5">
               <div className="space-y-1.5">
                 <Label>Date</Label>
-                <Input type="date" value={form.date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setForm({ ...form, date: e.target.value })} className="bg-[#0B0D12] text-sm" />
+                <Input type="date" value={form.date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setForm({ ...form, date: e.target.value })} className="bg-[#150C22] text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label>Time</Label>
-                <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="bg-[#0B0D12] text-sm" />
+                <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="bg-[#150C22] text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label>Format</Label>
-                <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })} className="w-full h-9 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-sm">
+                <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })} className="w-full h-9 rounded-md bg-[#150C22] border border-white/10 px-2 text-sm">
                   {["2D", "3D", "IMAX 2D", "IMAX 3D", "4DX"].map((f) => <option key={f}>{f}</option>)}
                 </select>
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Language</Label>
-              <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="bg-[#0B0D12]" placeholder="e.g. Tamil" />
+              <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="bg-[#150C22]" placeholder="e.g. Tamil" />
             </div>
             {categories.length > 0 && (
               <div className="rounded-lg border border-white/10 p-3 space-y-2">
-                <Label className="text-xs text-[#8FA3BF]">Category price overrides (₹, blank = default)</Label>
+                <Label className="text-xs text-[#B4A6D4]">Category price overrides (₹, blank = default)</Label>
                 <div className="grid grid-cols-3 gap-2">
                   {categories.map((c) => (
                     <div key={c} className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-[#20D9E8]">{c}</span>
+                      <span className="text-xs font-bold text-[#F2B04C]">{c}</span>
                       <Input
                         type="number" min={0}
                         value={priceOverrides[c] ?? ""}
                         onChange={(e) => setPriceOverrides({ ...priceOverrides, [c]: e.target.value })}
-                        className="h-8 bg-[#0B0D12] text-xs"
+                        className="h-8 bg-[#150C22] text-xs"
                         placeholder="default"
                       />
                     </div>
@@ -192,7 +192,7 @@ function Shows() {
               </div>
             )}
             <Button
-              className="w-full bg-[#477BFF] hover:bg-[#5C89FF]"
+              className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA]"
               disabled={busy || !form.auditoriumId || !form.movieId || !form.date || !form.time}
               onClick={create}
             >
@@ -226,7 +226,7 @@ function Bookings() {
             <button
               key={s || "all"}
               onClick={() => setStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer transition-colors ${status === s ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white"}`}
+              className={`px-3 py-1.5 rounded-lg text-xs border cursor-pointer transition-colors ${status === s ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white"}`}
             >
               {s || "All"}
             </button>
@@ -239,7 +239,7 @@ function Bookings() {
         <div className="overflow-x-auto cine-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[#8FA3BF] uppercase tracking-wider">
+              <tr className="text-left text-xs text-[#B4A6D4] uppercase tracking-wider">
                 <th className="p-4 font-medium">Ref</th>
                 <th className="p-4 font-medium">Customer</th>
                 <th className="p-4 font-medium">Show</th>
@@ -253,8 +253,8 @@ function Bookings() {
               {bookings.map((b) => (
                 <tr key={b.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                   <td className="p-4 font-mono text-xs">{b.reference}</td>
-                  <td className="p-4">{b.user.name}<div className="text-xs text-[#8FA3BF]">{b.user.email}</div></td>
-                  <td className="p-4">{b.show.movie.title}<div className="text-xs text-[#8FA3BF]">{fmtDateTime(b.show.startsAt)}</div></td>
+                  <td className="p-4">{b.user.name}<div className="text-xs text-[#B4A6D4]">{b.user.email}</div></td>
+                  <td className="p-4">{b.show.movie.title}<div className="text-xs text-[#B4A6D4]">{fmtDateTime(b.show.startsAt)}</div></td>
                   <td className="p-4 text-xs">{b.seats.map((s) => `${s.rowLabel}${s.seatNumber}`).join(", ")}</td>
                   <td className="p-4">{inr(b.totalAmount)}</td>
                   <td className="p-4 text-xs">{b.payment ? `${b.payment.provider} · ${b.payment.status}${b.payment.method ? ` · ${b.payment.method}` : ""}` : "—"}</td>

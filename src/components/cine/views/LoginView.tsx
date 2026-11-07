@@ -62,7 +62,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
     <div className="max-w-6xl mx-auto px-4 py-12 grid lg:grid-cols-2 gap-10 items-start">
       <div className="cine-card p-8">
         <div className="flex items-center gap-2.5 mb-6">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#477BFF] to-[#20D9E8] flex items-center justify-center">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#F2B04C] flex items-center justify-center">
             <Clapperboard className="w-5 h-5 text-white" />
           </span>
           <h1 className="text-2xl font-bold">{mode === "login" ? "Sign in to CINE 360" : "Create your account"}</h1>
@@ -73,17 +73,17 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
             <>
               <div className="space-y-1.5">
                 <Label htmlFor="name">Full name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Riya Kumar" className="bg-[#0B0D12]" />
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Riya Kumar" className="bg-[#150C22]" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Phone (optional)</Label>
-                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98xxx" className="bg-[#0B0D12]" />
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98xxx" className="bg-[#150C22]" />
               </div>
             </>
           )}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="bg-[#0B0D12]" autoComplete="username" />
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="bg-[#150C22]" autoComplete="username" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Password</Label>
@@ -95,46 +95,46 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
               required
               minLength={mode === "register" ? 8 : 1}
               placeholder={mode === "register" ? "At least 8 characters" : "Your password"}
-              className="bg-[#0B0D12]"
+              className="bg-[#150C22]"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
           </div>
-          <Button type="submit" disabled={busy} className="w-full bg-[#477BFF] hover:bg-[#5C89FF] h-11">
+          <Button type="submit" disabled={busy} className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA] h-11">
             {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
           </Button>
         </form>
 
-        <p className="text-sm text-[#8FA3BF] mt-5 text-center">
+        <p className="text-sm text-[#B4A6D4] mt-5 text-center">
           {mode === "login" ? (
-            <>New to CINE 360? <button onClick={() => navigate("/register")} className="text-[#477BFF] hover:underline cursor-pointer">Create an account</button></>
+            <>New to CINE 360? <button onClick={() => navigate("/register")} className="text-[#8B5CF6] hover:underline cursor-pointer">Create an account</button></>
           ) : (
-            <>Already registered? <button onClick={() => navigate("/login")} className="text-[#477BFF] hover:underline cursor-pointer">Sign in</button></>
+            <>Already registered? <button onClick={() => navigate("/login")} className="text-[#8B5CF6] hover:underline cursor-pointer">Sign in</button></>
           )}
         </p>
       </div>
 
       <div className="cine-card p-8">
-        <h2 className="text-lg font-bold flex items-center gap-2"><Info className="w-5 h-5 text-[#F5C518]" /> Demo accounts</h2>
-        <p className="text-sm text-[#8FA3BF] mt-1.5 mb-5">
-          Every demo account is labelled and uses the shared password <code className="px-1.5 py-0.5 rounded bg-[#0B0D12] border border-white/10 text-[#20D9E8]">Demo@1234</code>. They authenticate through the real backend — no authorization is bypassed.
+        <h2 className="text-lg font-bold flex items-center gap-2"><Info className="w-5 h-5 text-[#FFD166]" /> Demo accounts</h2>
+        <p className="text-sm text-[#B4A6D4] mt-1.5 mb-5">
+          Every demo account is labelled and uses the shared password <code className="px-1.5 py-0.5 rounded bg-[#150C22] border border-white/10 text-[#F2B04C]">Demo@1234</code>. They authenticate through the real backend — no authorization is bypassed.
         </p>
         <ul className="space-y-2.5">
           {DEMO_ACCOUNTS.map((d) => (
             <li key={d.email}>
               <button
                 onClick={() => fillDemo(d.email)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-white/10 hover:border-[#477BFF]/50 hover:bg-[#477BFF]/5 transition-colors cursor-pointer group"
+                className="w-full text-left px-4 py-3 rounded-xl border border-white/10 hover:border-[#8B5CF6]/50 hover:bg-[#8B5CF6]/5 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold group-hover:text-white">{d.label}</span>
-                  <span className="text-[11px] text-[#8FA3BF]">{d.email}</span>
+                  <span className="text-[11px] text-[#B4A6D4]">{d.email}</span>
                 </div>
-                <div className="text-xs text-[#8FA3BF] mt-0.5">{d.desc}</div>
+                <div className="text-xs text-[#B4A6D4] mt-0.5">{d.desc}</div>
               </button>
             </li>
           ))}
         </ul>
-        <p className="text-xs text-[#8FA3BF]/70 mt-5">Click an account to fill the form, then press Sign in.</p>
+        <p className="text-xs text-[#B4A6D4]/70 mt-5">Click an account to fill the form, then press Sign in.</p>
       </div>
     </div>
   );

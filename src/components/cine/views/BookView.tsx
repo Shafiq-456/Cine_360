@@ -45,11 +45,11 @@ type Inventory = {
 };
 
 const LEGEND = [
-  { color: "#2FBF71", label: "Available", key: "AVAILABLE" as const },
-  { color: "#F5C518", label: "Held by others", key: null },
+  { color: "#34D399", label: "Available", key: "AVAILABLE" as const },
+  { color: "#FFD166", label: "Held by others", key: null },
   { color: "#E5484D", label: "Booked", key: null },
-  { color: "#477BFF", label: "Your selection", key: null },
-  { color: "#3A3F4A", label: "Unavailable", key: null },
+  { color: "#8B5CF6", label: "Your selection", key: null },
+  { color: "#4A3D63", label: "Unavailable", key: null },
 ];
 
 function hasWebGL(): boolean {
@@ -203,7 +203,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
   }, [inv, previewSeat]);
 
   // Auditorium interior identity — seats, 2D map and legend all follow this colour.
-  const themeSeatColor = themeOf(inv?.layout.theme)?.seat || "#2FBF71";
+  const themeSeatColor = themeOf(inv?.layout.theme)?.seat || "#34D399";
 
   // preview navigation: next/prev AVAILABLE seat (falls back to any seat)
   const stepPreview = useCallback(
@@ -341,23 +341,23 @@ export default function BookView({ showId, params }: { showId: string; params: U
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="min-w-0">
-          <button onClick={() => navigate(`/movies/${show.movie.id}`)} className="text-xs text-[#477BFF] hover:underline cursor-pointer">← {show.movie.title}</button>
+          <button onClick={() => navigate(`/movies/${show.movie.id}`)} className="text-xs text-[#8B5CF6] hover:underline cursor-pointer">← {show.movie.title}</button>
           <h1 className="text-lg md:text-xl font-bold mt-0.5 truncate">
             {show.auditorium.theatre.name} · {show.auditorium.name}
           </h1>
-          <p className="text-xs text-[#8FA3BF] mt-0.5">
+          <p className="text-xs text-[#B4A6D4] mt-0.5">
             {fmtDateTime(show.startsAt)} · {show.format} · {show.language} · {show.movie.certification}
             <span className="ml-2 inline-flex items-center gap-1">
-              <span className={`w-1.5 h-1.5 rounded-full cine-pulse-dot ${live === "live" ? "bg-[#2FBF71]" : "bg-[#F5C518]"}`} />
+              <span className={`w-1.5 h-1.5 rounded-full cine-pulse-dot ${live === "live" ? "bg-[#34D399]" : "bg-[#FFD166]"}`} />
               {live === "live" ? "Live seat sync" : "Auto-refresh (15s)"}
             </span>
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-[10px] px-2 py-1 rounded-full border ${show.auditorium.geometrySource === "UPLOADED" ? "border-[#2FBF71]/40 text-[#2FBF71] bg-[#2FBF71]/10" : "border-white/15 text-[#8FA3BF] bg-white/5"}`}>
+          <span className={`text-[10px] px-2 py-1 rounded-full border ${show.auditorium.geometrySource === "UPLOADED" ? "border-[#34D399]/40 text-[#34D399] bg-[#34D399]/10" : "border-white/15 text-[#B4A6D4] bg-white/5"}`}>
             {show.auditorium.geometrySource === "UPLOADED" ? "CALIBRATED 3D MODEL" : "DEMO GEOMETRY"}
           </span>
-          <Button size="sm" variant={force2D ? "default" : "outline"} onClick={() => setForce2D((v) => !v)} className={force2D ? "bg-[#477BFF]" : "border-white/15"}>
+          <Button size="sm" variant={force2D ? "default" : "outline"} onClick={() => setForce2D((v) => !v)} className={force2D ? "bg-[#8B5CF6]" : "border-white/15"}>
             <Accessibility className="w-3.5 h-3.5 mr-1.5" /> {force2D ? "3D view" : "2D seat map"}
           </Button>
         </div>
@@ -366,7 +366,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
       <div className="flex flex-col lg:flex-row gap-4">
         {/* ==================== 3D / 2D STAGE ==================== */}
         <div className="flex-1 min-w-0">
-          <div ref={containerRef} className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#050609]" style={{ height: "min(72vh, 780px)" }}>
+          <div ref={containerRef} className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#0E0817]" style={{ height: "min(72vh, 780px)" }}>
             {force2D || !webglOk ? (
               <SeatMap2D
                 seats={inv.seats}
@@ -387,7 +387,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   mode={mode}
                   previewSeat={previewSeat}
                   movieTitle={show.movie.title}
-                  accent="#477BFF"
+                  accent="#8B5CF6"
                   isTouch={isTouch}
                   moveRef={moveRef}
                   resetKey={resetKey}
@@ -400,7 +400,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
 
                 {/* floating controls */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-                  <div className="flex rounded-xl overflow-hidden border border-white/10 bg-[#0B0D12]/90 backdrop-blur">
+                  <div className="flex rounded-xl overflow-hidden border border-white/10 bg-[#150C22]/90 backdrop-blur">
                     <SceneModeButton active={mode === "orbit"} icon={<Orbit className="w-4 h-4" />} label="Orbit" onClick={() => { setMode("orbit"); setPreviewSeat(null); }} disabled={!webglOk} />
                     {walkAvailable && (
                       <SceneModeButton active={mode === "walk"} icon={<Footprints className="w-4 h-4" />} label="Walk" onClick={() => { setMode("walk"); setPreviewSeat(null); }} />
@@ -411,7 +411,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => { setResetKey((k) => k + 1); setPreviewSeat(null); setMode("orbit"); }}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#DDE1E8] hover:border-[#477BFF]/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#150C22]/90 border border-white/10 text-xs text-[#EAE2FA] hover:border-[#8B5CF6]/50 transition-colors cursor-pointer"
                       aria-label="Reset camera"
                     >
                       <RotateCcw className="w-3.5 h-3.5" /> Reset
@@ -422,7 +422,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                         if (!document.fullscreenElement) el?.requestFullscreen?.().catch(() => toast.error("Fullscreen is blocked by the browser"));
                         else document.exitFullscreen?.();
                       }}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#DDE1E8] hover:border-[#477BFF]/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#150C22]/90 border border-white/10 text-xs text-[#EAE2FA] hover:border-[#8B5CF6]/50 transition-colors cursor-pointer"
                       aria-label="Toggle fullscreen"
                     >
                       <Maximize className="w-3.5 h-3.5" /> Fullscreen
@@ -430,7 +430,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     <button
                       onClick={() => setBright((v) => !v)}
                       aria-pressed={bright}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${bright ? "bg-[#FFF3D6] border-[#FFD59E] text-[#5A4300]" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${bright ? "bg-[#FFF3D6] border-[#FFD59E] text-[#5A4300]" : "bg-[#150C22]/90 border-white/10 text-[#EAE2FA] hover:border-[#8B5CF6]/50"}`}
                       aria-label="Toggle house lights"
                       title={bright ? "House lights: ON — click to dim the theatre" : "House lights: DIM — click to brighten"}
                     >
@@ -439,7 +439,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     <button
                       onClick={() => setHeatmap((v) => !v)}
                       aria-pressed={heatmap}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${heatmap ? "bg-[#FF713D] border-[#FF713D] text-white" : "bg-[#0B0D12]/90 border-white/10 text-[#DDE1E8] hover:border-[#477BFF]/50"}`}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs transition-colors cursor-pointer ${heatmap ? "bg-[#F0659A] border-[#F0659A] text-white" : "bg-[#150C22]/90 border-white/10 text-[#EAE2FA] hover:border-[#8B5CF6]/50"}`}
                       aria-label="Toggle demand heatmap"
                       title="Colour available seats by how busy each row is"
                     >
@@ -448,7 +448,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                     {(show.movie.trailerId || show.movie.trailerUrl) && (
                       <button
                         onClick={() => setTrailerOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#E50914]/90 border border-[#E50914] text-xs text-white hover:bg-[#E50914] transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#F43F5E]/90 border border-[#F43F5E] text-xs text-white hover:bg-[#F43F5E] transition-colors cursor-pointer"
                         aria-label="Play trailer on screen"
                         title="Play the official trailer"
                       >
@@ -463,29 +463,29 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   <WalkHints moveRef={moveRef} isTouch={isTouch} onExit={() => setMode("orbit")} />
                 )}
                 {mode === "orbit" && showInstructions && (
-                  <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md z-10 flex items-start gap-3 px-4 py-3 rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-white/10 text-xs text-[#B9C4D6]">
-                    <MousePointerClick className="w-4 h-4 text-[#477BFF] shrink-0 mt-0.5" />
+                  <div className="absolute bottom-3 left-3 right-3 md:right-auto md:max-w-md z-10 flex items-start gap-3 px-4 py-3 rounded-xl bg-[#150C22]/90 backdrop-blur border border-white/10 text-xs text-[#D5C9F0]">
+                    <MousePointerClick className="w-4 h-4 text-[#8B5CF6] shrink-0 mt-0.5" />
                     <div>
                       <b className="text-white">Drag</b> to orbit, <b className="text-white">scroll</b> to zoom, <b className="text-white">right-drag</b> to pan. <b className="text-white">Click any green seat</b> to select it. Hover a chair for details.
-                      <button onClick={() => setShowInstructions(false)} className="ml-2 text-[#8FA3BF] hover:text-white cursor-pointer underline">Got it</button>
+                      <button onClick={() => setShowInstructions(false)} className="ml-2 text-[#B4A6D4] hover:text-white cursor-pointer underline">Got it</button>
                     </div>
                   </div>
                 )}
 
                 {/* ==================== SEAT EXPERIENCE HUD (compact, keeps screen visible) ==================== */}
                 {mode === "preview" && previewSeat && previewVision && (
-                  <div className="absolute inset-x-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto cine-scroll rounded-xl bg-[#0B0D12]/90 backdrop-blur border border-[#477BFF]/30 px-3 py-2.5 shadow-2xl">
+                  <div className="absolute inset-x-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto cine-scroll rounded-xl bg-[#150C22]/90 backdrop-blur border border-[#8B5CF6]/30 px-3 py-2.5 shadow-2xl">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="min-w-0">
-                        <span className="text-[9px] uppercase tracking-widest text-[#20D9E8]">Seat Experience · eye-position preview</span>
+                        <span className="text-[9px] uppercase tracking-widest text-[#F2B04C]">Seat Experience · eye-position preview</span>
                         <div className="font-bold text-sm leading-tight truncate">
                           Row {previewSeat.rowLabel} · Seat {previewSeat.seatNumber}
-                          <span className="ml-2 text-xs font-medium text-[#F5C518]">{previewSeat.category}</span>
-                          <span className="ml-2 text-xs text-[#2FBF71]">{inr(previewSeat.price)}</span>
+                          <span className="ml-2 text-xs font-medium text-[#FFD166]">{previewSeat.category}</span>
+                          <span className="ml-2 text-xs text-[#34D399]">{inr(previewSeat.price)}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={() => { setPreviewSeat(null); setMode("orbit"); }} className="p-1.5 rounded-lg hover:bg-white/10 text-[#8FA3BF] cursor-pointer" aria-label="Return to auditorium" title="Return to auditorium (Esc)">
+                        <button onClick={() => { setPreviewSeat(null); setMode("orbit"); }} className="p-1.5 rounded-lg hover:bg-white/10 text-[#B4A6D4] cursor-pointer" aria-label="Return to auditorium" title="Return to auditorium (Esc)">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -495,7 +495,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
                       <Metric label="Distance" value={`${previewVision.distanceM} m`} />
                       <Metric label="Horiz. angle" value={`${previewVision.horizontalAngleDeg}°`} />
                       <Metric label="Vert. angle" value={`${previewVision.verticalAngleDeg}°`} />
-                      <Metric label="Sightline" value={previewVision.grade} accent={previewVision.score >= 82 ? "#2FBF71" : previewVision.score >= 64 ? "#F5C518" : "#FF713D"} />
+                      <Metric label="Sightline" value={previewVision.grade} accent={previewVision.score >= 82 ? "#34D399" : previewVision.score >= 64 ? "#FFD166" : "#F0659A"} />
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -506,22 +506,22 @@ export default function BookView({ showId, params }: { showId: string; params: U
                         Next <ChevronRight className="w-3 h-3" />
                       </Button>
                       {compare.some((c) => c.showSeatId === previewSeat.id) ? (
-                        <Button size="sm" variant="outline" className="border-[#FF713D]/40 text-[#FF713D] h-7 text-[11px] px-2.5" onClick={() => removeCompare(previewSeat.id)}>
+                        <Button size="sm" variant="outline" className="border-[#F0659A]/40 text-[#F0659A] h-7 text-[11px] px-2.5" onClick={() => removeCompare(previewSeat.id)}>
                           <PinOff className="w-3 h-3 mr-1" /> Unpin
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" className="border-[#20D9E8]/40 text-[#20D9E8] h-7 text-[11px] px-2.5" onClick={() => addCompare({ showSeatId: previewSeat.id, label: `R${previewSeat.rowLabel}·S${previewSeat.seatNumber}`, distanceM: previewVision.distanceM, hAngle: previewVision.horizontalAngleDeg, vAngle: previewVision.verticalAngleDeg, score: previewVision.score, grade: previewVision.grade })}>
+                        <Button size="sm" variant="outline" className="border-[#F2B04C]/40 text-[#F2B04C] h-7 text-[11px] px-2.5" onClick={() => addCompare({ showSeatId: previewSeat.id, label: `R${previewSeat.rowLabel}·S${previewSeat.seatNumber}`, distanceM: previewVision.distanceM, hAngle: previewVision.horizontalAngleDeg, vAngle: previewVision.verticalAngleDeg, score: previewVision.score, grade: previewVision.grade })}>
                           <Pin className="w-3 h-3 mr-1" /> Compare
                         </Button>
                       )}
                       <Button
                         size="sm"
-                        className={`h-7 text-[11px] px-2.5 ${selectedIds.has(previewSeat.id) ? "bg-[#E5484D] hover:bg-[#F05A5F]" : "bg-[#477BFF] hover:bg-[#5C89FF]"}`}
+                        className={`h-7 text-[11px] px-2.5 ${selectedIds.has(previewSeat.id) ? "bg-[#E5484D] hover:bg-[#F05A5F]" : "bg-[#8B5CF6] hover:bg-[#A78BFA]"}`}
                         onClick={() => onToggleFromScene(previewSeat)}
                       >
                         {selectedIds.has(previewSeat.id) ? "Deselect seat" : "Select this seat"}
                       </Button>
-                      <span className="text-[9px] text-[#8FA3BF]/80 ml-auto hidden md:inline" title="Measured from the configured auditorium geometry (eye height). Sightline grade is a derived indicator using THX/SMPTE-style bands — not a guaranteed experience.">
+                      <span className="text-[9px] text-[#B4A6D4]/80 ml-auto hidden md:inline" title="Measured from the configured auditorium geometry (eye height). Sightline grade is a derived indicator using THX/SMPTE-style bands — not a guaranteed experience.">
                         Measured from configured geometry · derived indicator
                       </span>
                     </div>
@@ -534,7 +534,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
           {/* Legend + compare strip */}
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
             {LEGEND.map((l) => (
-              <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-[#8FA3BF]">
+              <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-[#B4A6D4]">
                 <span className="w-3 h-3 rounded-[4px] border border-white/20" style={{ background: l.key === "AVAILABLE" ? themeSeatColor : l.color }} aria-hidden="true" />
                 {l.label}
               </span>
@@ -544,19 +544,19 @@ export default function BookView({ showId, params }: { showId: string; params: U
                 <Flame className="w-3 h-3" /> Heatmap: warmer = busier row
               </span>
             )}
-            <span className="text-[11px] text-[#8FA3BF] ml-auto flex items-center gap-1"><Info className="w-3 h-3" /> Availability also labelled on hover and in the 2D map</span>
+            <span className="text-[11px] text-[#B4A6D4] ml-auto flex items-center gap-1"><Info className="w-3 h-3" /> Availability also labelled on hover and in the 2D map</span>
           </div>
 
           {compare.length > 0 && (
             <div className="mt-3 cine-card p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold flex items-center gap-1.5"><Pin className="w-3.5 h-3.5 text-[#20D9E8]" /> SeatVision comparison</h3>
-                <button onClick={() => useBookingSelection.getState().clearCompare()} className="text-xs text-[#8FA3BF] hover:text-white cursor-pointer">Clear</button>
+                <h3 className="text-sm font-semibold flex items-center gap-1.5"><Pin className="w-3.5 h-3.5 text-[#F2B04C]" /> SeatVision comparison</h3>
+                <button onClick={() => useBookingSelection.getState().clearCompare()} className="text-xs text-[#B4A6D4] hover:text-white cursor-pointer">Clear</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-[#8FA3BF] text-left">
+                    <tr className="text-[#B4A6D4] text-left">
                       <th className="py-1.5 pr-3 font-medium">Seat</th>
                       <th className="py-1.5 pr-3 font-medium">Distance</th>
                       <th className="py-1.5 pr-3 font-medium">Horiz. angle</th>
@@ -572,9 +572,9 @@ export default function BookView({ showId, params }: { showId: string; params: U
                         <td className="py-1.5 pr-3">{c.distanceM} m</td>
                         <td className="py-1.5 pr-3">{c.hAngle}°</td>
                         <td className="py-1.5 pr-3">{c.vAngle}°</td>
-                        <td className="py-1.5 pr-3" style={{ color: c.score >= 82 ? "#2FBF71" : c.score >= 64 ? "#F5C518" : "#FF713D" }}>{c.grade}</td>
+                        <td className="py-1.5 pr-3" style={{ color: c.score >= 82 ? "#34D399" : c.score >= 64 ? "#FFD166" : "#F0659A" }}>{c.grade}</td>
                         <td className="py-1.5">
-                          <button onClick={() => removeCompare(c.showSeatId)} className="text-[#8FA3BF] hover:text-white cursor-pointer" aria-label={`Remove ${c.label} from comparison`}><X className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => removeCompare(c.showSeatId)} className="text-[#B4A6D4] hover:text-white cursor-pointer" aria-label={`Remove ${c.label} from comparison`}><X className="w-3.5 h-3.5" /></button>
                         </td>
                       </tr>
                     ))}
@@ -589,44 +589,44 @@ export default function BookView({ showId, params }: { showId: string; params: U
         <aside className="w-full lg:w-[360px] shrink-0 space-y-4" aria-label="Seat selection and checkout">
           <div className="cine-card p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold flex items-center gap-2"><Armchair className="w-4 h-4 text-[#477BFF]" /> Your selection</h2>
+              <h2 className="font-bold flex items-center gap-2"><Armchair className="w-4 h-4 text-[#8B5CF6]" /> Your selection</h2>
               {selected.length > 0 && (
-                <button onClick={clearSeats} className="text-xs text-[#8FA3BF] hover:text-white cursor-pointer">Clear all</button>
+                <button onClick={clearSeats} className="text-xs text-[#B4A6D4] hover:text-white cursor-pointer">Clear all</button>
               )}
             </div>
 
-            <div className="mt-3 text-xs text-[#8FA3BF]">
+            <div className="mt-3 text-xs text-[#B4A6D4]">
               {inv.counts.AVAILABLE ?? 0} of {inv.seats.length} seats available right now
             </div>
 
             <div className="mt-4 min-h-[92px] max-h-56 overflow-y-auto cine-scroll space-y-1.5" aria-live="polite">
               {selectedSeats.length === 0 ? (
-                <p className="text-sm text-[#8FA3BF] py-4 text-center">
-                  {force2D ? "Tap seats on the 2D map" : "Click seats in the 3D auditorium"} to add them here, then use <b className="text-[#20D9E8]">Preview This Seat</b> to experience the view.
+                <p className="text-sm text-[#B4A6D4] py-4 text-center">
+                  {force2D ? "Tap seats on the 2D map" : "Click seats in the 3D auditorium"} to add them here, then use <b className="text-[#F2B04C]">Preview This Seat</b> to experience the view.
                 </p>
               ) : (
                 selectedSeats.map((s) => (
                   <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.04] border border-white/5 text-sm">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-8 h-8 rounded-md bg-[#477BFF]/15 border border-[#477BFF]/40 text-[#9FC0FF] text-[11px] font-bold flex items-center justify-center shrink-0">
+                      <span className="w-8 h-8 rounded-md bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 text-[#C4B5FD] text-[11px] font-bold flex items-center justify-center shrink-0">
                         {s.rowLabel}{s.seatNumber}
                       </span>
                       <div className="min-w-0">
                         <div className="font-medium truncate">{s.category}</div>
-                        <div className="text-[11px] text-[#8FA3BF]">Row {s.rowLabel} · Seat {s.seatNumber}</div>
+                        <div className="text-[11px] text-[#B4A6D4]">Row {s.rowLabel} · Seat {s.seatNumber}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setPreviewSeat(s.id)}
-                        className="text-[11px] px-2 py-1 rounded-md border border-[#20D9E8]/40 text-[#20D9E8] hover:bg-[#20D9E8]/10 transition-colors cursor-pointer"
+                        className="text-[11px] px-2 py-1 rounded-md border border-[#F2B04C]/40 text-[#F2B04C] hover:bg-[#F2B04C]/10 transition-colors cursor-pointer"
                         disabled={force2D}
                         title={force2D ? "Preview is available in the 3D view" : "Preview the screen from this seat"}
                       >
                         <Eye className="w-3 h-3 inline mr-1" />Preview
                       </button>
                       <span className="font-semibold">{inr(s.price)}</span>
-                      <button onClick={() => onToggleFromScene(s)} className="text-[#8FA3BF] hover:text-[#E5484D] cursor-pointer" aria-label={`Remove seat ${s.rowLabel}${s.seatNumber}`}>
+                      <button onClick={() => onToggleFromScene(s)} className="text-[#B4A6D4] hover:text-[#E5484D] cursor-pointer" aria-label={`Remove seat ${s.rowLabel}${s.seatNumber}`}>
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -638,25 +638,25 @@ export default function BookView({ showId, params }: { showId: string; params: U
             <Separator className="my-4 bg-white/5" />
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#8FA3BF]">{selectedSeats.length} ticket{selectedSeats.length === 1 ? "" : "s"}</span>
+              <span className="text-[#B4A6D4]">{selectedSeats.length} ticket{selectedSeats.length === 1 ? "" : "s"}</span>
               <span className="font-bold text-xl">{inr(total)}</span>
             </div>
             {selectedSeats.length > 0 && selectedSeats.length < 4 && (
-              <p className="text-[11px] text-[#8FA3BF] mt-1">Convenience fee: none in demo · taxes included</p>
+              <p className="text-[11px] text-[#B4A6D4] mt-1">Convenience fee: none in demo · taxes included</p>
             )}
 
             <Button
-              className="w-full mt-4 h-11 bg-[#477BFF] hover:bg-[#5C89FF] font-semibold"
+              className="w-full mt-4 h-11 bg-[#8B5CF6] hover:bg-[#A78BFA] font-semibold"
               disabled={selectedSeats.length === 0 || holding}
               onClick={holdAndCheckout}
             >
               {holding ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Securing seats…</>
               ) : (
-                <>Hold {selectedSeats.length > 0 ? `${selectedSeats.length} seat${selectedSeats.length === 1 ? "" : "s"}` : "seats"} · {inr(total)} <span className="text-[#DDE1E8]/70 font-normal ml-1">(5 min)</span></>
+                <>Hold {selectedSeats.length > 0 ? `${selectedSeats.length} seat${selectedSeats.length === 1 ? "" : "s"}` : "seats"} · {inr(total)} <span className="text-[#EAE2FA]/70 font-normal ml-1">(5 min)</span></>
               )}
             </Button>
-            <p className="text-[11px] text-[#8FA3BF] mt-2.5 leading-relaxed">
+            <p className="text-[11px] text-[#B4A6D4] mt-2.5 leading-relaxed">
               Seats are protected for 5 minutes while you check out. Unpaid holds expire automatically and seats return to inventory.
             </p>
           </div>
@@ -667,9 +667,9 @@ export default function BookView({ showId, params }: { showId: string; params: U
             <img src={show.movie.posterUrl} alt={`${show.movie.title} poster`} className="w-14 h-20 rounded-lg object-cover border border-white/10" />
             <div className="text-sm min-w-0">
               <div className="font-semibold truncate">{show.movie.title}</div>
-              <div className="text-xs text-[#8FA3BF] mt-0.5">{show.movie.durationMins} min · {show.movie.certification}</div>
-              <div className="text-xs text-[#20D9E8] mt-1">{show.format} · {show.language}</div>
-              <button onClick={() => navigate(`/theatres/${show.auditorium.theatre.id}`)} className="text-xs text-[#477BFF] hover:underline mt-1.5 cursor-pointer">
+              <div className="text-xs text-[#B4A6D4] mt-0.5">{show.movie.durationMins} min · {show.movie.certification}</div>
+              <div className="text-xs text-[#F2B04C] mt-1">{show.format} · {show.language}</div>
+              <button onClick={() => navigate(`/theatres/${show.auditorium.theatre.id}`)} className="text-xs text-[#8B5CF6] hover:underline mt-1.5 cursor-pointer">
                 {show.auditorium.theatre.name}
               </button>
             </div>
@@ -689,7 +689,7 @@ export default function BookView({ showId, params }: { showId: string; params: U
           <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm font-semibold text-white flex items-center gap-2">
-                <Play className="w-4 h-4 text-[#E50914]" /> {show.movie.title} — Official trailer
+                <Play className="w-4 h-4 text-[#F43F5E]" /> {show.movie.title} — Official trailer
               </div>
               <button
                 onClick={() => setTrailerOpen(false)}
@@ -710,13 +710,13 @@ export default function BookView({ showId, params }: { showId: string; params: U
                   allowFullScreen
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-sm text-[#8FA3BF]">
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-[#B4A6D4]">
                   Open trailer:&nbsp;
-                  <a className="text-[#477BFF] underline" href={show.movie.trailerUrl || "#"} target="_blank" rel="noopener noreferrer">external link</a>
+                  <a className="text-[#8B5CF6] underline" href={show.movie.trailerUrl || "#"} target="_blank" rel="noopener noreferrer">external link</a>
                 </div>
               )}
             </div>
-            <p className="mt-2 text-[11px] text-[#8FA3BF]">
+            <p className="mt-2 text-[11px] text-[#B4A6D4]">
               Plays the film's publicly available trailer via YouTube. The in-theatre screen also runs a pre-show reel generated from the movie artwork.
             </p>
           </div>
@@ -734,7 +734,7 @@ function SceneModeButton({ active, icon, label, onClick, disabled, title }: { ac
       title={title}
       aria-pressed={active}
       className={`flex items-center gap-1.5 px-3 py-2 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
-        active ? "bg-[#477BFF] text-white" : "text-[#B9C4D6] hover:bg-white/10"
+        active ? "bg-[#8B5CF6] text-white" : "text-[#D5C9F0] hover:bg-white/10"
       }`}
     >
       {icon} {label}
@@ -742,10 +742,10 @@ function SceneModeButton({ active, icon, label, onClick, disabled, title }: { ac
   );
 }
 
-function Metric({ label, value, accent = "#F5F7FA" }: { label: string; value: string; accent?: string }) {
+function Metric({ label, value, accent = "#F7F2FE" }: { label: string; value: string; accent?: string }) {
   return (
     <div className="rounded-lg bg-white/[0.04] border border-white/5 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wider text-[#8FA3BF]">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-[#B4A6D4]">{label}</div>
       <div className="text-sm font-bold mt-0.5" style={{ color: accent }}>{value}</div>
     </div>
   );
@@ -755,13 +755,13 @@ function WalkHints({ moveRef, isTouch, onExit }: { moveRef: React.MutableRefObje
   const set = (x: number, z: number) => {
     moveRef.current = { x, z };
   };
-  const btn = "w-11 h-11 rounded-lg bg-[#0B0D12]/90 border border-white/15 text-white flex items-center justify-center active:bg-[#477BFF] select-none touch-none";
+  const btn = "w-11 h-11 rounded-lg bg-[#150C22]/90 border border-white/15 text-white flex items-center justify-center active:bg-[#8B5CF6] select-none touch-none";
   return (
     <div className="absolute inset-0 z-10 pointer-events-none">
       {!isTouch && (
-        <div className="absolute top-3 right-3 px-4 py-3 rounded-xl bg-[#0B0D12]/90 border border-white/10 text-xs text-[#B9C4D6] max-w-[260px] pointer-events-auto">
+        <div className="absolute top-3 right-3 px-4 py-3 rounded-xl bg-[#150C22]/90 border border-white/10 text-xs text-[#D5C9F0] max-w-[260px] pointer-events-auto">
           <b className="text-white">Walk mode.</b> Click to capture the mouse · <b>WASD / arrows</b> to move · <b>Esc</b> to release & exit. You cannot walk through walls or seats.
-          <button onClick={onExit} className="block mt-2 text-[#477BFF] hover:underline cursor-pointer">Exit walk mode</button>
+          <button onClick={onExit} className="block mt-2 text-[#8B5CF6] hover:underline cursor-pointer">Exit walk mode</button>
         </div>
       )}
       {isTouch && (
@@ -774,7 +774,7 @@ function WalkHints({ moveRef, isTouch, onExit }: { moveRef: React.MutableRefObje
             <button className={btn} aria-label="Move back" onPointerDown={() => set(0, -1)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>▼</button>
             <button className={btn} aria-label="Move right" onPointerDown={() => set(1, 0)} onPointerUp={() => set(0, 0)} onPointerLeave={() => set(0, 0)}>▶</button>
           </div>
-          <button onClick={onExit} className="mt-2 w-full py-2 rounded-lg bg-[#0B0D12]/90 border border-white/15 text-xs text-white cursor-pointer">Exit walk</button>
+          <button onClick={onExit} className="mt-2 w-full py-2 rounded-lg bg-[#150C22]/90 border border-white/15 text-xs text-white cursor-pointer">Exit walk</button>
         </div>
       )}
     </div>

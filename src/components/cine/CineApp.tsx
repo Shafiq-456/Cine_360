@@ -89,21 +89,30 @@ function Nav({ path }: { path: string }) {
     return (
       <button
         onClick={() => navigate(to)}
-        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-          active ? "text-white bg-white/10" : "text-[#8FA3BF] hover:text-white hover:bg-white/5"
+        aria-current={active ? "page" : undefined}
+        className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors group ${
+          active ? "text-white" : "text-[#B4A6D4] hover:text-white"
         }`}
       >
-        {icon}
-        <span className="hidden sm:inline">{label}</span>
+        {active && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-lg bg-gradient-to-r from-[#8B5CF6]/35 via-[#8B5CF6]/20 to-[#F0659A]/30 border border-[#8B5CF6]/40 cine-glow-blue"
+          />
+        )}
+        <span className="relative flex items-center gap-1.5 group-hover:-translate-y-px transition-transform">
+          {icon}
+          <span className="hidden sm:inline">{label}</span>
+        </span>
       </button>
     );
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#08090C]/80 border-b border-white/5">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#120A1C]/80 border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
         <button onClick={() => navigate("/")} className="flex items-center gap-2.5 group cursor-pointer" aria-label="CINE 360 home">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#477BFF] to-[#20D9E8] flex items-center justify-center cine-glow-blue group-hover:scale-105 transition-transform">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#F2B04C] flex items-center justify-center cine-glow-blue group-hover:scale-105 transition-transform">
             <Clapperboard className="w-5 h-5 text-white" />
           </span>
           <span className="text-lg font-bold tracking-wide">
@@ -122,15 +131,15 @@ function Nav({ path }: { path: string }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-white/5 transition-colors cursor-pointer" aria-label="Account menu">
-                  <Avatar className="w-8 h-8 border border-[#477BFF]/40">
-                    <AvatarFallback className="bg-[#1A2338] text-[#9FC0FF] text-xs font-semibold">
+                  <Avatar className="w-8 h-8 border border-[#8B5CF6]/40">
+                    <AvatarFallback className="bg-[#2A1B45] text-[#C4B5FD] text-xs font-semibold">
                       {session.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
                     </AvatarFallback>
                   </Avatar>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#8FA3BF]" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[#B4A6D4]" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#12141B] border-white/10">
+              <DropdownMenuContent align="end" className="w-56 bg-[#1E1230] border-white/10">
                 <DropdownMenuLabel>
                   <div className="text-sm font-medium">{session.name}</div>
                   <div className="text-xs text-muted-foreground">{session.email} · {session.role}</div>
@@ -161,7 +170,7 @@ function Nav({ path }: { path: string }) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button size="sm" onClick={() => navigate("/login")} className="bg-[#477BFF] hover:bg-[#5C89FF] text-white gap-1.5">
+            <Button size="sm" onClick={() => navigate("/login")} className="bg-[#8B5CF6] hover:bg-[#A78BFA] text-white gap-1.5">
               <LogIn className="w-3.5 h-3.5" /> Sign in
             </Button>
           )}
@@ -173,25 +182,25 @@ function Nav({ path }: { path: string }) {
 
 function Footer() {
   return (
-    <footer className="mt-auto border-t border-white/5 bg-[#060708]">
+    <footer className="mt-auto border-t border-white/5 bg-[#0D0716]">
       <div className="max-w-7xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-3 text-sm">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#477BFF] to-[#20D9E8] flex items-center justify-center">
+            <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#F2B04C] flex items-center justify-center">
               <Clapperboard className="w-4 h-4 text-white" />
             </span>
             <span className="font-bold">CINE<span className="cine-flame-text">360</span></span>
           </div>
-          <p className="text-[#8FA3BF] leading-relaxed">
+          <p className="text-[#B4A6D4] leading-relaxed">
             Don&apos;t just book a seat. Experience it before you sit. Explore 3D auditoriums, preview your exact view and book with confidence.
           </p>
-          <p className="mt-4 text-xs text-[#8FA3BF]/70">
+          <p className="mt-4 text-xs text-[#B4A6D4]/70">
             DEMO BUILD — test-mode payments, procedural demo geometry and clearly labelled demo accounts.
           </p>
         </div>
         <div>
           <h3 className="font-semibold mb-3">Explore</h3>
-          <ul className="space-y-2 text-[#8FA3BF]">
+          <ul className="space-y-2 text-[#B4A6D4]">
             <li><button className="hover:text-white transition-colors cursor-pointer" onClick={() => navigate("/movies")}>All movies</button></li>
             <li><button className="hover:text-white transition-colors cursor-pointer" onClick={() => navigate("/theatres")}>Theatres</button></li>
             <li><button className="hover:text-white transition-colors cursor-pointer" onClick={() => navigate("/tickets")}>My tickets</button></li>
@@ -200,11 +209,11 @@ function Footer() {
         </div>
         <div>
           <h3 className="font-semibold mb-3">Built by FROST &amp; FLAME</h3>
-          <p className="text-[#8FA3BF]">Mohammed Shafiq AS · Jaiyanth B</p>
-          <p className="mt-2 text-[#8FA3BF]">Your Cinema. Your View. Your Seat.</p>
+          <p className="text-[#B4A6D4]">Mohammed Shafiq AS · Jaiyanth B</p>
+          <p className="mt-2 text-[#B4A6D4]">Your Cinema. Your View. Your Seat.</p>
         </div>
       </div>
-      <div className="border-t border-white/5 py-4 text-center text-xs text-[#8FA3BF]/60">
+      <div className="border-t border-white/5 py-4 text-center text-xs text-[#B4A6D4]/60">
         © {new Date().getFullYear()} CINE 360 · Immersive 3D Cinema Ticket Booking
       </div>
     </footer>
@@ -224,7 +233,7 @@ export default function CineApp() {
   }, [path]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#08090C]">
+    <div className="min-h-screen flex flex-col bg-[#120A1C]">
       <Nav path={path} />
       <main className="flex-1">
         {sessionLoaded ? (

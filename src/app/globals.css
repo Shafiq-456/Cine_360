@@ -41,49 +41,49 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-cine-blue: #477BFF;
-  --color-cine-cyan: #20D9E8;
-  --color-cine-flame: #FF713D;
-  --color-cine-obsidian: #08090C;
-  --color-cine-graphite: #171A21;
-  --color-cine-titanium: #DDE1E8;
+  --color-cine-violet: #8B5CF6;
+  --color-cine-gold: #F2B04C;
+  --color-cine-rose: #F0659A;
+  --color-cine-plum: #120A1C;
+  --color-cine-grape: #1F1330;
+  --color-cine-lilac: #EAE2FA;
 }
 
-/* ============ CINE 360 — Obsidian theme ============ */
+/* ============ CINE 360 — Velvet Aurora theme ============ */
 :root,
 .dark {
   --radius: 0.75rem;
-  --background: #08090C;
-  --foreground: #F5F7FA;
-  --card: #101218;
-  --card-foreground: #F5F7FA;
-  --popover: #12141B;
-  --popover-foreground: #F5F7FA;
-  --primary: #477BFF;
+  --background: #120A1C;
+  --foreground: #F7F2FE;
+  --card: #1A1029;
+  --card-foreground: #F7F2FE;
+  --popover: #1E1230;
+  --popover-foreground: #F7F2FE;
+  --primary: #8B5CF6;
   --primary-foreground: #FFFFFF;
-  --secondary: #171A21;
-  --secondary-foreground: #DDE1E8;
-  --muted: #14161D;
-  --muted-foreground: #8FA3BF;
-  --accent: #1A2338;
-  --accent-foreground: #9FC0FF;
+  --secondary: #1F1330;
+  --secondary-foreground: #EAE2FA;
+  --muted: #221536;
+  --muted-foreground: #B4A6D4;
+  --accent: #2A1B45;
+  --accent-foreground: #C4B5FD;
   --destructive: #E5484D;
-  --border: rgba(221, 225, 232, 0.10);
-  --input: rgba(221, 225, 232, 0.12);
-  --ring: #477BFF;
-  --chart-1: #477BFF;
-  --chart-2: #20D9E8;
-  --chart-3: #FF713D;
-  --chart-4: #F5C518;
-  --chart-5: #2FBF71;
-  --sidebar: #0B0D12;
-  --sidebar-foreground: #F5F7FA;
-  --sidebar-primary: #477BFF;
+  --border: rgba(234, 226, 250, 0.10);
+  --input: rgba(234, 226, 250, 0.12);
+  --ring: #8B5CF6;
+  --chart-1: #8B5CF6;
+  --chart-2: #F2B04C;
+  --chart-3: #F0659A;
+  --chart-4: #FFD166;
+  --chart-5: #34D399;
+  --sidebar: #150C22;
+  --sidebar-foreground: #F7F2FE;
+  --sidebar-primary: #8B5CF6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #171A21;
-  --sidebar-accent-foreground: #DDE1E8;
-  --sidebar-border: rgba(221, 225, 232, 0.1);
-  --sidebar-ring: #477BFF;
+  --sidebar-accent: #1F1330;
+  --sidebar-accent-foreground: #EAE2FA;
+  --sidebar-border: rgba(234, 226, 250, 0.1);
+  --sidebar-ring: #8B5CF6;
 }
 
 @layer base {
@@ -94,40 +94,146 @@
     @apply bg-background text-foreground;
     font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
     letter-spacing: 0.01em;
+    background-image:
+      radial-gradient(60rem 32rem at 85% -8%, rgba(139, 92, 246, 0.14), transparent 60%),
+      radial-gradient(48rem 28rem at -10% 12%, rgba(240, 101, 154, 0.10), transparent 60%),
+      radial-gradient(52rem 30rem at 50% 118%, rgba(242, 176, 76, 0.08), transparent 60%);
+    background-attachment: fixed;
   }
   ::selection {
-    background: rgba(71, 123, 255, 0.35);
+    background: rgba(139, 92, 246, 0.40);
   }
 }
 
-/* ============ Brand utilities ============ */
+/* ============ Brand utilities — Velvet Aurora ============ */
 .cine-gradient-text {
-  background: linear-gradient(92deg, #F5F7FA 0%, #9FC0FF 45%, #20D9E8 100%);
+  background: linear-gradient(92deg, #F7F2FE 0%, #C4B5FD 30%, #F2B04C 62%, #F0659A 100%);
+  background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: cine-gradient-shift 7s ease-in-out infinite alternate;
+}
+@keyframes cine-gradient-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 .cine-flame-text {
-  background: linear-gradient(92deg, #FF713D, #F5C518);
+  background: linear-gradient(92deg, #F2B04C, #F0659A);
+  background-size: 180% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: cine-gradient-shift 6s ease-in-out infinite alternate;
 }
 .cine-card {
-  background: linear-gradient(160deg, rgba(23, 26, 33, 0.9), rgba(11, 13, 18, 0.9));
-  border: 1px solid rgba(221, 225, 232, 0.08);
+  background: linear-gradient(160deg, rgba(31, 19, 48, 0.88), rgba(18, 10, 28, 0.92));
+  border: 1px solid rgba(234, 226, 250, 0.08);
   border-radius: var(--radius-lg);
+  position: relative;
 }
 .cine-card-hover {
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s, box-shadow 0.4s;
+}
+.cine-card-hover::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(130deg, rgba(139, 92, 246, 0.55), rgba(242, 176, 76, 0.35) 50%, rgba(240, 101, 154, 0.5));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
 }
 .cine-card-hover:hover {
-  transform: translateY(-4px);
-  border-color: rgba(71, 123, 255, 0.45);
-  box-shadow: 0 12px 40px -12px rgba(71, 123, 255, 0.35), 0 0 0 1px rgba(71, 123, 255, 0.15);
+  transform: translateY(-5px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 14px 44px -14px rgba(139, 92, 246, 0.45), 0 0 0 1px rgba(242, 176, 76, 0.12);
+}
+.cine-card-hover:hover::after {
+  opacity: 1;
 }
 .cine-glow-blue {
-  box-shadow: 0 0 24px rgba(71, 123, 255, 0.45), 0 0 64px rgba(71, 123, 255, 0.18);
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.5), 0 0 64px rgba(240, 101, 154, 0.22);
+}
+/* sheen sweep for primary buttons */
+.cine-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.cine-sheen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.cine-sheen:hover::before {
+  left: 130%;
+}
+/* full-page aurora backdrop for hero areas */
+.cine-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cine-aurora::before,
+.cine-aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  will-change: transform;
+}
+.cine-aurora::before {
+  width: 46vw;
+  height: 46vw;
+  left: -12vw;
+  top: -18vw;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.5), transparent 65%);
+  animation: cine-aurora-drift-a 16s ease-in-out infinite alternate;
+}
+.cine-aurora::after {
+  width: 40vw;
+  height: 40vw;
+  right: -10vw;
+  top: -6vw;
+  background: radial-gradient(circle, rgba(240, 101, 154, 0.42), transparent 65%);
+  animation: cine-aurora-drift-b 20s ease-in-out infinite alternate;
+}
+@keyframes cine-aurora-drift-a {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6vw, 4vw) scale(1.12); }
+  100% { transform: translate(-3vw, 7vw) scale(0.95); }
+}
+@keyframes cine-aurora-drift-b {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5vw, 6vw) scale(1.08); }
+  100% { transform: translate(4vw, -3vw) scale(1.15); }
+}
+/* floating golden ember in the aurora */
+.cine-ember {
+  position: absolute;
+  width: 22vw;
+  height: 22vw;
+  left: 58vw;
+  top: 2vw;
+  border-radius: 50%;
+  filter: blur(60px);
+  background: radial-gradient(circle, rgba(242, 176, 76, 0.35), transparent 65%);
+  animation: cine-aurora-drift-b 24s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
 }
 .cine-hero-beam {
   position: absolute;
@@ -144,9 +250,9 @@
   height: 80vh;
   transform: translateX(-50%);
   background:
-    radial-gradient(45% 55% at 50% 0%, rgba(71, 123, 255, 0.20) 0%, transparent 70%),
-    radial-gradient(30% 40% at 38% 10%, rgba(32, 217, 232, 0.12) 0%, transparent 70%),
-    radial-gradient(26% 36% at 63% 8%, rgba(255, 113, 61, 0.10) 0%, transparent 70%);
+    radial-gradient(45% 55% at 50% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 70%),
+    radial-gradient(30% 40% at 38% 10%, rgba(242, 176, 76, 0.12) 0%, transparent 70%),
+    radial-gradient(26% 36% at 63% 8%, rgba(240, 101, 154, 0.12) 0%, transparent 70%);
   filter: blur(2px);
   animation: cine-beam-breathe 9s ease-in-out infinite alternate;
 }
@@ -162,28 +268,60 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .cine-screen-arc {
-  background: linear-gradient(180deg, rgba(245, 247, 250, 0.85), rgba(221, 225, 232, 0.25));
+  background: linear-gradient(180deg, rgba(247, 242, 254, 0.85), rgba(234, 226, 250, 0.25));
   clip-path: ellipse(58% 100% at 50% 0%);
+}
+/* animated headline entrance */
+.cine-rise {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: cine-rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes cine-rise-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+/* marquee ticker */
+.cine-ticker {
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.cine-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5rem;
+  white-space: nowrap;
+  padding-right: 2.5rem;
+  animation: cine-ticker-scroll 36s linear infinite;
+  will-change: transform;
+}
+.cine-ticker:hover .cine-ticker-track {
+  animation-play-state: paused;
+}
+@keyframes cine-ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 .cine-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 .cine-scroll::-webkit-scrollbar-thumb {
-  background: rgba(143, 163, 191, 0.25);
+  background: rgba(180, 166, 212, 0.25);
   border-radius: 8px;
 }
 .cine-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 .cine-ring-focus:focus-visible {
-  outline: 2px solid #477BFF;
+  outline: 2px solid #8B5CF6;
   outline-offset: 2px;
 }
 .cine-marquee-screen {
   background:
-    linear-gradient(100deg, rgba(71, 123, 255, 0.14), rgba(32, 217, 232, 0.10) 45%, rgba(255, 113, 61, 0.08)),
-    #0A0C10;
+    linear-gradient(100deg, rgba(139, 92, 246, 0.14), rgba(242, 176, 76, 0.10) 45%, rgba(240, 101, 154, 0.08)),
+    #150C22;
 }
 .cine-pulse-dot {
   animation: cine-pulse 1.6s ease-in-out infinite;
@@ -192,15 +330,35 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+/* gentle float for decorative badges */
+.cine-float {
+  animation: cine-float-y 5s ease-in-out infinite;
+}
+@keyframes cine-float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .cine-hero-beam::before,
-  .cine-pulse-dot {
+  .cine-pulse-dot,
+  .cine-aurora::before,
+  .cine-aurora::after,
+  .cine-ember,
+  .cine-float,
+  .cine-ticker-track,
+  .cine-gradient-text,
+  .cine-flame-text {
     animation: none !important;
   }
   .cine-card-hover,
   .cine-card-hover:hover {
     transition: none;
     transform: none;
+  }
+  .cine-rise {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 }

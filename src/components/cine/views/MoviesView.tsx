@@ -61,23 +61,23 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
 
       <div className="flex flex-col gap-4 mb-8">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8FA3BF]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#B4A6D4]" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search movies…"
-            className="pl-9 bg-[#101218] border-white/10 focus-visible:ring-[#477BFF]"
+            className="pl-9 bg-[#1A1029] border-white/10 focus-visible:ring-[#8B5CF6]"
             aria-label="Search movies"
           />
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs text-[#8FA3BF] mr-1 uppercase tracking-wider">Language</span>
+          <span className="text-xs text-[#B4A6D4] mr-1 uppercase tracking-wider">Language</span>
           <FilterChip active={!lang} label="Any" onClick={() => setLang("")} />
           {LANGUAGES.map((l) => <FilterChip key={l} active={lang === l} label={l} onClick={() => setLang(l)} />)}
-          <span className="text-xs text-[#8FA3BF] mr-1 ml-3 uppercase tracking-wider">Genre</span>
+          <span className="text-xs text-[#B4A6D4] mr-1 ml-3 uppercase tracking-wider">Genre</span>
           <FilterChip active={!genre} label="Any" onClick={() => setGenre("")} />
           {GENRES.map((g) => <FilterChip key={g} active={genre === g} label={g} onClick={() => setGenre(g)} />)}
-          <span className="text-xs text-[#8FA3BF] mr-1 ml-3 uppercase tracking-wider">Status</span>
+          <span className="text-xs text-[#B4A6D4] mr-1 ml-3 uppercase tracking-wider">Status</span>
           <FilterChip active={status === "NOW_SHOWING"} label="Now showing" onClick={() => setStatus("NOW_SHOWING")} />
           <FilterChip active={status === "UPCOMING"} label="Upcoming" onClick={() => setStatus("UPCOMING")} />
         </div>
@@ -98,15 +98,15 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
               <div className="aspect-[2/3] overflow-hidden relative">
                 { }
                 <img src={m.posterUrl} alt={`${m.title} poster`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-black/60 backdrop-blur border border-white/10 text-[#20D9E8]">{m.certification}</span>
+                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-black/60 backdrop-blur border border-white/10 text-[#F2B04C]">{m.certification}</span>
                 {m.featured && status === "NOW_SHOWING" && (
-                  <Badge className="absolute top-2 right-2 bg-[#FF713D] text-white border-0 text-[10px] px-1.5">FEATURED</Badge>
+                  <Badge className="absolute top-2 right-2 bg-[#F0659A] text-white border-0 text-[10px] px-1.5">FEATURED</Badge>
                 )}
               </div>
               <div className="p-3">
                 <div className="font-semibold text-sm truncate">{m.title}</div>
-                <div className="text-xs text-[#8FA3BF] mt-0.5 truncate">{m.languages.join(", ")}</div>
-                <div className="text-xs text-[#8FA3BF] mt-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> {m.durationMins} min · {m.genres.slice(0, 2).join(", ")}</div>
+                <div className="text-xs text-[#B4A6D4] mt-0.5 truncate">{m.languages.join(", ")}</div>
+                <div className="text-xs text-[#B4A6D4] mt-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> {m.durationMins} min · {m.genres.slice(0, 2).join(", ")}</div>
               </div>
             </button>
           ))}
@@ -122,7 +122,7 @@ function FilterChip({ active, label, onClick }: { active: boolean; label: string
       onClick={onClick}
       aria-pressed={active}
       className={`px-3 py-1.5 rounded-full text-xs border transition-colors cursor-pointer ${
-        active ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:border-[#477BFF]/50 hover:text-white"
+        active ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:border-[#8B5CF6]/50 hover:text-white"
       }`}
     >
       {label}

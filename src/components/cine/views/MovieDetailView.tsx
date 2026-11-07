@@ -73,7 +73,7 @@ export default function MovieDetailView({ id }: { id: string }) {
         <div className="absolute inset-0">
           { }
           <img src={movie.backdropUrl || movie.posterUrl} alt="" aria-hidden="true" className="w-full h-full object-cover opacity-30 blur-sm scale-110" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08090C] via-[#08090C]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#120A1C] via-[#120A1C]/70 to-transparent" />
         </div>
         <div className="relative p-6 md:p-10 flex flex-col md:flex-row gap-8">
           <div className="w-40 md:w-52 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
@@ -83,28 +83,28 @@ export default function MovieDetailView({ id }: { id: string }) {
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight">{movie.title}</h1>
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-md bg-[#20D9E8]/10 border border-[#20D9E8]/30 text-[#20D9E8] font-semibold">{movie.certification}</span>
-              {movie.genres.map((g) => <span key={g} className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[#DDE1E8]">{g}</span>)}
+              <span className="px-2.5 py-1 rounded-md bg-[#F2B04C]/10 border border-[#F2B04C]/30 text-[#F2B04C] font-semibold">{movie.certification}</span>
+              {movie.genres.map((g) => <span key={g} className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[#EAE2FA]">{g}</span>)}
             </div>
-            <p className="mt-4 text-[#B9C4D6] leading-relaxed max-w-2xl">{movie.synopsis}</p>
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#8FA3BF]">
+            <p className="mt-4 text-[#D5C9F0] leading-relaxed max-w-2xl">{movie.synopsis}</p>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#B4A6D4]">
               <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {movie.durationMins} min</span>
               <span className="flex items-center gap-1.5"><Languages className="w-4 h-4" /> {movie.languages.join(", ")}</span>
               {movie.releaseDate && <span>Released {new Date(movie.releaseDate).getFullYear()}</span>}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               {movie.trailerId ? (
-                <Button variant="outline" className="border-[#E50914]/50 text-[#FF6B6B] hover:bg-[#E50914]/10 hover:text-[#FF6B6B]" onClick={() => setTrailerOpen(true)}>
+                <Button variant="outline" className="border-[#F43F5E]/50 text-[#FF6B6B] hover:bg-[#F43F5E]/10 hover:text-[#FF6B6B]" onClick={() => setTrailerOpen(true)}>
                   <Play className="w-4 h-4 mr-2" /> Watch trailer
                 </Button>
               ) : movie.trailerUrl ? (
                 <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="border-white/15 hover:border-[#20D9E8]/60 hover:text-[#20D9E8]">
+                  <Button variant="outline" className="border-white/15 hover:border-[#F2B04C]/60 hover:text-[#F2B04C]">
                     <Play className="w-4 h-4 mr-2" /> Watch trailer
                   </Button>
                 </a>
               ) : null}
-              <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
+              <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
                 <Ticket className="w-4 h-4 mr-2" /> Book tickets
               </Button>
             </div>
@@ -115,7 +115,7 @@ export default function MovieDetailView({ id }: { id: string }) {
       {/* Showtimes */}
       <section id="showtimes" className="mt-12" aria-label="Showtimes">
         <h2 className="text-2xl font-bold mb-2">Showtimes</h2>
-        <p className="text-sm text-[#8FA3BF] mb-6">Pick a show, then explore the auditorium in 3D.</p>
+        <p className="text-sm text-[#B4A6D4] mb-6">Pick a show, then explore the auditorium in 3D.</p>
 
         {dates.length > 1 && (
           <div className="flex gap-2 mb-6 flex-wrap">
@@ -125,7 +125,7 @@ export default function MovieDetailView({ id }: { id: string }) {
                 onClick={() => setDate(d)}
                 aria-pressed={date === d}
                 className={`px-4 py-2 rounded-xl text-sm border transition-colors cursor-pointer ${
-                  date === d ? "bg-[#477BFF] border-[#477BFF] text-white" : "border-white/10 text-[#8FA3BF] hover:text-white hover:border-[#477BFF]/50"
+                  date === d ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white hover:border-[#8B5CF6]/50"
                 }`}
               >
                 {fmtDate(d)}
@@ -151,9 +151,9 @@ export default function MovieDetailView({ id }: { id: string }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                   <div>
                     <h3 className="font-semibold text-lg">{theatre.name}</h3>
-                    <p className="text-xs text-[#8FA3BF] mt-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> {theatre.city} · {theatre.address}</p>
+                    <p className="text-xs text-[#B4A6D4] mt-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> {theatre.city} · {theatre.address}</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-[#477BFF]" onClick={() => navigate(`/theatres/${theatre.id}`)}>
+                  <Button variant="ghost" size="sm" className="text-[#8B5CF6]" onClick={() => navigate(`/theatres/${theatre.id}`)}>
                     Theatre details
                   </Button>
                 </div>
@@ -166,23 +166,23 @@ export default function MovieDetailView({ id }: { id: string }) {
                       <button
                         key={s.id}
                         onClick={() => navigate(`/book/${s.id}`)}
-                        className={`relative border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#477BFF]/60 hover:bg-[#477BFF]/5 ${
-                          almostFull ? "border-[#FF713D]/30" : "border-white/10"
+                        className={`relative border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#8B5CF6]/60 hover:bg-[#8B5CF6]/5 ${
+                          almostFull ? "border-[#F0659A]/30" : "border-white/10"
                         }`}
                       >
                         {(filling || almostFull) && (
-                          <span className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide flex items-center gap-1 ${almostFull ? "bg-[#FF713D] text-white" : "bg-[#F5C518] text-[#3A2E00]"}`}>
+                          <span className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide flex items-center gap-1 ${almostFull ? "bg-[#F0659A] text-white" : "bg-[#FFD166] text-[#3A2E00]"}`}>
                             <Flame className="w-2.5 h-2.5" /> {almostFull ? "ALMOST FULL" : "FILLING FAST"}
                           </span>
                         )}
                         <div className="font-semibold text-lg">{fmtTime(s.startsAt)}</div>
-                        <div className="text-xs text-[#8FA3BF] mt-0.5">{s.auditorium.name}</div>
-                        <div className="text-xs text-[#20D9E8] mt-1">{s.format} · {s.language}</div>
-                        <div className="text-[11px] mt-2 text-[#8FA3BF]">
+                        <div className="text-xs text-[#B4A6D4] mt-0.5">{s.auditorium.name}</div>
+                        <div className="text-xs text-[#F2B04C] mt-1">{s.format} · {s.language}</div>
+                        <div className="text-[11px] mt-2 text-[#B4A6D4]">
                           {s.available} of {s.totalSeats} seats free
                         </div>
                         <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${fill}%`, background: fill >= 90 ? "#FF713D" : fill >= 60 ? "#F5C518" : "#2FBF71" }} />
+                          <div className="h-full rounded-full" style={{ width: `${fill}%`, background: fill >= 90 ? "#F0659A" : fill >= 60 ? "#FFD166" : "#34D399" }} />
                         </div>
                       </button>
                     );
@@ -193,7 +193,7 @@ export default function MovieDetailView({ id }: { id: string }) {
           })}
         </div>
         <Separator className="my-10 bg-white/5" />
-        <p className="text-xs text-[#8FA3BF]">
+        <p className="text-xs text-[#B4A6D4]">
           Demo catalogue: real film metadata and artwork for demonstration. Pricing shown per seat category in the booking view ({inr(180)}–{inr(420)}).
         </p>
       </section>
@@ -210,7 +210,7 @@ export default function MovieDetailView({ id }: { id: string }) {
           <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm font-semibold text-white flex items-center gap-2">
-                <Play className="w-4 h-4 text-[#E50914]" /> {movie.title} — Official trailer
+                <Play className="w-4 h-4 text-[#F43F5E]" /> {movie.title} — Official trailer
               </div>
               <button
                 onClick={() => setTrailerOpen(false)}

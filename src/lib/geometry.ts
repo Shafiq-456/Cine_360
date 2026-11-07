@@ -24,7 +24,8 @@ export type LayoutConfig = {
  *  are tinted so guests instantly see which hall they are booking. */
 export type AuditoriumThemeCode =
   | "emerald" | "teal" | "amber" | "crimson" | "azure" | "violet" | "rose" | "copper"
-  | "indigo" | "saffron" | "orchid" | "sage" | "onyx" | "sandstone";
+  | "indigo" | "saffron" | "orchid" | "sage" | "onyx" | "sandstone"
+  | "garnet" | "pearl" | "mint" | "cocoa" | "sky" | "moss";
 
 export const AUDITORIUM_THEMES: Record<
   AuditoriumThemeCode,
@@ -44,6 +45,12 @@ export const AUDITORIUM_THEMES: Record<
   sage:    { name: "Sage Garden",     seat: "#9CB894", tint: "#B4C4AE", label: "#4A6B3F" },
   onyx:    { name: "Onyx Heritage",   seat: "#5A6072", tint: "#8E95A8", label: "#C9A227" },
   sandstone: { name: "Sandstone Heritage", seat: "#D9B380", tint: "#CDB9A0", label: "#8A6430" },
+  garnet:  { name: "Garnet Classic",  seat: "#DC3D5E", tint: "#C4A0AE", label: "#9F1239" },
+  pearl:   { name: "Pearl Palace",    seat: "#E7E3F2", tint: "#D6D0E8", label: "#6D5B8E" },
+  mint:    { name: "Mint Terrace",    seat: "#5EEAD4", tint: "#A8D8CC", label: "#0F766E" },
+  cocoa:   { name: "Cocoa Prime",     seat: "#A47551", tint: "#C0A48C", label: "#5C3A1E" },
+  sky:     { name: "Sky Reels",       seat: "#38BDF8", tint: "#A5C8E8", label: "#0369A1" },
+  moss:    { name: "Moss Garden",     seat: "#84CC16", tint: "#B8CC9E", label: "#4D7C0F" },
 };
 
 export function themeOf(code?: string | null) {
@@ -364,6 +371,141 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
   },
   /* ---- 2026-11 city expansion: one-of-a-kind halls for the new theatres ---- */
 
+  /* Imperial Audi 1 · Delhi — flagship spectrum hall: 16.5 m screen,
+   * three-tier widths, 0.4 m rake, 264 seats */
+  spectrum: {
+    screen: { widthM: 16.5, heightM: 7, bottomY: 2.3, z: 0 },
+    firstRowZ: 10.5,
+    rowSpacingM: 1.28,
+    rowStepUpM: 0.4,
+    seatSpacingM: 0.64,
+    centerAisle: true,
+    aisleGapM: 1.6,
+    sideMarginM: 2,
+    eyeHeightM: 1.15,
+    theme: "garnet",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H", "I", "J"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["K", "L", "M", "N"].map((label) => ({ label, seats: 16, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Imperial Audi 2 · Delhi — diamond hall: side aisles only, symmetrical
+   * 18–20 seat blocks, 12.8 m screen, 192 seats */
+  diamond: {
+    screen: { widthM: 12.8, heightM: 5.4, bottomY: 1.8, z: 0 },
+    firstRowZ: 8,
+    rowSpacingM: 1.15,
+    rowStepUpM: 0.3,
+    seatSpacingM: 0.6,
+    centerAisle: false,
+    aisleGapM: 1.2,
+    sideMarginM: 2.2,
+    eyeHeightM: 1.15,
+    theme: "mint",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 18, categoryCode: "SILVER" })),
+      ...["D", "E", "F"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["G", "H", "I"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Yamuna Prime Audi 1 · Delhi — opus hall: 15 m screen, recliner-heavy
+   * back section, 198 seats */
+  opus: {
+    screen: { widthM: 15, heightM: 6.3, bottomY: 2.1, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.24,
+    rowStepUpM: 0.36,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "cocoa",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 18, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H", "I"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["J", "K", "L"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Bengal Grand Audi 1 · Kolkata — heritage balcony single screen:
+   * 17 m screen, 22-seat rows, shallow 0.22 m rake, 284 seats */
+  heritage: {
+    screen: { widthM: 17, heightM: 6.8, bottomY: 2.2, z: 0 },
+    firstRowZ: 10,
+    rowSpacingM: 1.02,
+    rowStepUpM: 0.22,
+    seatSpacingM: 0.56,
+    centerAisle: true,
+    aisleGapM: 1.9,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "garnet",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F", "G", "H"].map((label) => ({ label, seats: 22, categoryCode: "SILVER" })),
+      ...["I", "J", "K", "L"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["M", "N"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Deccan Reels Audi 1 · Pune — velocity hall: compact steep-screen room,
+   * 11 m screen, tight 1.06 m pitch, 160 seats */
+  velocity: {
+    screen: { widthM: 11, heightM: 4.9, bottomY: 1.8, z: 0 },
+    firstRowZ: 7.5,
+    rowSpacingM: 1.06,
+    rowStepUpM: 0.34,
+    seatSpacingM: 0.6,
+    centerAisle: true,
+    aisleGapM: 1.3,
+    sideMarginM: 1.6,
+    eyeHeightM: 1.15,
+    theme: "sky",
+    rows: [
+      ...["A", "B"].map((label) => ({ label, seats: 14, categoryCode: "SILVER" })),
+      ...["C", "D", "E"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["F", "G", "H", "I"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 10, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Backwater Screens Audi 1 · Kochi — lagoon hall: relaxed mid-size room,
+   * 12 m screen, wide 0.66 m pitch, 124 seats */
+  lagoon: {
+    screen: { widthM: 12, heightM: 5.2, bottomY: 1.8, z: 0 },
+    firstRowZ: 8,
+    rowSpacingM: 1.16,
+    rowStepUpM: 0.3,
+    seatSpacingM: 0.66,
+    centerAisle: true,
+    aisleGapM: 1.4,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "moss",
+    rows: [
+      ...["A", "B", "C", "D"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["E", "F"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["G", "H"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Rajmahal Audi 1 · Jaipur — palace hall: pearl-and-gold interior,
+   * 19 m screen, grand 24-seat rows, 240 seats */
+  palace: {
+    screen: { widthM: 19, heightM: 7.6, bottomY: 2.4, z: 0 },
+    firstRowZ: 11,
+    rowSpacingM: 1.22,
+    rowStepUpM: 0.34,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.8,
+    sideMarginM: 2.2,
+    eyeHeightM: 1.15,
+    theme: "pearl",
+    rows: [
+      ...["A", "B", "C", "D", "E"].map((label) => ({ label, seats: 24, categoryCode: "SILVER" })),
+      ...["F", "G", "H", "I"].map((label) => ({ label, seats: 24, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
   /* Lumière Audi 1 · Bengaluru — true stadium hall: steep 0.5 m rake,
    * 15 rows × 16, deep 1.25 m row pitch, 15.5 m screen, 240 seats */
   stadium: {
@@ -498,9 +640,9 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
 };
 
 export const DEFAULT_PRICES: Record<string, { name: string; color: string; price: number }> = {
-  SILVER: { name: "Silver", color: "#8FA3BF", price: 180 },
-  GOLD: { name: "Gold", color: "#F5C518", price: 260 },
-  RECLINER: { name: "Recliner", color: "#FF713D", price: 420 },
+  SILVER: { name: "Silver", color: "#A99BC6", price: 180 },
+  GOLD: { name: "Gold", color: "#FFD166", price: 260 },
+  RECLINER: { name: "Recliner", color: "#F0659A", price: 420 },
 };
 
 function round2(n: number) {

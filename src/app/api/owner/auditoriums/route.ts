@@ -48,7 +48,7 @@ export async function buildAuditoriumInventory(
   await db.seatCategory.deleteMany({ where: { auditoriumId } });
   const categories = await Promise.all(
     codes.map((code) => {
-      const def = DEFAULT_PRICES[code] || { name: code.charAt(0) + code.slice(1).toLowerCase(), color: "#20D9E8", price: 200 };
+      const def = DEFAULT_PRICES[code] || { name: code.charAt(0) + code.slice(1).toLowerCase(), color: "#F2B04C", price: 200 };
       return db.seatCategory.create({
         data: { auditoriumId, code, name: def.name, color: def.color, basePrice: def.price },
       });

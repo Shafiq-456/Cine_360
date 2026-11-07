@@ -119,9 +119,9 @@ export default function ScanView() {
 
   const banner =
     last?.result === "SUCCESS"
-      ? { cls: "border-[#2FBF71]/50 bg-[#2FBF71]/10 text-[#2FBF71]", icon: <CheckCircle2 className="w-8 h-8" />, title: "Ticket redeemed" }
+      ? { cls: "border-[#34D399]/50 bg-[#34D399]/10 text-[#34D399]", icon: <CheckCircle2 className="w-8 h-8" />, title: "Ticket redeemed" }
       : last?.result === "ALREADY_REDEEMED"
-      ? { cls: "border-[#F5C518]/50 bg-[#F5C518]/10 text-[#F5C518]", icon: <AlertTriangle className="w-8 h-8" />, title: "Already redeemed" }
+      ? { cls: "border-[#FFD166]/50 bg-[#FFD166]/10 text-[#FFD166]", icon: <AlertTriangle className="w-8 h-8" />, title: "Already redeemed" }
       : last?.result === "VOID"
       ? { cls: "border-[#E5484D]/50 bg-[#E5484D]/10 text-[#E5484D]", icon: <XCircle className="w-8 h-8" />, title: "Void ticket" }
       : last
@@ -130,21 +130,21 @@ export default function ScanView() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-1 flex items-center gap-2"><ScanLine className="w-7 h-7 text-[#477BFF]" /> Gate Scanner</h1>
-      <p className="text-sm text-[#8FA3BF] mb-8">
-        Signed in as <b className="text-[#DDE1E8]">{session?.name}</b> ({session?.role}). Validation is backend-authoritative: show match, ticket status and duplicate redemption are all checked server-side.
+      <h1 className="text-3xl font-bold mb-1 flex items-center gap-2"><ScanLine className="w-7 h-7 text-[#8B5CF6]" /> Gate Scanner</h1>
+      <p className="text-sm text-[#B4A6D4] mb-8">
+        Signed in as <b className="text-[#EAE2FA]">{session?.name}</b> ({session?.role}). Validation is backend-authoritative: show match, ticket status and duplicate redemption are all checked server-side.
       </p>
 
       <div className="grid md:grid-cols-2 gap-5">
         {/* Scanner side */}
         <div className="space-y-4">
           <div className="cine-card p-5">
-            <h2 className="font-semibold mb-3 flex items-center gap-2"><Camera className="w-4 h-4 text-[#20D9E8]" /> Camera scan</h2>
+            <h2 className="font-semibold mb-3 flex items-center gap-2"><Camera className="w-4 h-4 text-[#F2B04C]" /> Camera scan</h2>
             <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black aspect-video flex items-center justify-center">
               <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
               <canvas ref={canvasRef} className="hidden" />
               {camState !== "on" && (
-                <div className="text-center text-[#8FA3BF] text-sm px-6">
+                <div className="text-center text-[#B4A6D4] text-sm px-6">
                   {camState === "denied" ? (
                     <><CameraOff className="w-6 h-6 mx-auto mb-2" /> Camera blocked — manual entry below</>
                   ) : (
@@ -155,7 +155,7 @@ export default function ScanView() {
             </div>
             <div className="flex gap-2 mt-3">
               {camState !== "on" ? (
-                <Button className="bg-[#20D9E8]/15 border border-[#20D9E8]/40 text-[#20D9E8] hover:bg-[#20D9E8]/25" variant="outline" onClick={startCamera} disabled={busy}>
+                <Button className="bg-[#F2B04C]/15 border border-[#F2B04C]/40 text-[#F2B04C] hover:bg-[#F2B04C]/25" variant="outline" onClick={startCamera} disabled={busy}>
                   Start camera
                 </Button>
               ) : (
@@ -167,20 +167,20 @@ export default function ScanView() {
           </div>
 
           <div className="cine-card p-5">
-            <h2 className="font-semibold mb-3 flex items-center gap-2"><Keyboard className="w-4 h-4 text-[#477BFF]" /> Manual entry</h2>
+            <h2 className="font-semibold mb-3 flex items-center gap-2"><Keyboard className="w-4 h-4 text-[#8B5CF6]" /> Manual entry</h2>
             <div className="flex gap-2">
               <Input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="C360T-…"
-                className="bg-[#0B0D12] font-mono text-sm"
+                className="bg-[#150C22] font-mono text-sm"
                 aria-label="Ticket code"
                 onKeyDown={(e) => e.key === "Enter" && submit("redeem")}
               />
               <Button variant="outline" className="border-white/15" onClick={() => submit("check")} disabled={busy || !code}>Check</Button>
-              <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => submit("redeem")} disabled={busy || !code}>Redeem</Button>
+              <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => submit("redeem")} disabled={busy || !code}>Redeem</Button>
             </div>
-            <p className="text-[11px] text-[#8FA3BF] mt-2">“Check” verifies without redeeming. “Redeem” marks the ticket used — duplicates are rejected by the backend.</p>
+            <p className="text-[11px] text-[#B4A6D4] mt-2">“Check” verifies without redeeming. “Redeem” marks the ticket used — duplicates are rejected by the backend.</p>
           </div>
         </div>
 
@@ -210,16 +210,16 @@ export default function ScanView() {
               )}
             </div>
           ) : (
-            <div className="cine-card p-8 text-center text-[#8FA3BF] text-sm">
-              <ScanLine className="w-8 h-8 mx-auto mb-3 text-[#477BFF]/50" />
+            <div className="cine-card p-8 text-center text-[#B4A6D4] text-sm">
+              <ScanLine className="w-8 h-8 mx-auto mb-3 text-[#8B5CF6]/50" />
               Scan or enter a ticket code. Results appear here with full show and seat verification.
             </div>
           )}
 
           <div className="cine-card p-5">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><History className="w-4 h-4 text-[#8FA3BF]" /> Recent scans</h3>
+            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><History className="w-4 h-4 text-[#B4A6D4]" /> Recent scans</h3>
             {history.length === 0 ? (
-              <p className="text-xs text-[#8FA3BF]">Nothing scanned yet in this session.</p>
+              <p className="text-xs text-[#B4A6D4]">Nothing scanned yet in this session.</p>
             ) : (
               <ul className="space-y-1.5 max-h-48 overflow-y-auto cine-scroll">
                 {history.map((h, i) => (

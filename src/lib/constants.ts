@@ -18,24 +18,24 @@ export type SeatStatus = (typeof SEAT_STATUS)[keyof typeof SEAT_STATUS];
 
 export const HOLD_TTL_SECONDS = 300; // 5 minutes, configurable via env HOLD_TTL_SECONDS
 
-// Visual identity — spec palette
+// Visual identity — Velvet Aurora palette
 export const BRAND = {
-  obsidian: "#08090C",
-  graphite: "#171A21",
-  titanium: "#DDE1E8",
-  frost: "#F5F7FA",
-  electricBlue: "#477BFF",
-  cyan: "#20D9E8",
-  flame: "#FF713D",
+  obsidian: "#120A1C",
+  graphite: "#1F1330",
+  titanium: "#EAE2FA",
+  frost: "#F7F2FE",
+  electricBlue: "#8B5CF6",
+  cyan: "#F2B04C",
+  flame: "#F0659A",
 };
 
 // Seat state colours (never used alone — always paired with labels)
 export const SEAT_COLORS: Record<SeatStatus | "SELECTED", string> = {
-  AVAILABLE: "#2FBF71",
-  HELD: "#F5C518",
+  AVAILABLE: "#34D399",
+  HELD: "#FFD166",
   BOOKED: "#E5484D",
-  UNAVAILABLE: "#3A3F4A",
-  SELECTED: "#477BFF",
+  UNAVAILABLE: "#4A3D63",
+  SELECTED: "#8B5CF6",
 };
 
 export const SEAT_STATE_LABELS: Record<SeatStatus | "SELECTED", string> = {

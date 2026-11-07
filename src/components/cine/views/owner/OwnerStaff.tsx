@@ -56,7 +56,7 @@ export default function OwnerStaff() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Gate staff</h2>
-        <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => setOpen(true)} disabled={theatres.length === 0}>
+        <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => setOpen(true)} disabled={theatres.length === 0}>
           <UserPlus className="w-4 h-4 mr-1.5" /> Add staff
         </Button>
       </div>
@@ -69,8 +69,8 @@ export default function OwnerStaff() {
             <div key={s.id} className="cine-card p-4 flex items-center justify-between">
               <div>
                 <div className="font-semibold text-sm">{s.user.name}</div>
-                <div className="text-xs text-[#8FA3BF]">{s.user.email}</div>
-                <div className="text-[11px] text-[#8FA3BF] mt-1">{s.theatre.name} · joined {fmtDateTime(s.user.createdAt)}</div>
+                <div className="text-xs text-[#B4A6D4]">{s.user.email}</div>
+                <div className="text-[11px] text-[#B4A6D4] mt-1">{s.theatre.name} · joined {fmtDateTime(s.user.createdAt)}</div>
               </div>
               <StatusBadge status={s.user.status} />
             </div>
@@ -79,7 +79,7 @@ export default function OwnerStaff() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#101218] border-white/10">
+        <DialogContent className="bg-[#1A1029] border-white/10">
           <DialogHeader>
             <DialogTitle>Add gate staff</DialogTitle>
             <DialogDescription>Creates a STAFF role account scoped to one theatre. If the email already exists (e.g. a customer), the account is upgraded and linked instead.</DialogDescription>
@@ -87,24 +87,24 @@ export default function OwnerStaff() {
           <div className="space-y-3.5 pt-1">
             <div className="space-y-1.5">
               <Label>Theatre</Label>
-              <select value={form.theatreId} onChange={(e) => setForm({ ...form, theatreId: e.target.value })} className="w-full h-9 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-sm">
+              <select value={form.theatreId} onChange={(e) => setForm({ ...form, theatreId: e.target.value })} className="w-full h-9 rounded-md bg-[#150C22] border border-white/10 px-2 text-sm">
                 {theatres.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
               <Label>Name</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-[#0B0D12]" />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-[#150C22]" />
             </div>
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-[#0B0D12]" />
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-[#150C22]" />
             </div>
             <div className="space-y-1.5">
               <Label>Password (min 8 chars)</Label>
-              <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-[#0B0D12]" minLength={8} />
+              <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-[#150C22]" minLength={8} />
             </div>
             <Button
-              className="w-full bg-[#477BFF] hover:bg-[#5C89FF]"
+              className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA]"
               disabled={busy || !form.theatreId || form.name.length < 2 || !form.email.includes("@") || form.password.length < 8}
               onClick={create}
             >

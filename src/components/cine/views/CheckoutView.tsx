@@ -96,17 +96,17 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-1">Checkout</h1>
-      <p className="text-sm text-[#8FA3BF] mb-8">Booking reference <span className="font-mono text-[#20D9E8]">{booking.reference}</span> · <StatusBadge status={booking.status} /></p>
+      <p className="text-sm text-[#B4A6D4] mb-8">Booking reference <span className="font-mono text-[#F2B04C]">{booking.reference}</span> · <StatusBadge status={booking.status} /></p>
 
       {booking.status === "PENDING_PAYMENT" && (
-        <div className={`cine-card p-4 mb-6 flex items-center gap-3 text-sm ${expired ? "border-[#E5484D]/40" : "border-[#F5C518]/30"}`}>
-          {expired ? <AlertTriangle className="w-5 h-5 text-[#E5484D] shrink-0" /> : <Hourglass className="w-5 h-5 text-[#F5C518] shrink-0" />}
+        <div className={`cine-card p-4 mb-6 flex items-center gap-3 text-sm ${expired ? "border-[#E5484D]/40" : "border-[#FFD166]/30"}`}>
+          {expired ? <AlertTriangle className="w-5 h-5 text-[#E5484D] shrink-0" /> : <Hourglass className="w-5 h-5 text-[#FFD166] shrink-0" />}
           {expired ? (
-            <span>This hold has expired and the seats were released. <button onClick={() => navigate(booking.show ? `/book/${booking.show.id}` : "/movies")} className="text-[#477BFF] hover:underline cursor-pointer">Pick seats again</button>.</span>
+            <span>This hold has expired and the seats were released. <button onClick={() => navigate(booking.show ? `/book/${booking.show.id}` : "/movies")} className="text-[#8B5CF6] hover:underline cursor-pointer">Pick seats again</button>.</span>
           ) : (
             <span>
               Seats are held for another{" "}
-              <b className="text-[#F5C518] font-mono">
+              <b className="text-[#FFD166] font-mono">
                 {String(Math.floor(holdRemain! / 60)).padStart(2, "0")}:{String(holdRemain! % 60).padStart(2, "0")}
               </b>{" "}
               — complete payment before the timer runs out.
@@ -121,29 +121,29 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
           <img src={booking.show.movie.posterUrl} alt="" className="w-20 h-30 rounded-lg object-cover border border-white/10" style={{ aspectRatio: "2/3" }} />
           <div className="flex-1 min-w-0">
             <h2 className="font-bold text-lg">{booking.show.movie.title}</h2>
-            <p className="text-sm text-[#8FA3BF] mt-0.5">{fmtDateTime(booking.show.startsAt)}</p>
-            <p className="text-sm text-[#8FA3BF]">{booking.show.auditorium.theatre.name} · {booking.show.auditorium.name}</p>
-            <p className="text-xs text-[#20D9E8] mt-1">{booking.show.format} · {booking.show.language}</p>
+            <p className="text-sm text-[#B4A6D4] mt-0.5">{fmtDateTime(booking.show.startsAt)}</p>
+            <p className="text-sm text-[#B4A6D4]">{booking.show.auditorium.theatre.name} · {booking.show.auditorium.name}</p>
+            <p className="text-xs text-[#F2B04C] mt-1">{booking.show.format} · {booking.show.language}</p>
           </div>
         </div>
 
         <div className="mt-5 rounded-xl bg-white/[0.03] border border-white/5 p-4">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-[#8FA3BF]">Seats</span>
+            <span className="text-[#B4A6D4]">Seats</span>
             <span className="font-medium">{seatLabel}</span>
           </div>
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-[#8FA3BF]">Tickets ({booking.seats.length})</span>
+            <span className="text-[#B4A6D4]">Tickets ({booking.seats.length})</span>
             <span>{booking.seats.map((s) => `${s.categoryName} ${inr(s.price)}`).join(" · ")}</span>
           </div>
           <div className="flex items-center justify-between border-t border-white/5 pt-3">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-xl text-[#20D9E8]">{inr(booking.totalAmount)}</span>
+            <span className="font-bold text-xl text-[#F2B04C]">{inr(booking.totalAmount)}</span>
           </div>
         </div>
 
         {booking.status === "PENDING_PAYMENT" && !expired && (
-          <Button className="w-full mt-6 h-12 bg-[#477BFF] hover:bg-[#5C89FF] text-base font-semibold" onClick={() => { setPayOpen(true); setStage("choose"); }}>
+          <Button className="w-full mt-6 h-12 bg-[#8B5CF6] hover:bg-[#A78BFA] text-base font-semibold" onClick={() => { setPayOpen(true); setStage("choose"); }}>
             <CreditCard className="w-5 h-5 mr-2" /> Pay {inr(booking.totalAmount)}
           </Button>
         )}
@@ -154,20 +154,20 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
         )}
       </div>
 
-      <p className="text-[11px] text-[#8FA3BF] mt-4 flex items-center gap-1.5">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#2FBF71]" />
+      <p className="text-[11px] text-[#B4A6D4] mt-4 flex items-center gap-1.5">
+        <ShieldCheck className="w-3.5 h-3.5 text-[#34D399]" />
         Payments are verified server-side with signature validation. Bookings are never confirmed from the frontend alone.
       </p>
 
       {/* ============ DEMO GATEWAY MODAL (clearly labelled TEST MODE) ============ */}
       <Dialog open={payOpen} onOpenChange={setPayOpen}>
-        <DialogContent className="bg-[#101218] border-white/10 max-w-md">
+        <DialogContent className="bg-[#1A1029] border-white/10 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-[#477BFF]" /> Demo Payment Gateway
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F5C518]/15 text-[#F5C518] border border-[#F5C518]/40 ml-1">TEST MODE</span>
+              <CreditCard className="w-5 h-5 text-[#8B5CF6]" /> Demo Payment Gateway
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FFD166]/15 text-[#FFD166] border border-[#FFD166]/40 ml-1">TEST MODE</span>
             </DialogTitle>
-            <DialogDescription className="text-[#8FA3BF]">
+            <DialogDescription className="text-[#B4A6D4]">
               No real money is charged. The flow is identical to production: server-side order → gateway settle with HMAC signature → server verification → booking confirmation.
             </DialogDescription>
           </DialogHeader>
@@ -175,16 +175,16 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
           {stage === "choose" && (
             <div className="space-y-2.5 pt-2">
               <div className="flex justify-between text-sm px-1 pb-2">
-                <span className="text-[#8FA3BF]">Paying for {booking.reference}</span>
+                <span className="text-[#B4A6D4]">Paying for {booking.reference}</span>
                 <b>{inr(booking.totalAmount)}</b>
               </div>
-              <button onClick={() => pay("success")} className="w-full py-3.5 rounded-xl bg-[#2FBF71]/15 border border-[#2FBF71]/40 text-[#2FBF71] font-semibold hover:bg-[#2FBF71]/25 transition-colors cursor-pointer">
+              <button onClick={() => pay("success")} className="w-full py-3.5 rounded-xl bg-[#34D399]/15 border border-[#34D399]/40 text-[#34D399] font-semibold hover:bg-[#34D399]/25 transition-colors cursor-pointer">
                 Simulate successful payment (UPI)
               </button>
               <button onClick={() => pay("failure")} className="w-full py-3.5 rounded-xl bg-[#E5484D]/10 border border-[#E5484D]/40 text-[#E5484D] font-medium hover:bg-[#E5484D]/20 transition-colors cursor-pointer">
                 Simulate failed payment
               </button>
-              <p className="text-[10px] text-[#8FA3BF]/70 px-1 pt-1">In production this dialog is replaced by the Razorpay checkout with real keys; webhook events are processed idempotently.</p>
+              <p className="text-[10px] text-[#B4A6D4]/70 px-1 pt-1">In production this dialog is replaced by the Razorpay checkout with real keys; webhook events are processed idempotently.</p>
             </div>
           )}
           {stage === "processing" && (
@@ -193,8 +193,8 @@ export default function CheckoutView({ bookingId }: { bookingId: string }) {
           {stage === "verifying" && (
             <div className="py-8 flex justify-center">
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="w-6 h-6 animate-spin text-[#477BFF]" />
-                <span className="text-sm text-[#8FA3BF]">Verifying signature &amp; confirming booking…</span>
+                <Loader2 className="w-6 h-6 animate-spin text-[#8B5CF6]" />
+                <span className="text-sm text-[#B4A6D4]">Verifying signature &amp; confirming booking…</span>
               </div>
             </div>
           )}

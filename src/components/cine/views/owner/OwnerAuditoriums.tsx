@@ -56,19 +56,19 @@ function LayoutPreview({ layout }: { layout: LayoutConfig }) {
   const scaleZ = Math.min(scaleX, (260 - pad) / (dimensions.depthM || 1));
   const x = (mx: number) => pad + (mx + dimensions.widthM / 2) * scaleZ;
   const z = (mz: number) => pad + mz * scaleZ;
-  const catColor: Record<string, string> = { SILVER: "#8FA3BF", GOLD: "#F5C518", RECLINER: "#FF713D" };
+  const catColor: Record<string, string> = { SILVER: "#B4A6D4", GOLD: "#FFD166", RECLINER: "#F0659A" };
 
   return (
-    <svg viewBox={`0 0 ${W} ${Math.max(200, z(dimensions.depthM) + 12)}`} className="w-full rounded-xl bg-[#0B0D12] border border-white/10" role="img" aria-label="2D layout preview">
-      <rect x={x(-layout.screen.widthM / 2)} y={z(0) - 6} width={layout.screen.widthM * scaleZ} height={8} rx={3} fill="#9FC0FF" />
-      <text x={W / 2} y={z(0) - 12} textAnchor="middle" fill="#8FA3BF" fontSize="10">SCREEN {layout.screen.widthM}×{layout.screen.heightM} m</text>
+    <svg viewBox={`0 0 ${W} ${Math.max(200, z(dimensions.depthM) + 12)}`} className="w-full rounded-xl bg-[#150C22] border border-white/10" role="img" aria-label="2D layout preview">
+      <rect x={x(-layout.screen.widthM / 2)} y={z(0) - 6} width={layout.screen.widthM * scaleZ} height={8} rx={3} fill="#C4B5FD" />
+      <text x={W / 2} y={z(0) - 12} textAnchor="middle" fill="#B4A6D4" fontSize="10">SCREEN {layout.screen.widthM}×{layout.screen.heightM} m</text>
       {seats.map((s) => (
-        <circle key={`${s.rowLabel}${s.seatNumber}`} cx={x(s.x)} cy={z(s.z)} r={Math.max(2.4, layout.seatSpacingM * scaleZ * 0.32)} fill={catColor[s.categoryCode] || "#477BFF"} opacity={0.9} />
+        <circle key={`${s.rowLabel}${s.seatNumber}`} cx={x(s.x)} cy={z(s.z)} r={Math.max(2.4, layout.seatSpacingM * scaleZ * 0.32)} fill={catColor[s.categoryCode] || "#8B5CF6"} opacity={0.9} />
       ))}
       {layout.centerAisle && (
-        <line x1={W / 2} y1={z(layout.firstRowZ - 1)} x2={W / 2} y2={z(dimensions.lastRowZ + 1)} stroke="#20D9E8" strokeOpacity={0.25} strokeWidth={4} />
+        <line x1={W / 2} y1={z(layout.firstRowZ - 1)} x2={W / 2} y2={z(dimensions.lastRowZ + 1)} stroke="#F2B04C" strokeOpacity={0.25} strokeWidth={4} />
       )}
-      <text x={8} y={14} fill="#20D9E8" fontSize="10">{seats.length} seats · {dimensions.widthM}×{dimensions.depthM}×{dimensions.heightM} m</text>
+      <text x={8} y={14} fill="#F2B04C" fontSize="10">{seats.length} seats · {dimensions.widthM}×{dimensions.depthM}×{dimensions.heightM} m</text>
     </svg>
   );
 }
@@ -183,11 +183,11 @@ export default function OwnerAuditoriums() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Auditoriums &amp; 3D models</h2>
-        <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => openBuilder()} disabled={theatres.length === 0}>
+        <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => openBuilder()} disabled={theatres.length === 0}>
           <Plus className="w-4 h-4 mr-1.5" /> New auditorium
         </Button>
       </div>
-      {theatres.length === 0 && <p className="text-sm text-[#F5C518]">Register and get a theatre approved first (Theatres tab).</p>}
+      {theatres.length === 0 && <p className="text-sm text-[#FFD166]">Register and get a theatre approved first (Theatres tab).</p>}
 
       <div className="grid md:grid-cols-2 gap-4">
         {auditoriums.map((a) => {
@@ -198,9 +198,9 @@ export default function OwnerAuditoriums() {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-semibold">{a.name}</h3>
-                  <p className="text-xs text-[#8FA3BF] mt-0.5">{a.theatre?.name} · {a._count?.seats ?? 0} seats · {a._count?.shows ?? 0} shows</p>
+                  <p className="text-xs text-[#B4A6D4] mt-0.5">{a.theatre?.name} · {a._count?.seats ?? 0} seats · {a._count?.shows ?? 0} shows</p>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${a.geometrySource === "UPLOADED" ? "border-[#2FBF71]/40 text-[#2FBF71] bg-[#2FBF71]/10" : "border-white/15 text-[#8FA3BF] bg-white/5"}`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${a.geometrySource === "UPLOADED" ? "border-[#34D399]/40 text-[#34D399] bg-[#34D399]/10" : "border-white/15 text-[#B4A6D4] bg-white/5"}`}>
                   {a.geometrySource === "UPLOADED" ? "CALIBRATED" : "DEMO GEOMETRY"}
                 </span>
               </div>
@@ -222,7 +222,7 @@ export default function OwnerAuditoriums() {
 
       {/* ===================== BUILDER ===================== */}
       <Dialog open={builderOpen} onOpenChange={setBuilderOpen}>
-        <DialogContent className="bg-[#101218] border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto cine-scroll">
+        <DialogContent className="bg-[#1A1029] border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto cine-scroll">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit auditorium layout" : "Auditorium Builder"}</DialogTitle>
             <DialogDescription>
@@ -235,14 +235,14 @@ export default function OwnerAuditoriums() {
               {!editingId && (
                 <div className="space-y-1.5">
                   <Label>Theatre</Label>
-                  <select value={theatreId} onChange={(e) => setTheatreId(e.target.value)} className="w-full h-9 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-sm" aria-label="Theatre">
+                  <select value={theatreId} onChange={(e) => setTheatreId(e.target.value)} className="w-full h-9 rounded-md bg-[#150C22] border border-white/10 px-2 text-sm" aria-label="Theatre">
                     {theatres.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
               )}
               <div className="space-y-1.5">
                 <Label>Auditorium name</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-[#0B0D12]" placeholder="Audi 1 · Grand" />
+                <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-[#150C22]" placeholder="Audi 1 · Grand" />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
@@ -282,7 +282,7 @@ export default function OwnerAuditoriums() {
                         rows[i] = { ...r, label: e.target.value.toUpperCase().slice(0, 3) };
                         setLayout({ ...layout, rows });
                       }}
-                      className="w-14 bg-[#0B0D12] text-center text-xs"
+                      className="w-14 bg-[#150C22] text-center text-xs"
                       aria-label={`Row ${i + 1} label`}
                     />
                     <Input
@@ -292,7 +292,7 @@ export default function OwnerAuditoriums() {
                         rows[i] = { ...r, seats: Math.max(1, Math.min(40, Number(e.target.value) || 1)) };
                         setLayout({ ...layout, rows });
                       }}
-                      className="w-20 bg-[#0B0D12] text-xs"
+                      className="w-20 bg-[#150C22] text-xs"
                       aria-label={`Row ${r.label} seat count`}
                     />
                     <select
@@ -302,14 +302,14 @@ export default function OwnerAuditoriums() {
                         rows[i] = { ...r, categoryCode: e.target.value };
                         setLayout({ ...layout, rows });
                       }}
-                      className="h-9 flex-1 rounded-md bg-[#0B0D12] border border-white/10 px-2 text-xs"
+                      className="h-9 flex-1 rounded-md bg-[#150C22] border border-white/10 px-2 text-xs"
                       aria-label={`Row ${r.label} category`}
                     >
                       {CATEGORY_CODES.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <button
                       onClick={() => setLayout({ ...layout, rows: layout.rows.filter((_, j) => j !== i) })}
-                      className="p-2 rounded-md text-[#8FA3BF] hover:text-[#E5484D] hover:bg-white/5 cursor-pointer"
+                      className="p-2 rounded-md text-[#B4A6D4] hover:text-[#E5484D] hover:bg-white/5 cursor-pointer"
                       aria-label={`Remove row ${r.label}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -321,10 +321,10 @@ export default function OwnerAuditoriums() {
 
             <div className="space-y-3">
               <LayoutPreview layout={layout} />
-              <div className="text-xs text-[#8FA3BF] leading-relaxed">
-                Preview is top-down. Seats are generated with per-seat coordinates (x, z, floor height, eye height) — the 3D engine and SeatVision measurements use exactly these numbers. Category colours: <span className="text-[#8FA3BF]">Silver</span> / <span className="text-[#F5C518]">Gold</span> / <span className="text-[#FF713D]">Recliner</span> (base prices are configurable per show).
+              <div className="text-xs text-[#B4A6D4] leading-relaxed">
+                Preview is top-down. Seats are generated with per-seat coordinates (x, z, floor height, eye height) — the 3D engine and SeatVision measurements use exactly these numbers. Category colours: <span className="text-[#B4A6D4]">Silver</span> / <span className="text-[#FFD166]">Gold</span> / <span className="text-[#F0659A]">Recliner</span> (base prices are configurable per show).
               </div>
-              <Button className="w-full bg-[#477BFF] hover:bg-[#5C89FF]" disabled={busy || name.length < 2 || layout.rows.length === 0 || (!editingId && !theatreId)} onClick={save}>
+              <Button className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA]" disabled={busy || name.length < 2 || layout.rows.length === 0 || (!editingId && !theatreId)} onClick={save}>
                 <Save className="w-4 h-4 mr-2" /> {editingId ? "Rebuild auditorium" : "Create auditorium"}
               </Button>
             </div>
@@ -334,7 +334,7 @@ export default function OwnerAuditoriums() {
 
       {/* ===================== 3D MODEL MANAGER ===================== */}
       <Dialog open={!!modelAud} onOpenChange={(v) => !v && setModelAud(null)}>
-        <DialogContent className="bg-[#101218] border-white/10 max-w-2xl max-h-[85vh] overflow-y-auto cine-scroll">
+        <DialogContent className="bg-[#1A1029] border-white/10 max-w-2xl max-h-[85vh] overflow-y-auto cine-scroll">
           <DialogHeader>
             <DialogTitle>3D model — {modelAud?.name}</DialogTitle>
             <DialogDescription>
@@ -344,13 +344,13 @@ export default function OwnerAuditoriums() {
           {modelAud && (
             <div className="space-y-4 pt-1">
               <div className="rounded-xl border border-white/10 p-4 space-y-2">
-                {(modelAud.models || []).length === 0 && <p className="text-sm text-[#8FA3BF]">No model versions yet — the procedural demo geometry is in use.</p>}
+                {(modelAud.models || []).length === 0 && <p className="text-sm text-[#B4A6D4]">No model versions yet — the procedural demo geometry is in use.</p>}
                 {(modelAud.models || []).map((m) => (
                   <div key={m.id} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
                       <StatusBadge status={m.status} />
                       <span className="font-medium">v{m.version}</span>
-                      <span className="text-[#8FA3BF] text-xs">{m.kind === "UPLOADED" ? (m.fileUrl || "uploaded") : "Procedural demo geometry"}</span>
+                      <span className="text-[#B4A6D4] text-xs">{m.kind === "UPLOADED" ? (m.fileUrl || "uploaded") : "Procedural demo geometry"}</span>
                     </span>
                     <Button size="sm" variant="outline" className="h-7 border-white/15 text-xs" onClick={() => publishModel(modelAud, m.id, m.kind)}>
                       Publish
@@ -380,24 +380,24 @@ export default function OwnerAuditoriums() {
                 const latest = uploaded[uploaded.length - 1];
                 const rowLabels = JSON.parse(modelAud.layoutConfig as string).rows.map((r: { label: string }) => r.label) as string[];
                 return (
-                  <div className="rounded-xl border border-[#477BFF]/30 p-4 space-y-2.5">
+                  <div className="rounded-xl border border-[#8B5CF6]/30 p-4 space-y-2.5">
                     <Label className="text-sm font-semibold">Row → model node prefix (v{latest.version})</Label>
-                    <p className="text-xs text-[#8FA3BF]">Enter the name/prefix of the mesh group that contains each row&apos;s seats in your GLB (e.g. “RowA”). Publish is blocked until every row is mapped.</p>
+                    <p className="text-xs text-[#B4A6D4]">Enter the name/prefix of the mesh group that contains each row&apos;s seats in your GLB (e.g. “RowA”). Publish is blocked until every row is mapped.</p>
                     <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto cine-scroll">
                       {rowLabels.map((label) => (
                         <div key={label} className="flex items-center gap-2">
-                          <span className="w-12 text-xs font-bold text-[#20D9E8]">{label}</span>
+                          <span className="w-12 text-xs font-bold text-[#F2B04C]">{label}</span>
                           <Input
                             value={nodeMap[label] || ""}
                             onChange={(e) => setNodeMap({ ...nodeMap, [label]: e.target.value })}
                             placeholder={`node prefix…`}
-                            className="h-8 bg-[#0B0D12] text-xs"
+                            className="h-8 bg-[#150C22] text-xs"
                             aria-label={`Node prefix for row ${label}`}
                           />
                         </div>
                       ))}
                     </div>
-                    <Button size="sm" className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => publishModel(modelAud, latest.id, "UPLOADED")}>
+                    <Button size="sm" className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => publishModel(modelAud, latest.id, "UPLOADED")}>
                       Save mapping &amp; publish v{latest.version}
                     </Button>
                   </div>
@@ -414,7 +414,7 @@ export default function OwnerAuditoriums() {
 function NumField({ label, value, onChange, step = 1, min, max }: { label: string; value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number }) {
   return (
     <div className="space-y-1">
-      <Label className="text-[11px] text-[#8FA3BF]">{label}</Label>
+      <Label className="text-[11px] text-[#B4A6D4]">{label}</Label>
       <Input
         type="number"
         value={value}
@@ -425,7 +425,7 @@ function NumField({ label, value, onChange, step = 1, min, max }: { label: strin
           const v = Number(e.target.value);
           if (!isNaN(v)) onChange(Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v)));
         }}
-        className="h-8 bg-[#0B0D12] text-sm"
+        className="h-8 bg-[#150C22] text-sm"
       />
     </div>
   );

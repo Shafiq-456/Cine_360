@@ -52,14 +52,14 @@ export default function OwnerTheatres() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Your theatres</h2>
-        <Button className="bg-[#477BFF] hover:bg-[#5C89FF]" onClick={() => setOpen(true)}>
+        <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => setOpen(true)}>
           <Plus className="w-4 h-4 mr-1.5" /> Register theatre
         </Button>
       </div>
 
       {theatres.length === 0 && (
-        <div className="cine-card p-10 text-center text-[#8FA3BF]">
-          <Building2 className="w-8 h-8 mx-auto mb-3 text-[#477BFF]/50" />
+        <div className="cine-card p-10 text-center text-[#B4A6D4]">
+          <Building2 className="w-8 h-8 mx-auto mb-3 text-[#8B5CF6]/50" />
           No theatres yet. Register your first venue to add auditoriums and schedule shows.
         </div>
       )}
@@ -70,24 +70,24 @@ export default function OwnerTheatres() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-semibold">{t.name}</h3>
-                <p className="text-xs text-[#8FA3BF] mt-0.5">{t.address}</p>
+                <p className="text-xs text-[#B4A6D4] mt-0.5">{t.address}</p>
               </div>
               <StatusBadge status={t.status} />
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
               {t.auditoriums.map((a) => (
-                <span key={a.id} className="text-[11px] px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[#B9C4D6]">
+                <span key={a.id} className="text-[11px] px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[#D5C9F0]">
                   {a.name} · {a._count.seats} seats · {a._count.shows} shows
                 </span>
               ))}
-              {t.auditoriums.length === 0 && <span className="text-[11px] text-[#8FA3BF]">No auditoriums yet — add one in the Auditoriums tab.</span>}
+              {t.auditoriums.length === 0 && <span className="text-[11px] text-[#B4A6D4]">No auditoriums yet — add one in the Auditoriums tab.</span>}
             </div>
           </div>
         ))}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#101218] border-white/10">
+        <DialogContent className="bg-[#1A1029] border-white/10">
           <DialogHeader>
             <DialogTitle>Register a theatre</DialogTitle>
             <DialogDescription>New theatres start as PENDING and appear publicly once a platform admin approves them.</DialogDescription>
@@ -95,21 +95,21 @@ export default function OwnerTheatres() {
           <div className="space-y-3.5 pt-1">
             <div className="space-y-1.5">
               <Label htmlFor="t-name">Name</Label>
-              <Input id="t-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-[#0B0D12]" placeholder="Frost Cinemas — Velachery" />
+              <Input id="t-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-[#150C22]" placeholder="Frost Cinemas — Velachery" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="t-city">City</Label>
-              <Input id="t-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="bg-[#0B0D12]" placeholder="Chennai" />
+              <Input id="t-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="bg-[#150C22]" placeholder="Chennai" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="t-addr">Address</Label>
-              <Input id="t-addr" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="bg-[#0B0D12]" placeholder="100 Feet Road, Velachery" />
+              <Input id="t-addr" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="bg-[#150C22]" placeholder="100 Feet Road, Velachery" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="t-amen">Amenities (comma separated)</Label>
-              <Input id="t-amen" value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} className="bg-[#0B0D12]" />
+              <Input id="t-amen" value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} className="bg-[#150C22]" />
             </div>
-            <Button className="w-full bg-[#477BFF] hover:bg-[#5C89FF]" disabled={busy || form.name.length < 3 || form.city.length < 2 || form.address.length < 6} onClick={create}>
+            <Button className="w-full bg-[#8B5CF6] hover:bg-[#A78BFA]" disabled={busy || form.name.length < 3 || form.city.length < 2 || form.address.length < 6} onClick={create}>
               {busy ? "Registering…" : "Register theatre"}
             </Button>
           </div>
