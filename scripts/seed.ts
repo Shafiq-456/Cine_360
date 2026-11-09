@@ -1,11 +1,12 @@
 // CINE 360 — seed/demo data.
-// Creates labelled demo accounts (7 owners), 15 theatres across 12 cities
-// (Chennai, Bengaluru, Hyderabad, Mumbai, Madurai, Coimbatore, Delhi, Kolkata,
-// Pune, Kochi, Jaipur) with 21 DISTINCT auditoriums (each with its own layout,
+// Creates labelled demo accounts (16 owners), 38 theatres across 15 cities
+// (Chennai, Coimbatore, Bengaluru, Hyderabad, Mumbai, Madurai, Delhi, Kolkata,
+// Pune, Kochi, Jaipur + the Tamil Nadu circuit: Tiruppur, Tiruchy, Salem,
+// Chengalpet/ECR) with 65 DISTINCT auditoriums (each with its own layout,
 // screen size, seat map and interior theme), a demo movie catalogue (46 films —
 // 28 established favourites and 18 new 2026 releases — with factual metadata
 // where published, procedural SVG fallback artwork, search-link trailers), and
-// 84 shows for today with complete per-show seat inventory. The rolling
+// 260 shows for today with complete per-show seat inventory. The rolling
 // auto-scheduler keeps the 7-day window filled afterwards.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -205,6 +206,316 @@ const MOVIES = [
     trailerUrl: "https://www.youtube.com/results?search_query=sardar+2+official+trailer" },
 ];
 
+// ---- 2026-11 third expansion: the Tamil Nadu circuit ----
+// 23 real Chennai / Coimbatore / Tiruppur / Madurai-region theatres grouped
+// under labelled demo operator accounts. Flagship halls get their own layouts;
+// secondary halls reuse the platform layout library. Each hall plays 4 movies
+// today (reel is flattened: 4 entries per hall, [movieIdx, language, format]).
+type TnHall = { name: string; layout: string; prices?: Record<string, number> };
+type TnSpec = {
+  owner: "pvr" | "inox" | "luxe" | "heritage" | "cbe" | "sakthi" | "tpr" | "southern" | "mayajaal";
+  name: string;
+  city: string;
+  address: string;
+  amenities: string[];
+  halls: TnHall[];
+  reel: [number, string, string][];
+};
+
+const TN_CIRCUIT: TnSpec[] = [
+  // ── Chennai City (8) ──
+  {
+    owner: "pvr", name: "PVR Sathyam Cinemas — Royapettah", city: "Chennai",
+    address: "Royapettah High Road, Royapettah, Chennai 600014",
+    amenities: ["Flagship 6-Screen Complex", "Dolby Atmos", "4K Laser Projection", "Gourmet Snack Bar", "Valet Parking"],
+    halls: [
+      { name: "Audi 1 · Sathyam Grand", layout: "sathyam-grand" },
+      { name: "Audi 2 · IMAX", layout: "imax", prices: { SILVER: 240, GOLD: 340, RECLINER: 480 } },
+      { name: "Audi 3 · Cosy", layout: "classic" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"], [45, "Tamil", "2D"],
+      [0, "English", "IMAX 2D"], [28, "Tamil", "IMAX 2D"], [2, "English", "IMAX 2D"], [5, "Tamil", "3D"],
+      [13, "Tamil", "2D"], [37, "Tamil", "2D"], [27, "Tamil", "2D"], [41, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "pvr", name: "PVR Palazzo — Nexus Vijaya Mall", city: "Chennai",
+    address: "The Nexus Vijaya Mall, Vadapalani, Chennai 600026",
+    amenities: ["All-Recliner Halls", "Dolby Atmos", "Mall Food Court", "Valet Parking"],
+    halls: [
+      { name: "Audi 1 · Recliner Royale", layout: "palazzo-recliner" },
+      { name: "Audi 2 · Classic Luxe", layout: "luxe" },
+    ],
+    reel: [
+      [39, "Tamil", "2D"], [18, "Tamil", "2D"], [19, "Tamil", "2D"], [36, "Tamil", "2D"],
+      [32, "Hindi", "2D"], [3, "Hindi", "2D"], [16, "Hindi", "2D"], [29, "Hindi", "2D"],
+    ],
+  },
+  {
+    owner: "pvr", name: "PVR Escape — Express Avenue", city: "Chennai",
+    address: "Express Avenue Mall, Whites Road, Royapettah, Chennai 600014",
+    amenities: ["Dolby Atmos", "Mall Central Location", "Couple Recliners", "Parking"],
+    halls: [
+      { name: "Audi 1 · Atmos", layout: "escape-atmos" },
+      { name: "Audi 2 · Petit", layout: "boutique", prices: { RECLINER: 620 } },
+    ],
+    reel: [
+      [4, "Tamil", "2D"], [0, "English", "2D"], [15, "English", "3D"], [40, "Tamil", "2D"],
+      [13, "Tamil", "2D"], [6, "Malayalam", "2D"], [43, "Tamil", "2D"], [44, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "luxe", name: "Luxe Cinemas — Phoenix Marketcity", city: "Chennai",
+    address: "Phoenix Marketcity, Velachery Main Road, Velacheri, Chennai 600042",
+    amenities: ["Giant-Screen Halls", "Dolby Atmos", "Luxury Lounge", "Valet Parking"],
+    halls: [
+      { name: "Audi 1 · Luxe Grand", layout: "luxe-grand" },
+      { name: "Audi 2 · Family", layout: "family" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [9, "Tamil", "2D"], [20, "Tamil", "2D"], [21, "Tamil", "2D"],
+      [15, "English", "3D"], [37, "Tamil", "2D"], [42, "Tamil", "2D"], [6, "Malayalam", "2D"],
+    ],
+  },
+  {
+    owner: "heritage", name: "Ega Cinemas — Kilpauk", city: "Chennai",
+    address: "Ega Theatre Complex, Kilpauk, Chennai 600010",
+    amenities: ["Heritage Favourite", "Dolby Digital 7.1", "Affordable Tickets", "Snack Counter", "Parking"],
+    halls: [
+      { name: "Audi 1 · Ega Classic", layout: "ega-classic", prices: { SILVER: 130, GOLD: 190, RECLINER: 290 } },
+      { name: "Audi 2 · Balcony", layout: "retro", prices: { SILVER: 120, GOLD: 180, RECLINER: 270 } },
+    ],
+    reel: [
+      [39, "Tamil", "2D"], [4, "Tamil", "2D"], [41, "Tamil", "2D"], [13, "Tamil", "2D"],
+      [18, "Tamil", "2D"], [20, "Tamil", "2D"], [27, "Tamil", "2D"], [45, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "heritage", name: "Udhayam Multiplex — Ashok Nagar", city: "Chennai",
+    address: "100 Feet Road, Ashok Nagar, Chennai 600083",
+    amenities: ["Multi-Screen Complex", "Digital 4K", "Family Combos", "Parking"],
+    halls: [
+      { name: "Audi 1 · Udhayam Grand", layout: "udhayam-twin" },
+      { name: "Audi 2 · Compact", layout: "cube" },
+    ],
+    reel: [
+      [45, "Tamil", "2D"], [38, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"],
+      [37, "Tamil", "2D"], [40, "Tamil", "2D"], [43, "Tamil", "2D"], [36, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "heritage", name: "Rohini Movie Park — Koyambedu", city: "Chennai",
+    address: "100 Feet Road, Koyambedu, Chennai 600107",
+    amenities: ["Giant Single Screen", "Dolby Atmos", "First-Show Favourite", "Parking"],
+    halls: [
+      { name: "Screen 1 · Silver Giant", layout: "rohini-silver" },
+      { name: "Screen 2 · Gold Marquee", layout: "heritage" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [45, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"],
+      [18, "Tamil", "2D"], [28, "Tamil", "2D"], [0, "English", "2D"], [41, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "heritage", name: "Kamala Cinemas — Vadapalani", city: "Chennai",
+    address: "Arcot Road, Vadapalani, Chennai 600026",
+    amenities: ["Family Multiplex", "Dolby Atmos", "Kids Combos", "Parking"],
+    halls: [
+      { name: "Audi 1 · Family First", layout: "kamala-family" },
+      { name: "Audi 2 · Fan Shape", layout: "fan" },
+    ],
+    reel: [
+      [37, "Tamil", "2D"], [36, "Tamil", "2D"], [42, "Tamil", "2D"], [13, "Tamil", "2D"],
+      [5, "Tamil", "3D"], [9, "Tamil", "2D"], [7, "Kannada", "2D"], [44, "Tamil", "2D"],
+    ],
+  },
+  // ── Coimbatore (4) ──
+  {
+    owner: "cbe", name: "KG Cinemas — Big Bazaar Street", city: "Coimbatore",
+    address: "Big Bazaar Street, Coimbatore 641001",
+    amenities: ["Landmark Single-Screen Group", "Dolby Atmos", "Balcony Class", "Parking"],
+    halls: [
+      { name: "Audi 1 · KG Premium", layout: "kg-premium", prices: { SILVER: 140, GOLD: 200, RECLINER: 300 } },
+      { name: "Audi 2 · Heritage", layout: "classic", prices: { SILVER: 130, GOLD: 180, RECLINER: 260 } },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"], [45, "Tamil", "2D"],
+      [13, "Tamil", "2D"], [6, "Malayalam", "2D"], [43, "Tamil", "2D"], [40, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "pvr", name: "PVR The Cinema — Brookefields Mall", city: "Coimbatore",
+    address: "Brookefields Mall, Krishnasamy Road, Coimbatore 641001",
+    amenities: ["Dolby Atmos", "Mall Location", "Recliners", "Food Court", "Valet Parking"],
+    halls: [
+      { name: "Audi 1 · XL Screen", layout: "premiere", prices: { SILVER: 230, GOLD: 330, RECLINER: 490 } },
+      { name: "Audi 2 · Lounge", layout: "lounge", prices: { RECLINER: 640 } },
+    ],
+    reel: [
+      [28, "Telugu", "2D"], [5, "Telugu", "3D"], [8, "Telugu", "IMAX 2D"], [19, "Telugu", "2D"],
+      [7, "Kannada", "2D"], [6, "Malayalam", "2D"], [14, "Malayalam", "2D"], [33, "Korean", "2D"],
+    ],
+  },
+  {
+    owner: "inox", name: "INOX — Prozone Mall", city: "Coimbatore",
+    address: "Prozone Mall, Sathy Road, Coimbatore",
+    amenities: ["INOX Standard", "Dolby 7.1", "Mall Food Court", "Parking"],
+    halls: [
+      { name: "Audi 1 · Mall Standard", layout: "inox-mall" },
+      { name: "Audi 2 · Symmetry", layout: "diamond" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"], [5, "Tamil", "2D"],
+      [37, "Tamil", "2D"], [41, "Tamil", "2D"], [44, "Tamil", "2D"], [43, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "cbe", name: "Maharaja Multiplex — Neelambur", city: "Coimbatore",
+    address: "Neelambur, Avinashi Road, Coimbatore",
+    amenities: ["Tri-Tier Auditorium", "Dolby Atmos", "Highway Location", "Parking"],
+    halls: [
+      { name: "Audi 1 · Tri-Tier", layout: "spectrum" },
+      { name: "Audi 2 · Compact", layout: "velocity" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [4, "Tamil", "2D"], [45, "Tamil", "2D"], [28, "Tamil", "2D"],
+      [31, "Hindi", "2D"], [29, "Hindi", "2D"], [16, "Hindi", "2D"], [32, "Hindi", "2D"],
+    ],
+  },
+  // ── Tiruppur (6) ──
+  {
+    owner: "sakthi", name: "Sakthi Cinemas — Pitchampalayam Pudur", city: "Tiruppur",
+    address: "Pitchampalayam Pudur, Tiruppur",
+    amenities: ["RGB Laser 4K Projection", "Dolby Atmos", "Recliners", "Parking"],
+    halls: [
+      { name: "Audi 1 · RGB Laser 4K", layout: "sakthi-laser" },
+      { name: "Audi 2 · Wide", layout: "galaxy" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [39, "Tamil", "2D"], [4, "Tamil", "2D"], [45, "Tamil", "2D"],
+      [37, "Tamil", "2D"], [41, "Tamil", "2D"], [40, "Tamil", "2D"], [36, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "sakthi", name: "Sri Sakthi Cinemas Multiplex — Union Mill Road", city: "Tiruppur",
+    address: "Union Mill Road, Tiruppur",
+    amenities: ["Stadium Rake", "Dolby Atmos", "Cafe", "Parking"],
+    halls: [
+      { name: "Audi 1 · Stadium", layout: "stadium" },
+      { name: "Audi 2 · Family", layout: "family" },
+    ],
+    reel: [
+      [45, "Tamil", "2D"], [38, "Tamil", "2D"], [9, "Tamil", "2D"], [39, "Tamil", "2D"],
+      [42, "Tamil", "2D"], [43, "Tamil", "2D"], [44, "Tamil", "2D"], [13, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "tpr", name: "Broadway Cinemas — Union Mill Road", city: "Tiruppur",
+    address: "Union Mill Road, Tiruppur",
+    amenities: ["Classic Hall", "Digital 4K", "Budget Friendly", "Parking"],
+    halls: [{ name: "Screen 1 · Broadway", layout: "heritage", prices: { SILVER: 120, GOLD: 170, RECLINER: 260 } }],
+    reel: [
+      [4, "Tamil", "2D"], [18, "Tamil", "2D"], [20, "Tamil", "2D"], [21, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "tpr", name: "Varanasi Cinemas — Avinashi", city: "Tiruppur",
+    address: "Ammapalayam, Avinashi, Tiruppur",
+    amenities: ["Heritage Single Screen", "Dolby Digital", "First-Show Specials", "Parking"],
+    halls: [{ name: "Screen 1 · Grand Old Lady", layout: "retro", prices: { SILVER: 110, GOLD: 160, RECLINER: 240 } }],
+    reel: [
+      [39, "Tamil", "2D"], [41, "Tamil", "2D"], [27, "Tamil", "2D"], [45, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "tpr", name: "Revathi Theatre — Mannarai", city: "Tiruppur",
+    address: "Mannarai, Tiruppur",
+    amenities: ["Neighbourhood Favourite", "Digital 4K", "Snack Counter", "Parking"],
+    halls: [{ name: "Screen 1 · Revathi", layout: "classic", prices: { SILVER: 120, GOLD: 170, RECLINER: 250 } }],
+    reel: [
+      [37, "Tamil", "2D"], [36, "Tamil", "2D"], [43, "Tamil", "2D"], [13, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "tpr", name: "Kalaivani Cinemas — Periyar Colony", city: "Tiruppur",
+    address: "Periyar Colony, Tiruppur",
+    amenities: ["Community Cinema", "Dolby Digital", "Affordable Tickets", "Parking"],
+    halls: [{ name: "Screen 1 · Kalaivani", layout: "lagoon", prices: { SILVER: 115, GOLD: 165, RECLINER: 250 } }],
+    reel: [
+      [40, "Tamil", "2D"], [42, "Tamil", "2D"], [44, "Tamil", "2D"], [6, "Malayalam", "2D"],
+    ],
+  },
+  // ── Madurai & other districts (5) ──
+  {
+    owner: "inox", name: "INOX Vishaal De Mall — Madurai", city: "Madurai",
+    address: "Vishaal De Mall, Madurai",
+    amenities: ["INOX Standard", "Dolby 7.1", "Mall Food Court", "Parking"],
+    halls: [
+      { name: "Audi 1 · Mall Standard", layout: "inox-mall" },
+      { name: "Audi 2 · Premium", layout: "opus", prices: { SILVER: 220, GOLD: 320, RECLINER: 470 } },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [4, "Tamil", "2D"], [5, "Tamil", "2D"], [39, "Tamil", "2D"],
+      [28, "Hindi", "2D"], [3, "Hindi", "2D"], [32, "Hindi", "2D"], [10, "Hindi", "2D"],
+    ],
+  },
+  {
+    owner: "southern", name: "Vetri Cinemas — Madurai", city: "Madurai",
+    address: "Vetri Cinemas Complex, Madurai",
+    amenities: ["Mass Single Screen", "Digital 4K", "Festival-Release Hub", "Parking"],
+    halls: [
+      { name: "Screen 1 · Mass Single", layout: "vetri-mass", prices: { SILVER: 120, GOLD: 170, RECLINER: 260 } },
+      { name: "Screen 2 · Mini", layout: "cube" },
+    ],
+    reel: [
+      [45, "Tamil", "2D"], [38, "Tamil", "2D"], [4, "Tamil", "2D"], [39, "Tamil", "2D"],
+      [41, "Tamil", "2D"], [36, "Tamil", "2D"], [37, "Tamil", "2D"], [40, "Tamil", "2D"],
+    ],
+  },
+  {
+    owner: "southern", name: "LA Cinemas — Tiruchy", city: "Tiruchy",
+    address: "LA Cinemas Complex, Tiruchy",
+    amenities: ["Dolby Atmos", "Recliners", "Snack Bar", "Parking"],
+    halls: [
+      { name: "Audi 1 · Atmos", layout: "la-atmos" },
+      { name: "Audi 2 · Classic", layout: "classic" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [45, "Tamil", "2D"], [4, "Tamil", "2D"], [9, "Tamil", "2D"],
+      [13, "Tamil", "2D"], [43, "Tamil", "2D"], [42, "Tamil", "2D"], [6, "Malayalam", "2D"],
+    ],
+  },
+  {
+    owner: "southern", name: "ARRS Multiplex — Salem", city: "Salem",
+    address: "ARRS Multiplex, Salem",
+    amenities: ["Big-Screen Multiplex", "Dolby Atmos", "Highway Location", "Parking"],
+    halls: [
+      { name: "Audi 1 · Mega", layout: "spectrum" },
+      { name: "Audi 2 · Compact", layout: "velocity" },
+    ],
+    reel: [
+      [38, "Tamil", "2D"], [45, "Tamil", "2D"], [28, "Tamil", "2D"], [4, "Tamil", "2D"],
+      [31, "Hindi", "2D"], [35, "English", "2D"], [34, "Mandarin", "2D"], [29, "Hindi", "2D"],
+    ],
+  },
+  {
+    owner: "mayajaal", name: "Mayajaal Multiplex — ECR", city: "Chengalpet",
+    address: "Mayajaal Complex, East Coast Road (ECR), Kanathur, Chengalpet District",
+    amenities: ["16-Screen Entertainment City", "Dolby Atmos", "Gaming Zone", "Food Court", "Beach-Route Location"],
+    halls: [
+      { name: "Audi 1 · Mega IMAX", layout: "imax" },
+      { name: "Audi 2 · Galaxy", layout: "galaxy" },
+      { name: "Audi 3 · Family", layout: "family" },
+    ],
+    reel: [
+      [0, "English", "IMAX 2D"], [28, "Tamil", "IMAX 2D"], [2, "English", "IMAX 2D"], [38, "Tamil", "IMAX 2D"],
+      [4, "Tamil", "2D"], [39, "Tamil", "2D"], [15, "English", "3D"], [37, "Tamil", "2D"],
+      [43, "Tamil", "2D"], [42, "Tamil", "2D"], [44, "Tamil", "2D"], [40, "Tamil", "2D"],
+    ],
+  },
+];
+
 async function main() {
   console.log("Seeding CINE 360 demo data…");
   await clean();
@@ -219,6 +530,16 @@ async function main() {
   const ownerMeridian = await db.user.create({ data: { email: "owner5@cine360.demo", passwordHash, name: "Meridian Cinemas Owner (demo)", role: "OWNER" } });
   const ownerCapital = await db.user.create({ data: { email: "owner6@cine360.demo", passwordHash, name: "Capital Films Owner (demo)", role: "OWNER" } });
   const ownerEastern = await db.user.create({ data: { email: "owner7@cine360.demo", passwordHash, name: "Eastern Cinemas Owner (demo)", role: "OWNER" } });
+  // ---- 2026-11 third expansion: Tamil Nadu circuit operators ----
+  const ownerPvr = await db.user.create({ data: { email: "owner8@cine360.demo", passwordHash, name: "PVR Tamil Nadu Owner (demo)", role: "OWNER" } });
+  const ownerInox = await db.user.create({ data: { email: "owner9@cine360.demo", passwordHash, name: "INOX Tamil Nadu Owner (demo)", role: "OWNER" } });
+  const ownerLuxe = await db.user.create({ data: { email: "owner10@cine360.demo", passwordHash, name: "Luxe Cinemas Owner (demo)", role: "OWNER" } });
+  const ownerHeritage = await db.user.create({ data: { email: "owner11@cine360.demo", passwordHash, name: "Chennai Heritage Screens Owner (demo)", role: "OWNER" } });
+  const ownerCbe = await db.user.create({ data: { email: "owner12@cine360.demo", passwordHash, name: "Coimbatore Screens Owner (demo)", role: "OWNER" } });
+  const ownerSakthi = await db.user.create({ data: { email: "owner13@cine360.demo", passwordHash, name: "Sakthi Theatres Owner (demo)", role: "OWNER" } });
+  const ownerTpr = await db.user.create({ data: { email: "owner14@cine360.demo", passwordHash, name: "Tiruppur Screens Owner (demo)", role: "OWNER" } });
+  const ownerSouthern = await db.user.create({ data: { email: "owner15@cine360.demo", passwordHash, name: "Southern Screens Owner (demo)", role: "OWNER" } });
+  const ownerMayajaal = await db.user.create({ data: { email: "owner16@cine360.demo", passwordHash, name: "Mayajaal Entertainment Owner (demo)", role: "OWNER" } });
   const staff = await db.user.create({ data: { email: "staff@cine360.demo", passwordHash, name: "Gate Staff (demo)", role: "STAFF" } });
   const customer = await db.user.create({ data: { email: "customer@cine360.demo", passwordHash, name: "Riya Kumar (demo)", role: "CUSTOMER" } });
   console.log("✓ demo users");
@@ -334,7 +655,26 @@ async function main() {
   await db.theatreStaff.create({ data: { theatreId: frost.id, userId: staff.id } });
   await db.theatreStaff.create({ data: { theatreId: tamilScreens.id, userId: staff.id } });
   await db.theatreStaff.create({ data: { theatreId: yamuna.id, userId: staff.id } });
-  console.log("✓ 15 theatres across 12 cities (Flame Multiplex intentionally left PENDING for admin approval demo)");
+  console.log("✓ 15 base theatres across 11 cities (Flame Multiplex intentionally left PENDING for admin approval demo)");
+
+  // ---- 2026-11 third expansion: the Tamil Nadu circuit (23 theatres) ----
+  const tnOwnerMap = {
+    pvr: ownerPvr, inox: ownerInox, luxe: ownerLuxe, heritage: ownerHeritage,
+    cbe: ownerCbe, sakthi: ownerSakthi, tpr: ownerTpr, southern: ownerSouthern,
+    mayajaal: ownerMayajaal,
+  } as const;
+  const tnTheatreIds: string[] = [];
+  for (const spec of TN_CIRCUIT) {
+    const th = await db.theatre.create({
+      data: {
+        ownerId: tnOwnerMap[spec.owner].id, name: spec.name, city: spec.city,
+        address: spec.address, amenities: JSON.stringify(spec.amenities),
+        status: "APPROVED",
+      },
+    });
+    tnTheatreIds.push(th.id);
+  }
+  console.log(`✓ +${TN_CIRCUIT.length} Tamil Nadu circuit theatres (Chennai ×8, Coimbatore ×4, Tiruppur ×6, Madurai ×2, Tiruchy, Salem, Chengalpet/ECR)`);
 
   // ---- Auditoriums — every hall has its OWN layout, screen size and interior theme ----
   const frostA1 = await createAuditorium(frost.id, "Audi 1 · Grand", DEMO_LAYOUTS.grand);
@@ -361,6 +701,21 @@ async function main() {
   console.log(
     `✓ 21 auditoriums + seats (grand ${frostA1.seatCount}, classic ${frostA2.seatCount}, luxe ${flameA1.seatCount}, retro ${pearlA1.seatCount}, family ${pearlA2.seatCount}, imax ${auroraA1.seatCount}, fan ${auroraA2.seatCount}, boutique ${auroraA3.seatCount}, stadium ${lumiereA1.seatCount}, lounge ${lumiereA2.seatCount}, galaxy ${galaxyA1.seatCount}, premiere ${nizamA1.seatCount}, marquee ${marqueeA1.seatCount}, cube ${tamilA1.seatCount}, spectrum ${imperialA1.seatCount}, diamond ${imperialA2.seatCount}, opus ${yamunaA1.seatCount}, heritage ${bengalA1.seatCount}, velocity ${deccanA1.seatCount}, lagoon ${backwaterA1.seatCount}, palace ${rajmahalA1.seatCount})`
   );
+
+  // Tamil Nadu circuit halls — flagships use their own layouts, secondary
+  // halls reuse the platform library with local pricing.
+  const tnAudIds: string[][] = [];
+  let tnHallCount = 0;
+  for (let t = 0; t < TN_CIRCUIT.length; t++) {
+    const ids: string[] = [];
+    for (const hall of TN_CIRCUIT[t].halls) {
+      const aud = await createAuditorium(tnTheatreIds[t], hall.name, DEMO_LAYOUTS[hall.layout], hall.prices);
+      ids.push(aud.id);
+      tnHallCount++;
+    }
+    tnAudIds.push(ids);
+  }
+  console.log(`✓ +${tnHallCount} Tamil Nadu circuit auditoriums with full seat maps`);
 
   // ---- Movies ----
   const movieRows = await db.$transaction(
@@ -395,7 +750,7 @@ async function main() {
   const slots = [10 * 60, 13 * 60 + 30, 17 * 60, 20 * 60 + 30]; // minutes from midnight
   let showCount = 0;
 
-  // Every auditorium gets 4 showtimes today — 84 shows with full seat inventory.
+  // Every auditorium gets 4 showtimes today — 260 shows with full seat inventory.
   const plan: { movieIdx: number; aud: string; language: string; format: string }[] = [
     // Frost Cinemas — City Centre (grand 206 · emerald, classic 140 · teal)
     { movieIdx: 0, aud: frostA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
@@ -503,23 +858,21 @@ async function main() {
     const p = plan[i];
     const slot = slots[i % slots.length];
     const startsAt = new Date(date.getTime() + slot * 60000);
-    const movie = movieRows[p.movieIdx];
-    const audRow = await db.auditorium.findUnique({ where: { id: p.aud }, include: { categories: true, seats: { include: { category: true } } } });
-    if (!audRow) continue;
-    const show = await db.show.create({
-      data: {
-        movieId: movie.id, auditoriumId: p.aud, startsAt, language: p.language, format: p.format, status: "SCHEDULED",
-      },
-    });
-    // Per-show seat inventory priced by category (show-specific, separate from physical seats)
-    const seatRows = audRow.seats.map((s) => ({
-      showId: show.id, seatId: s.id, status: "AVAILABLE", price: s.category.basePrice,
-    }));
-    // chunk inserts to stay within SQLite parameter limits
-    for (let c = 0; c < seatRows.length; c += 60) {
-      await db.showSeat.createMany({ data: seatRows.slice(c, c + 60) });
+    const ok = await createShow(p.aud, movieRows[p.movieIdx], p.language, p.format, startsAt);
+    if (ok) showCount++;
+  }
+
+  // Tamil Nadu circuit — 4 showtimes per hall today
+  for (let t = 0; t < TN_CIRCUIT.length; t++) {
+    const spec = TN_CIRCUIT[t];
+    for (let h = 0; h < spec.halls.length; h++) {
+      for (let s = 0; s < slots.length; s++) {
+        const [movieIdx, language, format] = spec.reel[h * slots.length + s];
+        const startsAt = new Date(date.getTime() + slots[s] * 60000);
+        const ok = await createShow(tnAudIds[t][h], movieRows[movieIdx], language, format, startsAt);
+        if (ok) showCount++;
+      }
     }
-    showCount++;
   }
   console.log(`✓ ${showCount} shows today with full per-show seat inventory (scheduler keeps the 7-day window rolling)`);
 
@@ -535,9 +888,40 @@ async function main() {
   console.log("  owner5@cine360.demo   → Theatre Owner (Nizam Grand · Hyderabad + Marine Marquee · Mumbai — APPROVED)");
   console.log("  owner6@cine360.demo   → Theatre Owner (Imperial Cines + Yamuna Prime · Delhi, Rajmahal · Jaipur — APPROVED)");
   console.log("  owner7@cine360.demo   → Theatre Owner (Bengal Grand · Kolkata, Deccan Reels · Pune, Backwater Screens · Kochi — APPROVED)");
+  console.log("  owner8@cine360.demo   → Theatre Owner (PVR Sathyam + Palazzo + Escape · Chennai, PVR The Cinema · Coimbatore — APPROVED)");
+  console.log("  owner9@cine360.demo   → Theatre Owner (INOX Prozone · Coimbatore, INOX Vishaal De Mall · Madurai — APPROVED)");
+  console.log("  owner10@cine360.demo  → Theatre Owner (Luxe Cinemas · Phoenix Velacheri, Chennai — APPROVED)");
+  console.log("  owner11@cine360.demo  → Theatre Owner (Ega · Kilpauk, Udhayam · Ashok Nagar, Rohini · Koyambedu, Kamala · Vadapalani — APPROVED)");
+  console.log("  owner12@cine360.demo  → Theatre Owner (KG Cinemas + Maharaja Multiplex · Coimbatore — APPROVED)");
+  console.log("  owner13@cine360.demo  → Theatre Owner (Sakthi + Sri Sakthi Cinemas · Tiruppur — APPROVED)");
+  console.log("  owner14@cine360.demo  → Theatre Owner (Broadway, Varanasi, Revathi, Kalaivani · Tiruppur — APPROVED)");
+  console.log("  owner15@cine360.demo  → Theatre Owner (Vetri · Madurai, LA Cinemas · Tiruchy, ARRS Multiplex · Salem — APPROVED)");
+  console.log("  owner16@cine360.demo  → Theatre Owner (Mayajaal Multiplex · ECR, Chengalpet — APPROVED)");
   console.log("  staff@cine360.demo    → Gate Staff (Frost Cinemas + Tamil Screens + Yamuna Prime) — ticket scanner");
   console.log("  customer@cine360.demo → Customer (demo bookings)");
   console.log("──────────────────────────────────────────────────────────────────────────────");
+}
+
+/** Creates one show with its full per-show seat inventory. Returns false when
+ *  the auditorium does not exist. */
+async function createShow(auditoriumId: string, movie: { id: string }, language: string, format: string, startsAt: Date): Promise<boolean> {
+  const audRow = await db.auditorium.findUnique({
+    where: { id: auditoriumId },
+    include: { seats: { include: { category: true } } },
+  });
+  if (!audRow) return false;
+  const show = await db.show.create({
+    data: { movieId: movie.id, auditoriumId, startsAt, language, format, status: "SCHEDULED" },
+  });
+  // Per-show seat inventory priced by category (show-specific, separate from physical seats)
+  const seatRows = audRow.seats.map((s) => ({
+    showId: show.id, seatId: s.id, status: "AVAILABLE", price: s.category.basePrice,
+  }));
+  // chunk inserts to stay within SQLite parameter limits
+  for (let c = 0; c < seatRows.length; c += 60) {
+    await db.showSeat.createMany({ data: seatRows.slice(c, c + 60) });
+  }
+  return true;
 }
 
 async function createAuditorium(theatreId: string, name: string, layout: LayoutConfig, priceOverrides?: Record<string, number>) {

@@ -3,6 +3,7 @@
 // The sandbox preview exposes only `/`, so the whole product lives here with
 // deep-linkable hash routes (#/movies/abc, #/book/showId, #/owner, #/admin…).
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { useRoute, navigate } from "@/lib/router";
 import { useAuth } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -235,13 +236,19 @@ export default function CineApp() {
   return (
     <div className="min-h-screen flex flex-col bg-[#120A1C]">
       <Nav path={path} />
-      <main className="flex-1">
+      <motion.main
+        key={path}
+        className="flex-1"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      >
         {sessionLoaded ? (
           <View path={path} params={params} />
         ) : (
           <div className="flex items-center justify-center py-40"><Spinner label="Loading CINE 360" /></div>
         )}
-      </main>
+      </motion.main>
       <Footer />
     </div>
   );

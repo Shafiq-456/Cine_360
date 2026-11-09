@@ -1,0 +1,591 @@
+     1→     1→// CINE 360 — seed/demo data.
+     2→     2→// Creates labelled demo accounts (7 owners), 15 theatres across 12 cities
+     3→     3→// (Chennai, Bengaluru, Hyderabad, Mumbai, Madurai, Coimbatore, Delhi, Kolkata,
+     4→     4→// Pune, Kochi, Jaipur) with 21 DISTINCT auditoriums (each with its own layout,
+     5→     5→// screen size, seat map and interior theme), a demo movie catalogue (46 films —
+     6→     6→// 28 established favourites and 18 new 2026 releases — with factual metadata
+     7→     7→// where published, procedural SVG fallback artwork, search-link trailers), and
+     8→     8→// 84 shows for today with complete per-show seat inventory. The rolling
+     9→     9→// auto-scheduler keeps the 7-day window filled afterwards.
+    10→    10→import { PrismaClient } from "@prisma/client";
+    11→    11→import bcrypt from "bcryptjs";
+    12→    12→import { DEMO_LAYOUTS, DEFAULT_PRICES, generateLayout } from "../src/lib/geometry";
+    13→    13→import type { LayoutConfig } from "../src/lib/geometry";
+    14→    14→
+    15→    15→const db = new PrismaClient();
+    16→    16→
+    17→    17→const DEMO_PASSWORD = "Demo@1234";
+    18→    18→
+    19→    19→// Official trailer YouTube IDs — verified from the films' official channels
+    20→    20→// (scripts/verify_trailers.ts + scripts/verify_new_trailers.ts via YouTube oembed).
+    21→    21→const TRAILER_ID: Record<string, string> = {
+    22→    22→  interstellar: "2LqzF5WauAw",
+    23→    23→  inception: "YoHD9XEInc0",
+    24→    24→  oppenheimer: "uYPbbksJxIg",
+    25→    25→  jawan: "MWOlnZSnXJo",
+    26→    26→  leo: "Po3jStA673E",
+    27→    27→  "kalki-2898-ad": "kQDd1AhGIHk",
+    28→    28→  premalu: "rR_2ti4l3nM",
+    29→    29→  kantara: "8mrVmf239GU",
+    30→    30→  // 2026-11 expansion
+    31→    31→  rrr: "f_vbAtFSEc0",
+    32→    32→  vikram: "OKBMCL-frPU",
+    33→    33→  "3-idiots": "K0eDlFX9GMc",
+    34→    34→  "dune-part-two": "Way9Dexny3w",
+    35→    35→  "the-dark-knight": "EXeTwQWrcwY",
+    36→    36→  "96": "r0synl-lI4I",
+    37→    37→  "manjummel-boys": "id848Ww1YLo",
+    38→    38→  "kung-fu-panda-4": "_inKs4eeHiI",
+    39→    39→  // 2026-11 second expansion — all validated live via YouTube oembed
+    40→    40→  pathaan: "vqu4z34wENw",
+    41→    41→  brahmastra: "BUjXzrgntcY",
+    42→    42→  "baahubali-2": "G62HrubdD6o",
+    43→    43→  "sita-ramam": "3UKsbXQUwqw",
+    44→    44→  "ponniyin-selvan-1": "D4qAQYlgZQs",
+    45→    45→  "jai-bhim": "nnXpbTFrqXA",
+    46→    46→  tumbbad: "YGIcZrUBY0k",
+    47→    47→  andhadhun: "2iVYI99VGaw",
+    48→    48→  "drishyam-2": "cxA2y9Tgl7o",
+    49→    49→  "zindagi-na-milegi-dobara": "FJrpcDgC3zU",
+    50→    50→  queen: "M_HP8xgXhBU",
+    51→    51→  "super-deluxe": "3-Xq_Zz3nPA",
+    52→    52→};
+    53→    53→
+    54→    54→import { existsSync } from "fs";
+    55→    55→import path from "path";
+    56→    56→function posterPath(slug: string, variant: "" | "-backdrop"): string {
+    57→    57→  const jpg = path.join(process.cwd(), "public", "posters", `${slug}${variant}.jpg`);
+    58→    58→  return existsSync(jpg) ? `/posters/${slug}${variant}.jpg` : `/posters/${slug}${variant}.svg`;
+    59→    59→}
+    60→    60→
+    61→    61→const MOVIES = [
+    62→    62→  { title: "Interstellar", slug: "interstellar", languages: ["English"], genres: ["Sci-Fi", "Adventure", "Drama"], durationMins: 169, certification: "UA", year: 2014, featured: true,
+    63→    63→    synopsis: "When Earth becomes uninhabitable, a farmer and ex-NASA pilot is tasked to pilot a spacecraft, along with a team of researchers, to find a new planet for humans.",
+    64→    64→    trailerUrl: "https://www.youtube.com/results?search_query=interstellar+official+trailer" },
+    65→    65→  { title: "Inception", slug: "inception", languages: ["English"], genres: ["Sci-Fi", "Action", "Thriller"], durationMins: 148, certification: "UA", year: 2010, featured: true,
+    66→    66→    synopsis: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+    67→    67→    trailerUrl: "https://www.youtube.com/results?search_query=inception+official+trailer" },
+    68→    68→  { title: "Oppenheimer", slug: "oppenheimer", languages: ["English"], genres: ["Drama", "History", "Thriller"], durationMins: 180, certification: "UA", year: 2023, featured: true,
+    69→    69→    synopsis: "The story of J. Robert Oppenheimer's role in the development of the atomic bomb during World War II — and the fallout that followed.",
+    70→    70→    trailerUrl: "https://www.youtube.com/results?search_query=oppenheimer+official+trailer" },
+    71→    71→  { title: "Jawan", slug: "jawan", languages: ["Hindi"], genres: ["Action", "Thriller"], durationMins: 169, certification: "UA", year: 2023, featured: false,
+    72→    72→    synopsis: "A high-octane action thriller that outlines the story of a man driven by personal vendetta to rectify the wrongs in society.",
+    73→    73→    trailerUrl: "https://www.youtube.com/results?search_query=jawan+official+trailer" },
+    74→    74→  { title: "Leo", slug: "leo", languages: ["Tamil"], genres: ["Action", "Thriller", "Drama"], durationMins: 164, certification: "UA", year: 2023, featured: true,
+    75→    75→    synopsis: "A mild-mannered cafe owner in Kashmir's Theog is forced to confront his violent past when gangsters come looking for him.",
+    76→    76→    trailerUrl: "https://www.youtube.com/results?search_query=leo+tamil+official+trailer" },
+    77→    77→  { title: "Kalki 2898 AD", slug: "kalki-2898-ad", languages: ["Telugu", "Hindi", "Tamil"], genres: ["Sci-Fi", "Action", "Fantasy"], durationMins: 181, certification: "UA", year: 2024, featured: false,
+    78→    78→    synopsis: "A modern-day avatar of Vishnu, believed to have descended to protect the world from evil forces, rises in a dystopian future.",
+    79→    79→    trailerUrl: "https://www.youtube.com/results?search_query=kalki+2898+ad+official+trailer" },
+    80→    80→  { title: "Premalu", slug: "premalu", languages: ["Malayalam"], genres: ["Romance", "Comedy"], durationMins: 156, certification: "U", year: 2024, featured: false,
+    81→    81→    synopsis: "A young man's plans to move abroad go awry when he falls in love in Hyderabad in this feel-good romantic comedy.",
+    82→    82→    trailerUrl: "https://www.youtube.com/results?search_query=premalu+official+trailer" },
+    83→    83→  { title: "Kantara", slug: "kantara", languages: ["Kannada"], genres: ["Action", "Thriller", "Drama"], durationMins: 148, certification: "UA", year: 2022, featured: false,
+    84→    84→    synopsis: "A fiery young man clashes with an unscrupulous police officer in a coastal village where nature and tradition collide.",
+    85→    85→    trailerUrl: "https://www.youtube.com/results?search_query=kantara+official+trailer" },
+    86→    86→  // ---- 2026-11 expansion: 8 additional titles ----
+    87→    87→  { title: "RRR", slug: "rrr", languages: ["Telugu", "Hindi", "Tamil"], genres: ["Action", "Drama", "Adventure"], durationMins: 187, certification: "UA", year: 2022, featured: true,
+    88→    88→    synopsis: "A fearless revolutionary and an officer of the British colonial army, unaware of each other's true identities, join forces in a mission — then clash in an epic tale of friendship.",
+    89→    89→    trailerUrl: "https://www.youtube.com/results?search_query=rrr+official+trailer" },
+    90→    90→  { title: "Vikram", slug: "vikram", languages: ["Tamil", "Hindi"], genres: ["Action", "Thriller", "Crime"], durationMins: 175, certification: "UA", year: 2022, featured: false,
+    91→    91→    synopsis: "A special agent investigates a masked vigilante gang's murders, unearthing a conspiracy that ties back to a legendary black-ops operative presumed dead.",
+    92→    92→    trailerUrl: "https://www.youtube.com/results?search_query=vikram+official+trailer" },
+    93→    93→  { title: "3 Idiots", slug: "3-idiots", languages: ["Hindi"], genres: ["Comedy", "Drama"], durationMins: 170, certification: "U", year: 2009, featured: false,
+    94→    94→    synopsis: "Two friends search for their long-lost college companion, a free spirit whose unconventional outlook on education and life changed theirs forever.",
+    95→    95→    trailerUrl: "https://www.youtube.com/results?search_query=3+idiots+official+trailer" },
+    96→    96→  { title: "Dune: Part Two", slug: "dune-part-two", languages: ["English"], genres: ["Sci-Fi", "Adventure", "Drama"], durationMins: 166, certification: "UA", year: 2024, featured: true,
+    97→    97→    synopsis: "Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family — torn between the love of his life and the fate of the universe.",
+    98→    98→    trailerUrl: "https://www.youtube.com/results?search_query=dune+part+two+official+trailer" },
+    99→    99→  { title: "The Dark Knight", slug: "the-dark-knight", languages: ["English"], genres: ["Action", "Crime", "Drama"], durationMins: 152, certification: "UA", year: 2008, featured: false,
+   100→   100→    synopsis: "Batman's fight against the Joker — a criminal mastermind who plunges Gotham City into anarchy and pushes the Dark Knight closer to crossing the line between hero and vigilante.",
+   101→   101→    trailerUrl: "https://www.youtube.com/results?search_query=the+dark+knight+official+trailer" },
+   102→   102→  { title: "96", slug: "96", languages: ["Tamil"], genres: ["Romance", "Drama", "Music"], durationMins: 158, certification: "U", year: 2018, featured: false,
+   103→   103→    synopsis: "Two high-school sweethearts from the batch of 1996 meet at a class reunion 22 years later and spend one unforgettable evening reliving their past.",
+   104→   104→    trailerUrl: "https://www.youtube.com/results?search_query=96+tamil+official+trailer" },
+   105→   105→  { title: "Manjummel Boys", slug: "manjummel-boys", languages: ["Malayalam"], genres: ["Thriller", "Drama", "Survival"], durationMins: 135, certification: "UA", year: 2024, featured: false,
+   106→   106→    synopsis: "A group of friends on a trip to Kodaikanal descend into the Guna Caves to save one of their own — a daring real-life-inspired rescue.",
+   107→   107→    trailerUrl: "https://www.youtube.com/results?search_query=manjummel+boys+official+trailer" },
+   108→   108→  { title: "Kung Fu Panda 4", slug: "kung-fu-panda-4", languages: ["English", "Hindi"], genres: ["Animation", "Action", "Comedy"], durationMins: 94, certification: "U", year: 2024, featured: false,
+   109→   109→    synopsis: "Po must train a new Dragon Warrior while facing the shape-shifting Chameleon, who covets his Staff of Wisdom — with a quick-witted fox thief at his side.",
+   110→   110→    trailerUrl: "https://www.youtube.com/results?search_query=kung+fu+panda+4+official+trailer" },
+   111→   111→  // ---- 2026-11 second expansion: 12 additional titles ----
+   112→   112→  { title: "Pathaan", slug: "pathaan", languages: ["Hindi"], genres: ["Action", "Thriller"], durationMins: 146, certification: "UA", year: 2023, featured: false,
+   113→   113→    synopsis: "A disgraced raw agent returns from the dead to stop a private mercenary from unleashing a devastating attack on India.",
+   114→   114→    trailerUrl: "https://www.youtube.com/results?search_query=pathaan+official+trailer" },
+   115→   115→  { title: "Brahmāstra: Part One – Shiva", slug: "brahmastra", languages: ["Hindi"], genres: ["Fantasy", "Adventure", "Romance"], durationMins: 167, certification: "UA", year: 2022, featured: false,
+   116→   116→    synopsis: "A young DJ discovers he commands fire and shares a bond with the ancient astras — drawing him into an ancient battle against a rising dark force.",
+   117→   117→    trailerUrl: "https://www.youtube.com/results?search_query=brahmastra+official+trailer" },
+   118→   118→  { title: "Baahubali 2: The Conclusion", slug: "baahubali-2", languages: ["Telugu", "Hindi", "Tamil"], genres: ["Action", "Drama", "Epic"], durationMins: 171, certification: "UA", year: 2017, featured: true,
+   119→   119→    synopsis: "Amarendra Baahubali's rise, love and betrayal finally answer the question that gripped a nation — why did Kattappa kill Baahubali?",
+   120→   120→    trailerUrl: "https://www.youtube.com/results?search_query=baahubali+2+official+trailer" },
+   121→   121→  { title: "Sita Ramam", slug: "sita-ramam", languages: ["Telugu", "Malayalam", "Tamil"], genres: ["Romance", "Drama"], durationMins: 163, certification: "U", year: 2022, featured: false,
+   122→   122→    synopsis: "A soldier receives a mysterious letter and a love that spans two decades — a poignant tale of devotion, identity and sacrifice.",
+   123→   123→    trailerUrl: "https://www.youtube.com/results?search_query=sita+ramam+official+trailer" },
+   124→   124→  { title: "Ponniyin Selvan: Part I", slug: "ponniyin-selvan-1", languages: ["Tamil"], genres: ["Action", "Adventure", "Drama"], durationMins: 167, certification: "UA", year: 2022, featured: false,
+   125→   125→    synopsis: "The Chola empire's succession hangs by a thread as princes, ministers and spies conspire in Kalki's epic adaptation of a legendary novel.",
+   126→   126→    trailerUrl: "https://www.youtube.com/results?search_query=ponniyin+selvan+part+1+official+trailer" },
+   127→   127→  { title: "Jai Bhim", slug: "jai-bhim", languages: ["Tamil"], genres: ["Drama", "Courtroom"], durationMins: 164, certification: "UA", year: 2021, featured: false,
+   128→   128→    synopsis: "When a tribal man vanishes in police custody, lawyer Chandru fights a landmark battle for justice in this real-life-inspired courtroom drama.",
+   129→   129→    trailerUrl: "https://www.youtube.com/results?search_query=jai+bhim+official+trailer" },
+   130→   130→  { title: "Tumbbad", slug: "tumbbad", languages: ["Hindi"], genres: ["Horror", "Fantasy", "Period"], durationMins: 122, certification: "UA", year: 2018, featured: false,
+   131→   131→    synopsis: "In rain-soaked Tumbbad, a cursed treasure guards a hungry god — a mythic fable of greed passed down generations.",
+   132→   132→    trailerUrl: "https://www.youtube.com/results?search_query=tumbbad+official+trailer" },
+   133→   133→  { title: "Andhadhun", slug: "andhadhun", languages: ["Hindi"], genres: ["Thriller", "Comedy", "Crime"], durationMins: 139, certification: "UA", year: 2018, featured: false,
+   134→   134→    synopsis: "A blind pianist becomes the only witness to a murder — or is he? A deliciously twisty game of cat and mouse follows.",
+   135→   135→    trailerUrl: "https://www.youtube.com/results?search_query=andhadhun+official+trailer" },
+   136→   136→  { title: "Drishyam 2", slug: "drishyam-2", languages: ["Hindi"], genres: ["Thriller", "Drama"], durationMins: 135, certification: "UA", year: 2022, featured: false,
+   137→   137→    synopsis: "Years after the case went quiet, Vijay Salgaonkar's carefully protected secret begins to resurface — and this time the truth is closing in.",
+   138→   138→    trailerUrl: "https://www.youtube.com/results?search_query=drishyam+2+official+trailer" },
+   139→   139→  { title: "Zindagi Na Milegi Dobara", slug: "zindagi-na-milegi-dobara", languages: ["Hindi"], genres: ["Comedy", "Drama", "Adventure"], durationMins: 155, certification: "UA", year: 2011, featured: false,
+   140→   140→    synopsis: "Three friends reunite for a bachelor road trip across Spain that turns into the journey of a lifetime — diving, running with bulls and healing old wounds.",
+   141→   141→    trailerUrl: "https://www.youtube.com/results?search_query=zindagi+na+milegi+dobara+official+trailer" },
+   142→   142→  { title: "Queen", slug: "queen", languages: ["Hindi"], genres: ["Comedy", "Drama"], durationMins: 146, certification: "UA", year: 2013, featured: false,
+   143→   143→    synopsis: "When her wedding falls apart, Rani sets off on her honeymoon alone — and comes back a completely different woman.",
+   144→   144→    trailerUrl: "https://www.youtube.com/results?search_query=queen+2013+official+trailer" },
+   145→   145→  { title: "Super Deluxe", slug: "super-deluxe", languages: ["Tamil"], genres: ["Drama", "Anthology"], durationMins: 176, certification: "UA", year: 2019, featured: false,
+   146→   146→    synopsis: "Several parallel lives — a lost lover, an unsatisfied wife, a boy and his absent father — collide over one eventful day in Chennai.",
+   147→   147→    trailerUrl: "https://www.youtube.com/results?search_query=super+deluxe+2019+official+trailer" },
+   148→   148→  // ---- 2026-11 third expansion: 18 new releases (user-supplied list) ----
+   149→   149→  // Metadata sourced from public listings where available (Wikipedia/IMDb/BookMyShow,
+   150→   150→  // Nov 2026); runtime/cert marked est. where not yet published. trailerId left null
+   151→   151→  // (no verified embed IDs) — the search-link trailerUrl is shown instead.
+   152→   152→  { title: "Ramayana: Rise of a Legend", slug: "ramayana-rise-of-a-legend", languages: ["Hindi", "Tamil", "Telugu"], genres: ["Mythological", "Epic", "Drama"], durationMins: 195, certification: "UA", year: 2026, featured: true,
+   153→   153→    synopsis: "Adapted from Valmiki's epic, part one of the two-part saga follows Prince Rama's marriage, exile and the beginning of a legendary journey — with music by Hans Zimmer and A. R. Rahman.",
+   154→   154→    trailerUrl: "https://www.youtube.com/results?search_query=ramayana+rise+of+a+legend+official+trailer" },
+   155→   155→  { title: "Nakhrewaalii", slug: "nakhrewaalii", languages: ["Hindi"], genres: ["Comedy", "Romance"], durationMins: 129, certification: "A", year: 2026, featured: false,
+   156→   156→    synopsis: "A small-town Hindi romantic comedy about big dreams and bigger attitude, presented by Aanand L Rai's Colour Yellow Productions.",
+   157→   157→    trailerUrl: "https://www.youtube.com/results?search_query=nakhrewaalii+official+trailer" },
+   158→   158→  { title: "Pyre", slug: "pyre", languages: ["Hindi", "Kumaoni"], genres: ["Drama"], durationMins: 115, certification: "UA", year: 2026, featured: false,
+   159→   159→    synopsis: "Vinod Kapri's quiet, devastating tale of an elderly couple's undying love in a dying Himalayan village — the festival favourite finally reaches Indian cinemas.",
+   160→   160→    trailerUrl: "https://www.youtube.com/results?search_query=pyre+chita+official+trailer" },
+   161→   161→  { title: "Gajab Raat", slug: "gajab-raat", languages: ["Hindi"], genres: ["Thriller", "Crime"], durationMins: 123, certification: "UA", year: 2026, featured: false,
+   162→   162→    synopsis: "A corrupt, troubled cop's night spirals out of control when one reluctant act of mercy pulls him into a deadly web of crime, in this single-night suspense thriller.",
+   163→   163→    trailerUrl: "https://www.youtube.com/results?search_query=gajab+raat+official+trailer" },
+   164→   164→  { title: "Mirzapur: The Movie", slug: "mirzapur-the-movie", languages: ["Hindi", "Telugu"], genres: ["Action", "Crime", "Drama"], durationMins: 197, certification: "A", year: 2026, featured: true,
+   165→   165→    synopsis: "Kaleen Bhaiyya, Guddu and Munna return in an interquel set during the first season of the cult series — power, opium and betrayal in the badlands of Purvanchal.",
+   166→   166→    trailerUrl: "https://www.youtube.com/results?search_query=mirzapur+the+movie+official+trailer" },
+   167→   167→  { title: "Paradise Lost", slug: "paradise-lost", languages: ["Korean"], genres: ["Thriller", "Mystery"], durationMins: 120, certification: "UA", year: 2026, featured: false,
+   168→   168→    synopsis: "Yeon Sang-ho's psychological thriller, adapted from the novel Black Inferno, follows a mind unravelling at the border between paradise and inferno.",
+   169→   169→    trailerUrl: "https://www.youtube.com/results?search_query=paradise+lost+yeon+sang+ho+official+trailer" },
+   170→   170→  { title: "Raise the Red Lantern", slug: "raise-the-red-lantern", languages: ["Mandarin"], genres: ["Drama", "Period"], durationMins: 125, certification: "UA", year: 2026, featured: false,
+   171→   171→    synopsis: "Zhang Yimou's 1991 masterpiece returns to the big screen in a 2026 re-release — a young woman becomes the fourth wife of a wealthy 1920s household where the lanterns decide everything.",
+   172→   172→    trailerUrl: "https://www.youtube.com/results?search_query=raise+the+red+lantern+trailer" },
+   173→   173→  { title: "Nurture", slug: "nurture", languages: ["English"], genres: ["Horror", "Drama"], durationMins: 95, certification: "A", year: 2026, featured: false,
+   174→   174→    synopsis: "A dialogue-free folk-horror fable: on a remote Oregon farm, a grieving couple pins their hopes on a mysterious flower — and it takes root.",
+   175→   175→    trailerUrl: "https://www.youtube.com/results?search_query=nurture+folk+horror+film+trailer" },
+   176→   176→  { title: "Scene", slug: "scene", languages: ["Tamil"], genres: ["Drama"], durationMins: 135, certification: "UA", year: 2026, featured: false,
+   177→   177→    synopsis: "A 2026 Tamil drama from the fresh-release slate, centred on the moments that become the defining scenes of a life.",
+   178→   178→    trailerUrl: "https://www.youtube.com/results?search_query=scene+tamil+movie+trailer" },
+   179→   179→  { title: "Mookuthi Amman 2", slug: "mookuthi-amman-2", languages: ["Tamil"], genres: ["Fantasy", "Drama"], durationMins: 150, certification: "UA", year: 2026, featured: false,
+   180→   180→    synopsis: "The goddess returns: a queen sacrifices herself to save her son from invaders, and Mookuthi Amman descends to confront a mysterious new evil power — Nayanthara in a dual avatar.",
+   181→   181→    trailerUrl: "https://www.youtube.com/results?search_query=mookuthi+amman+2+official+trailer" },
+   182→   182→  { title: "Jailer 2", slug: "jailer-2", languages: ["Tamil", "Telugu", "Hindi", "Kannada"], genres: ["Action", "Thriller"], durationMins: 165, certification: "UA", year: 2026, featured: true,
+   183→   183→    synopsis: "Tiger Muthuvel Pandian's peaceful retirement is shattered when a dangerous syndicate threatens his family — the one-man army returns, with Mohanlal, Shivarajkumar and Jackie Shroff.",
+   184→   184→    trailerUrl: "https://www.youtube.com/results?search_query=jailer+2+official+trailer" },
+   185→   185→  { title: "Karuppu", slug: "karuppu", languages: ["Tamil"], genres: ["Fantasy", "Action", "Drama"], durationMins: 152, certification: "UA", year: 2026, featured: true,
+   186→   186→    synopsis: "The guardian deity Vettai Karuppu walks into a corrupt courtroom disguised as a young lawyer to fight for a family stripped of everything — Suriya in RJ Balaji's fantasy action drama.",
+   187→   187→    trailerUrl: "https://www.youtube.com/results?search_query=karuppu+tamil+official+trailer" },
+   188→   188→  { title: "Vishwanath & Sons", slug: "vishwanath-and-sons", languages: ["Tamil"], genres: ["Drama", "Family"], durationMins: 140, certification: "UA", year: 2026, featured: false,
+   189→   189→    synopsis: "A 2026 Tamil family drama about legacy, craft and the ties that bind a household whose name is its promise.",
+   190→   190→    trailerUrl: "https://www.youtube.com/results?search_query=vishwanath+and+sons+tamil+movie+trailer" },
+   191→   191→  { title: "Mandaadi", slug: "mandaadi", languages: ["Tamil"], genres: ["Drama", "Action"], durationMins: 145, certification: "UA", year: 2026, featured: false,
+   192→   192→    synopsis: "A seasoned fishing captain leads his six-member crew into a traditional boat race along Tamil Nadu's coast, where the sea alone decides who is king.",
+   193→   193→    trailerUrl: "https://www.youtube.com/results?search_query=mandaadi+official+trailer" },
+   194→   194→  { title: "Thaai Kizhavi", slug: "thaai-kizhavi", languages: ["Tamil"], genres: ["Drama"], durationMins: 130, certification: "UA", year: 2026, featured: false,
+   195→   195→    synopsis: "A 2026 Tamil drama that salutes motherhood — a mother's love stretched to its farthest limits.",
+   196→   196→    trailerUrl: "https://www.youtube.com/results?search_query=thaai+kizhavi+tamil+movie+trailer" },
+   197→   197→  { title: "Haiku", slug: "haiku", languages: ["Tamil"], genres: ["Drama"], durationMins: 125, certification: "U", year: 2026, featured: false,
+   198→   198→    synopsis: "A 2026 Tamil drama told with the quiet brevity of its namesake — small moments, vast feelings.",
+   199→   199→    trailerUrl: "https://www.youtube.com/results?search_query=haiku+tamil+movie+trailer" },
+   200→   200→  { title: "Dorothy", slug: "dorothy", languages: ["Tamil"], genres: ["Drama", "Thriller"], durationMins: 128, certification: "UA", year: 2026, featured: false,
+   201→   201→    synopsis: "A 2026 Tamil thriller that follows its title character down a trail where nothing is quite what it seems.",
+   202→   202→    trailerUrl: "https://www.youtube.com/results?search_query=dorothy+tamil+movie+trailer" },
+   203→   203→  { title: "Sardar 2", slug: "sardar-2", languages: ["Tamil"], genres: ["Action", "Thriller"], durationMins: 179, certification: "UA", year: 2026, featured: false,
+   204→   204→    synopsis: "RAW's 1981 Black Operation returns with a threat to 1.4 billion lives — Karthi reprises his dual role as the spy saga continues.",
+   205→   205→    trailerUrl: "https://www.youtube.com/results?search_query=sardar+2+official+trailer" },
+   206→   206→];
+   207→   207→
+   208→   208→async function main() {
+   209→   209→  console.log("Seeding CINE 360 demo data…");
+   210→   210→  await clean();
+   211→   211→  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+   212→   212→
+   213→   213→  // ---- Demo accounts (clearly labelled, do not bypass backend authorization) ----
+   214→   214→  const admin = await db.user.create({ data: { email: "admin@cine360.demo", passwordHash, name: "Platform Admin (demo)", role: "ADMIN" } });
+   215→   215→  const ownerFrost = await db.user.create({ data: { email: "owner@cine360.demo", passwordHash, name: "Frost Cinemas Owner (demo)", role: "OWNER" } });
+   216→   216→  const ownerFlame = await db.user.create({ data: { email: "owner2@cine360.demo", passwordHash, name: "Flame Multiplex Owner (demo)", role: "OWNER" } });
+   217→   217→  const ownerAurora = await db.user.create({ data: { email: "owner3@cine360.demo", passwordHash, name: "Aurora Group Owner (demo)", role: "OWNER" } });
+   218→   218→  const ownerLumiere = await db.user.create({ data: { email: "owner4@cine360.demo", passwordHash, name: "Lumière Group Owner (demo)", role: "OWNER" } });
+   219→   219→  const ownerMeridian = await db.user.create({ data: { email: "owner5@cine360.demo", passwordHash, name: "Meridian Cinemas Owner (demo)", role: "OWNER" } });
+   220→   220→  const ownerCapital = await db.user.create({ data: { email: "owner6@cine360.demo", passwordHash, name: "Capital Films Owner (demo)", role: "OWNER" } });
+   221→   221→  const ownerEastern = await db.user.create({ data: { email: "owner7@cine360.demo", passwordHash, name: "Eastern Cinemas Owner (demo)", role: "OWNER" } });
+   222→   222→  const staff = await db.user.create({ data: { email: "staff@cine360.demo", passwordHash, name: "Gate Staff (demo)", role: "STAFF" } });
+   223→   223→  const customer = await db.user.create({ data: { email: "customer@cine360.demo", passwordHash, name: "Riya Kumar (demo)", role: "CUSTOMER" } });
+   224→   224→  console.log("✓ demo users");
+   225→   225→
+   226→   226→  // ---- Theatres ----
+   227→   227→  const frost = await db.theatre.create({
+   228→   228→    data: {
+   229→   229→      ownerId: ownerFrost.id, name: "Frost Cinemas — City Centre", city: "Chennai",
+   230→   230→      address: "14 Anna Salai, Chennai 600002", amenities: JSON.stringify(["4K Laser Projection", "Dolby Atmos", "Recliners", "Cafe", "Parking"]),
+   231→   231→      status: "APPROVED",
+   232→   232→    },
+   233→   233→  });
+   234→   234→  const flame = await db.theatre.create({
+   235→   235→    data: {
+   236→   236→      ownerId: ownerFlame.id, name: "Flame Multiplex — Brookefields", city: "Coimbatore",
+   237→   237→      address: " Brookefields Mall, Krishnasamy Road, Coimbatore 641001", amenities: JSON.stringify(["IMAX-style Screen", "Dolby 7.1", "Valet Parking"]),
+   238→   238→      status: "PENDING", // left pending so the super-admin approval flow can be demonstrated
+   239→   239→    },
+   240→   240→  });
+   241→   241→  const pearl = await db.theatre.create({
+   242→   242→    data: {
+   243→   243→      ownerId: ownerFrost.id, name: "Pearl Screens — T. Nagar", city: "Chennai",
+   244→   244→      address: "45 Usman Road, T. Nagar, Chennai 600017", amenities: JSON.stringify(["Single-screen Heritage Hall", "Dolby Digital", "Family Combos", "Parking"]),
+   245→   245→      status: "APPROVED",
+   246→   246→    },
+   247→   247→  });
+   248→   248→  const aurora = await db.theatre.create({
+   249→   249→    data: {
+   250→   250→      ownerId: ownerAurora.id, name: "Aurora Cineplex — VR Chennai", city: "Chennai",
+   251→   251→      address: "VR Chennai, 100 Feet Road, Anna Nagar, Chennai 600040", amenities: JSON.stringify(["Giant-Screen Hall", "Fan-shaped Atrium", "Boutique Screening Lounge", "Dolby Atmos", "Cafe", "Valet Parking"]),
+   252→   252→      status: "APPROVED",
+   253→   253→    },
+   254→   254→  });
+   255→   255→  // ---- 2026-11 city expansion: Bengaluru, Hyderabad, Mumbai, Madurai ----
+   256→   256→  const lumiere = await db.theatre.create({
+   257→   257→    data: {
+   258→   258→      ownerId: ownerLumiere.id, name: "Lumière Cinemas — Indiranagar", city: "Bengaluru",
+   259→   259→      address: "100 Feet Road, Indiranagar, Bengaluru 560038", amenities: JSON.stringify(["True Stadium Rake", "Dolby Atmos", "Sofa Lounge Hall", "Gourmet Kitchen", "Valet Parking"]),
+   260→   260→      status: "APPROVED",
+   261→   261→    },
+   262→   262→  });
+   263→   263→  const galaxy = await db.theatre.create({
+   264→   264→    data: {
+   265→   265→      ownerId: ownerLumiere.id, name: "Galaxy Multiplex — Koramangala", city: "Bengaluru",
+   266→   266→      address: "80 Feet Road, Koramangala 4th Block, Bengaluru 560034", amenities: JSON.stringify(["4K Laser Projection", "Dolby 7.1", "Gaming Lounge", "Cafe", "Parking"]),
+   267→   267→      status: "APPROVED",
+   268→   268→    },
+   269→   269→  });
+   270→   270→  const nizam = await db.theatre.create({
+   271→   271→    data: {
+   272→   272→      ownerId: ownerMeridian.id, name: "Nizam Grand — Banjara Hills", city: "Hyderabad",
+   273→   273→      address: "Road No. 12, Banjara Hills, Hyderabad 500034", amenities: JSON.stringify(["XL Premium Screen", "Dolby Atmos", "Fine Dining", "Valet Parking"]),
+   274→   274→      status: "APPROVED",
+   275→   275→    },
+   276→   276→  });
+   277→   277→  const marquee = await db.theatre.create({
+   278→   278→    data: {
+   279→   279→      ownerId: ownerMeridian.id, name: "Marine Marquee — Dadar", city: "Mumbai",
+   280→   280→      address: "Ranade Road, Dadar West, Mumbai 400028", amenities: JSON.stringify(["Heritage Marquee Hall", "22 m Screen", "Balcony Tier", "Classic Concessions"]),
+   281→   281→      status: "APPROVED",
+   282→   282→    },
+   283→   283→  });
+   284→   284→  const tamilScreens = await db.theatre.create({
+   285→   285→    data: {
+   286→   286→      ownerId: ownerFrost.id, name: "Tamil Screens — Simmakkal", city: "Madurai",
+   287→   287→      address: "Simmakkal North Street, Madurai 625001", amenities: JSON.stringify(["Neighbourhood Single Screen", "Digital 4K", "Snack Counter", "Parking"]),
+   288→   288→      status: "APPROVED",
+   289→   289→    },
+   290→   290→  });
+   291→   291→  // ---- 2026-11 second expansion: Delhi, Kolkata, Pune, Kochi, Jaipur ----
+   292→   292→  const imperial = await db.theatre.create({
+   293→   293→    data: {
+   294→   294→      ownerId: ownerCapital.id, name: "Imperial Cines — Connaught Place", city: "Delhi",
+   295→   295→      address: "Connaught Place, New Delhi 110001", amenities: JSON.stringify(["Twin Flagship Halls", "Dolby Atmos", "IMAX-style Screen", "Bistro Bar", "Valet Parking"]),
+   296→   296→      status: "APPROVED",
+   297→   297→    },
+   298→   298→  });
+   299→   299→  const yamuna = await db.theatre.create({
+   300→   300→    data: {
+   301→   301→      ownerId: ownerCapital.id, name: "Yamuna Prime — Dwarka", city: "Delhi",
+   302→   302→      address: "Dwarka Sector 21, New Delhi 110075", amenities: JSON.stringify(["Recliner-First Hall", "Dolby 7.1", "Lounge Bar", "Free Parking"]),
+   303→   303→      status: "APPROVED",
+   304→   304→    },
+   305→   305→  });
+   306→   306→  const bengalGrand = await db.theatre.create({
+   307→   307→    data: {
+   308→   308→      ownerId: ownerEastern.id, name: "Bengal Grand — Esplanade", city: "Kolkata",
+   309→   309→      address: "Esplanade, Kolkata 700016", amenities: JSON.stringify(["Heritage Balcony Hall", "Dolby Digital", "Classic Snacks", "Parking"]),
+   310→   310→      status: "APPROVED",
+   311→   311→    },
+   312→   312→  });
+   313→   313→  const deccan = await db.theatre.create({
+   314→   314→    data: {
+   315→   315→      ownerId: ownerEastern.id, name: "Deccan Reels — FC Road", city: "Pune",
+   316→   316→      address: "FC Road, Shivajinagar, Pune 411005", amenities: JSON.stringify(["Student Favourite", "Digital 4K", "Cafe", "Late-night Shows"]),
+   317→   317→      status: "APPROVED",
+   318→   318→    },
+   319→   319→  });
+   320→   320→  const backwater = await db.theatre.create({
+   321→   321→    data: {
+   322→   322→      ownerId: ownerEastern.id, name: "Backwater Screens — Marine Drive", city: "Kochi",
+   323→   323→      address: "Marine Drive, Ernakulam, Kochi 682031", amenities: JSON.stringify(["Backwater-view Lobby", "Dolby Atmos", "Family Combos", "Parking"]),
+   324→   324→      status: "APPROVED",
+   325→   325→    },
+   326→   326→  });
+   327→   327→  const rajmahal = await db.theatre.create({
+   328→   328→    data: {
+   329→   329→      ownerId: ownerCapital.id, name: "Rajmahal Cinema — MI Road", city: "Jaipur",
+   330→   330→      address: "MI Road, Jaipur 302001", amenities: JSON.stringify(["Palace-style Auditorium", "19 m Screen", "Dolby Atmos", "Rooftop Cafe", "Valet Parking"]),
+   331→   331→      status: "APPROVED",
+   332→   332→    },
+   333→   333→  });
+   334→   334→  await db.theatreStaff.create({ data: { theatreId: frost.id, userId: staff.id } });
+   335→   335→  await db.theatreStaff.create({ data: { theatreId: tamilScreens.id, userId: staff.id } });
+   336→   336→  await db.theatreStaff.create({ data: { theatreId: yamuna.id, userId: staff.id } });
+   337→   337→  console.log("✓ 15 theatres across 12 cities (Flame Multiplex intentionally left PENDING for admin approval demo)");
+   338→   338→
+   339→   339→  // ---- Auditoriums — every hall has its OWN layout, screen size and interior theme ----
+   340→   340→  const frostA1 = await createAuditorium(frost.id, "Audi 1 · Grand", DEMO_LAYOUTS.grand);
+   341→   341→  const frostA2 = await createAuditorium(frost.id, "Audi 2 · Classic", DEMO_LAYOUTS.classic);
+   342→   342→  const flameA1 = await createAuditorium(flame.id, "Audi 1 · Luxe", DEMO_LAYOUTS.luxe, { SILVER: 220, GOLD: 320, RECLINER: 520 });
+   343→   343→  const pearlA1 = await createAuditorium(pearl.id, "Audi 1 · Retro Single Screen", DEMO_LAYOUTS.retro, { SILVER: 120, GOLD: 190, RECLINER: 280 });
+   344→   344→  const pearlA2 = await createAuditorium(pearl.id, "Audi 2 · Family", DEMO_LAYOUTS.family, { SILVER: 140, GOLD: 200, RECLINER: 300 });
+   345→   345→  const auroraA1 = await createAuditorium(aurora.id, "Audi 1 · IMAX Experience", DEMO_LAYOUTS.imax, { SILVER: 240, GOLD: 340, RECLINER: 480 });
+   346→   346→  const auroraA2 = await createAuditorium(aurora.id, "Audi 2 · Atrium Fan", DEMO_LAYOUTS.fan, { SILVER: 160, GOLD: 240, RECLINER: 380 });
+   347→   347→  const auroraA3 = await createAuditorium(aurora.id, "Audi 3 · Boutique Lounge", DEMO_LAYOUTS.boutique, { RECLINER: 650 });
+   348→   348→  const lumiereA1 = await createAuditorium(lumiere.id, "Audi 1 · Stadium", DEMO_LAYOUTS.stadium);
+   349→   349→  const lumiereA2 = await createAuditorium(lumiere.id, "Audi 2 · Sofa Lounge", DEMO_LAYOUTS.lounge);
+   350→   350→  const galaxyA1 = await createAuditorium(galaxy.id, "Audi 1 · Galaxy", DEMO_LAYOUTS.galaxy);
+   351→   351→  const nizamA1 = await createAuditorium(nizam.id, "Audi 1 · XL Premiere", DEMO_LAYOUTS.premiere);
+   352→   352→  const marqueeA1 = await createAuditorium(marquee.id, "Audi 1 · Heritage Marquee", DEMO_LAYOUTS.marquee, { SILVER: 150, GOLD: 220, RECLINER: 320 });
+   353→   353→  const tamilA1 = await createAuditorium(tamilScreens.id, "Audi 1 · Neighbourhood", DEMO_LAYOUTS.cube, { SILVER: 130, GOLD: 180, RECLINER: 260 });
+   354→   354→  const imperialA1 = await createAuditorium(imperial.id, "Audi 1 · Spectrum", DEMO_LAYOUTS.spectrum);
+   355→   355→  const imperialA2 = await createAuditorium(imperial.id, "Audi 2 · Diamond", DEMO_LAYOUTS.diamond);
+   356→   356→  const yamunaA1 = await createAuditorium(yamuna.id, "Audi 1 · Opus", DEMO_LAYOUTS.opus);
+   357→   357→  const bengalA1 = await createAuditorium(bengalGrand.id, "Audi 1 · Heritage Balcony", DEMO_LAYOUTS.heritage, { SILVER: 140, GOLD: 200, RECLINER: 290 });
+   358→   358→  const deccanA1 = await createAuditorium(deccan.id, "Audi 1 · Velocity", DEMO_LAYOUTS.velocity, { SILVER: 120, GOLD: 170, RECLINER: 250 });
+   359→   359→  const backwaterA1 = await createAuditorium(backwater.id, "Audi 1 · Lagoon", DEMO_LAYOUTS.lagoon, { SILVER: 135, GOLD: 185, RECLINER: 270 });
+   360→   360→  const rajmahalA1 = await createAuditorium(rajmahal.id, "Audi 1 · Palace", DEMO_LAYOUTS.palace, { SILVER: 145, GOLD: 210, RECLINER: 310 });
+   361→   361→  console.log(
+   362→   362→    `✓ 21 auditoriums + seats (grand ${frostA1.seatCount}, classic ${frostA2.seatCount}, luxe ${flameA1.seatCount}, retro ${pearlA1.seatCount}, family ${pearlA2.seatCount}, imax ${auroraA1.seatCount}, fan ${auroraA2.seatCount}, boutique ${auroraA3.seatCount}, stadium ${lumiereA1.seatCount}, lounge ${lumiereA2.seatCount}, galaxy ${galaxyA1.seatCount}, premiere ${nizamA1.seatCount}, marquee ${marqueeA1.seatCount}, cube ${tamilA1.seatCount}, spectrum ${imperialA1.seatCount}, diamond ${imperialA2.seatCount}, opus ${yamunaA1.seatCount}, heritage ${bengalA1.seatCount}, velocity ${deccanA1.seatCount}, lagoon ${backwaterA1.seatCount}, palace ${rajmahalA1.seatCount})`
+   363→   363→  );
+   364→   364→
+   365→   365→  // ---- Movies ----
+   366→   366→  const movieRows = await db.$transaction(
+   367→   367→    MOVIES.map((m) =>
+   368→   368→      db.movie.create({
+   369→   369→        data: {
+   370→   370→          title: m.title, slug: m.slug, synopsis: m.synopsis,
+   371→   371→          posterUrl: posterPath(m.slug, ""), backdropUrl: posterPath(m.slug, "-backdrop"),
+   372→   372→          languages: JSON.stringify(m.languages), genres: JSON.stringify(m.genres),
+   373→   373→          durationMins: m.durationMins, certification: m.certification,
+   374→   374→          releaseDate: new Date(`${m.year}-06-15T00:00:00.000Z`),
+   375→   375→          trailerUrl: m.trailerUrl, trailerId: TRAILER_ID[m.slug] ?? null, status: "NOW_SHOWING", featured: m.featured,
+   376→   376→        },
+   377→   377→      })
+   378→   378→    )
+   379→   379→  );
+   380→   380→  const upcoming = await db.movie.create({
+   381→   381→    data: {
+   382→   382→      title: "CINE 360 Original: First Light", slug: "cine360-first-light", synopsis: "A demonstration upcoming title for the CINE 360 platform. This entry exists to showcase the 'Upcoming releases' rail.",
+   383→   383→      posterUrl: "/posters/interstellar.svg", languages: JSON.stringify(["English"]), genres: JSON.stringify(["Demo"]),
+   384→   384→      durationMins: 120, certification: "UA", trailerUrl: "https://www.youtube.com/results?search_query=cinema+trailer",
+   385→   385→      status: "UPCOMING", featured: false,
+   386→   386→    },
+   387→   387→  });
+   388→   388→  console.log(`✓ ${movieRows.length + 1} movies`);
+   389→   389→
+   390→   390→  // ---- Shows: today, staggered times across every auditorium ----
+   391→   391→  // (the rolling auto-scheduler in src/lib/schedule.ts then keeps a 7-day
+   392→   392→  //  window filled for every PUBLISHED auditorium in APPROVED theatres)
+   393→   393→  const base = new Date();
+   394→   394→  base.setHours(0, 0, 0, 0);
+   395→   395→  const slots = [10 * 60, 13 * 60 + 30, 17 * 60, 20 * 60 + 30]; // minutes from midnight
+   396→   396→  let showCount = 0;
+   397→   397→
+   398→   398→  // Every auditorium gets 4 showtimes today — 84 shows with full seat inventory.
+   399→   399→  const plan: { movieIdx: number; aud: string; language: string; format: string }[] = [
+   400→   400→    // Frost Cinemas — City Centre (grand 206 · emerald, classic 140 · teal)
+   401→   401→    { movieIdx: 0, aud: frostA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+   402→   402→    { movieIdx: 1, aud: frostA1.id, language: "English", format: "3D" },        // Inception
+   403→   403→    { movieIdx: 38, aud: frostA1.id, language: "Tamil", format: "IMAX 2D" },   // Jailer 2
+   404→   404→    { movieIdx: 39, aud: frostA1.id, language: "Tamil", format: "2D" },        // Karuppu
+   405→   405→    { movieIdx: 4, aud: frostA2.id, language: "Tamil", format: "2D" },          // Leo
+   406→   406→    { movieIdx: 36, aud: frostA2.id, language: "Tamil", format: "2D" },       // Scene
+   407→   407→    { movieIdx: 9, aud: frostA2.id, language: "Tamil", format: "2D" },          // Vikram
+   408→   408→    { movieIdx: 45, aud: frostA2.id, language: "Tamil", format: "2D" },       // Sardar 2
+   409→   409→    // Pearl Screens — T. Nagar (retro 320 · crimson, family 140 · copper)
+   410→   410→    { movieIdx: 8, aud: pearlA1.id, language: "Telugu", format: "2D" },         // RRR
+   411→   411→    { movieIdx: 10, aud: pearlA1.id, language: "Hindi", format: "2D" },         // 3 Idiots
+   412→   412→    { movieIdx: 37, aud: pearlA1.id, language: "Tamil", format: "2D" },       // Mookuthi Amman 2
+   413→   413→    { movieIdx: 41, aud: pearlA1.id, language: "Tamil", format: "2D" },       // Mandaadi
+   414→   414→    { movieIdx: 15, aud: pearlA2.id, language: "English", format: "3D" },       // Kung Fu Panda 4
+   415→   415→    { movieIdx: 6, aud: pearlA2.id, language: "Malayalam", format: "2D" },      // Premalu
+   416→   416→    { movieIdx: 13, aud: pearlA2.id, language: "Tamil", format: "2D" },         // 96
+   417→   417→    { movieIdx: 42, aud: pearlA2.id, language: "Tamil", format: "2D" },       // Thaai Kizhavi
+   418→   418→    // Aurora Cineplex — VR Chennai (imax 216 · azure, fan 144 · rose, boutique 48 · violet)
+   419→   419→    { movieIdx: 38, aud: auroraA1.id, language: "Tamil", format: "IMAX 2D" }, // Jailer 2
+   420→   420→    { movieIdx: 0, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+   421→   421→    { movieIdx: 2, aud: auroraA1.id, language: "English", format: "IMAX 2D" },  // Oppenheimer
+   422→   422→    { movieIdx: 28, aud: auroraA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
+   423→   423→    { movieIdx: 5, aud: auroraA2.id, language: "Telugu", format: "3D" },        // Kalki 2898 AD
+   424→   424→    { movieIdx: 39, aud: auroraA2.id, language: "Tamil", format: "2D" },      // Karuppu
+   425→   425→    { movieIdx: 7, aud: auroraA2.id, language: "Kannada", format: "2D" },       // Kantara
+   426→   426→    { movieIdx: 45, aud: auroraA2.id, language: "Tamil", format: "2D" },      // Sardar 2
+   427→   427→    { movieIdx: 13, aud: auroraA3.id, language: "Tamil", format: "2D" },        // 96
+   428→   428→    { movieIdx: 6, aud: auroraA3.id, language: "Malayalam", format: "2D" },     // Premalu
+   429→   429→    { movieIdx: 34, aud: auroraA3.id, language: "Mandarin", format: "2D" },   // Raise the Red Lantern
+   430→   430→    { movieIdx: 33, aud: auroraA3.id, language: "Korean", format: "2D" },     // Paradise Lost
+   431→   431→    // Flame Multiplex — Brookefields (luxe 88 · amber) — theatre is PENDING, hidden from customers
+   432→   432→    { movieIdx: 6, aud: flameA1.id, language: "Malayalam", format: "2D" },      // Premalu
+   433→   433→    { movieIdx: 38, aud: flameA1.id, language: "Tamil", format: "2D" },       // Jailer 2
+   434→   434→    { movieIdx: 7, aud: flameA1.id, language: "Kannada", format: "2D" },        // Kantara
+   435→   435→    { movieIdx: 36, aud: flameA1.id, language: "Tamil", format: "2D" },       // Scene
+   436→   436→    // Lumière Cinemas — Indiranagar, Bengaluru (stadium 240 · indigo, lounge 60 · orchid)
+   437→   437→    { movieIdx: 0, aud: lumiereA1.id, language: "English", format: "IMAX 2D" },  // Interstellar
+   438→   438→    { movieIdx: 1, aud: lumiereA1.id, language: "English", format: "3D" },       // Inception
+   439→   439→    { movieIdx: 28, aud: lumiereA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
+   440→   440→    { movieIdx: 15, aud: lumiereA1.id, language: "English", format: "3D" },      // Kung Fu Panda 4
+   441→   441→    { movieIdx: 7, aud: lumiereA2.id, language: "Kannada", format: "2D" },       // Kantara
+   442→   442→    { movieIdx: 6, aud: lumiereA2.id, language: "Malayalam", format: "2D" },     // Premalu
+   443→   443→    { movieIdx: 39, aud: lumiereA2.id, language: "Tamil", format: "2D" },     // Karuppu
+   444→   444→    { movieIdx: 43, aud: lumiereA2.id, language: "Tamil", format: "2D" },     // Haiku
+   445→   445→    // Galaxy Multiplex — Koramangala, Bengaluru (galaxy 162 · sage)
+   446→   446→    { movieIdx: 37, aud: galaxyA1.id, language: "Tamil", format: "2D" },      // Mookuthi Amman 2
+   447→   447→    { movieIdx: 44, aud: galaxyA1.id, language: "Tamil", format: "2D" },      // Dorothy
+   448→   448→    { movieIdx: 5, aud: galaxyA1.id, language: "Telugu", format: "2D" },         // Kalki 2898 AD
+   449→   449→    { movieIdx: 4, aud: galaxyA1.id, language: "Tamil", format: "2D" },          // Leo
+   450→   450→    // Nizam Grand — Banjara Hills, Hyderabad (premiere 176 · saffron)
+   451→   451→    { movieIdx: 8, aud: nizamA1.id, language: "Telugu", format: "IMAX 2D" },     // RRR
+   452→   452→    { movieIdx: 5, aud: nizamA1.id, language: "Telugu", format: "3D" },          // Kalki 2898 AD
+   453→   453→    { movieIdx: 28, aud: nizamA1.id, language: "Telugu", format: "2D" },      // Ramayana: Rise of a Legend
+   454→   454→    { movieIdx: 32, aud: nizamA1.id, language: "Telugu", format: "2D" },      // Mirzapur: The Movie
+   455→   455→    // Marine Marquee — Dadar, Mumbai (marquee 324 · onyx)
+   456→   456→    { movieIdx: 10, aud: marqueeA1.id, language: "Hindi", format: "2D" },        // 3 Idiots
+   457→   457→    { movieIdx: 12, aud: marqueeA1.id, language: "English", format: "2D" },      // The Dark Knight
+   458→   458→    { movieIdx: 32, aud: marqueeA1.id, language: "Hindi", format: "2D" },     // Mirzapur: The Movie
+   459→   459→    { movieIdx: 38, aud: marqueeA1.id, language: "Hindi", format: "2D" },     // Jailer 2
+   460→   460→    // Tamil Screens — Simmakkal, Madurai (cube 108 · sandstone)
+   461→   461→    { movieIdx: 4, aud: tamilA1.id, language: "Tamil", format: "2D" },           // Leo
+   462→   462→    { movieIdx: 41, aud: tamilA1.id, language: "Tamil", format: "2D" },       // Mandaadi
+   463→   463→    { movieIdx: 13, aud: tamilA1.id, language: "Tamil", format: "2D" },          // 96
+   464→   464→    { movieIdx: 40, aud: tamilA1.id, language: "Tamil", format: "2D" },       // Vishwanath & Sons
+   465→   465→    // Imperial Cines — Connaught Place, Delhi (spectrum 264 · garnet, diamond 192 · mint)
+   466→   466→    { movieIdx: 16, aud: imperialA1.id, language: "Hindi", format: "IMAX 2D" },  // Pathaan
+   467→   467→    { movieIdx: 38, aud: imperialA1.id, language: "Hindi", format: "2D" },    // Jailer 2
+   468→   468→    { movieIdx: 18, aud: imperialA1.id, language: "Telugu", format: "2D" },      // Baahubali 2
+   469→   469→    { movieIdx: 28, aud: imperialA1.id, language: "Hindi", format: "IMAX 2D" }, // Ramayana: Rise of a Legend
+   470→   470→    { movieIdx: 23, aud: imperialA2.id, language: "Hindi", format: "2D" },       // Andhadhun
+   471→   471→    { movieIdx: 24, aud: imperialA2.id, language: "Hindi", format: "2D" },       // Drishyam 2
+   472→   472→    { movieIdx: 31, aud: imperialA2.id, language: "Hindi", format: "2D" },    // Gajab Raat
+   473→   473→    { movieIdx: 29, aud: imperialA2.id, language: "Hindi", format: "2D" },    // Nakhrewaalii
+   474→   474→    // Yamuna Prime — Dwarka, Delhi (opus 198 · cocoa)
+   475→   475→    { movieIdx: 28, aud: yamunaA1.id, language: "Hindi", format: "2D" },      // Ramayana: Rise of a Legend
+   476→   476→    { movieIdx: 8, aud: yamunaA1.id, language: "Hindi", format: "2D" },          // RRR
+   477→   477→    { movieIdx: 19, aud: yamunaA1.id, language: "Telugu", format: "2D" },        // Sita Ramam
+   478→   478→    { movieIdx: 32, aud: yamunaA1.id, language: "Hindi", format: "2D" },      // Mirzapur: The Movie
+   479→   479→    // Bengal Grand — Esplanade, Kolkata (heritage 284 · garnet)
+   480→   480→    { movieIdx: 20, aud: bengalA1.id, language: "Tamil", format: "2D" },         // Ponniyin Selvan: Part I
+   481→   481→    { movieIdx: 21, aud: bengalA1.id, language: "Tamil", format: "2D" },         // Jai Bhim
+   482→   482→    { movieIdx: 34, aud: bengalA1.id, language: "Mandarin", format: "2D" },   // Raise the Red Lantern
+   483→   483→    { movieIdx: 35, aud: bengalA1.id, language: "English", format: "2D" },    // Nurture
+   484→   484→    // Deccan Reels — FC Road, Pune (velocity 160 · sky)
+   485→   485→    { movieIdx: 22, aud: deccanA1.id, language: "Hindi", format: "2D" },         // Tumbbad
+   486→   486→    { movieIdx: 31, aud: deccanA1.id, language: "Hindi", format: "2D" },      // Gajab Raat
+   487→   487→    { movieIdx: 29, aud: deccanA1.id, language: "Hindi", format: "2D" },      // Nakhrewaalii
+   488→   488→    { movieIdx: 15, aud: deccanA1.id, language: "English", format: "3D" },       // Kung Fu Panda 4
+   489→   489→    // Backwater Screens — Marine Drive, Kochi (lagoon 124 · moss)
+   490→   490→    { movieIdx: 6, aud: backwaterA1.id, language: "Malayalam", format: "2D" },   // Premalu
+   491→   491→    { movieIdx: 44, aud: backwaterA1.id, language: "Tamil", format: "2D" },   // Dorothy
+   492→   492→    { movieIdx: 19, aud: backwaterA1.id, language: "Tamil", format: "2D" },      // Sita Ramam
+   493→   493→    { movieIdx: 37, aud: backwaterA1.id, language: "Tamil", format: "2D" },   // Mookuthi Amman 2
+   494→   494→    // Rajmahal Cinema — MI Road, Jaipur (palace 240 · pearl)
+   495→   495→    { movieIdx: 18, aud: rajmahalA1.id, language: "Hindi", format: "2D" },       // Baahubali 2
+   496→   496→    { movieIdx: 28, aud: rajmahalA1.id, language: "Hindi", format: "2D" },    // Ramayana: Rise of a Legend
+   497→   497→    { movieIdx: 30, aud: rajmahalA1.id, language: "Hindi", format: "2D" },    // Pyre
+   498→   498→    { movieIdx: 8, aud: rajmahalA1.id, language: "Hindi", format: "2D" },        // RRR
+   499→   499→  ];
+   500→   500→
+   501→   501→  const date = new Date(base.getTime());
+   502→   502→  for (let i = 0; i < plan.length; i++) {
+   503→   503→    const p = plan[i];
+   504→   504→    const slot = slots[i % slots.length];
+   505→   505→    const startsAt = new Date(date.getTime() + slot * 60000);
+   506→   506→    const movie = movieRows[p.movieIdx];
+   507→   507→    const audRow = await db.auditorium.findUnique({ where: { id: p.aud }, include: { categories: true, seats: { include: { category: true } } } });
+   508→   508→    if (!audRow) continue;
+   509→   509→    const show = await db.show.create({
+   510→   510→      data: {
+   511→   511→        movieId: movie.id, auditoriumId: p.aud, startsAt, language: p.language, format: p.format, status: "SCHEDULED",
+   512→   512→      },
+   513→   513→    });
+   514→   514→    // Per-show seat inventory priced by category (show-specific, separate from physical seats)
+   515→   515→    const seatRows = audRow.seats.map((s) => ({
+   516→   516→      showId: show.id, seatId: s.id, status: "AVAILABLE", price: s.category.basePrice,
+   517→   517→    }));
+   518→   518→    // chunk inserts to stay within SQLite parameter limits
+   519→   519→    for (let c = 0; c < seatRows.length; c += 60) {
+   520→   520→      await db.showSeat.createMany({ data: seatRows.slice(c, c + 60) });
+   521→   521→    }
+   522→   522→    showCount++;
+   523→   523→  }
+   524→   524→  console.log(`✓ ${showCount} shows today with full per-show seat inventory (scheduler keeps the 7-day window rolling)`);
+   525→   525→
+   526→   526→  // ---- Settings ----
+   527→   527→  await db.setting.create({ data: { key: "platform.commissionPercent", value: "8" } });
+   528→   528→
+   529→   529→  console.log("\n──────────────── DEMO ACCOUNTS (all use password: Demo@1234) ────────────────");
+   530→   530→  console.log("  admin@cine360.demo    → Super-Admin dashboard");
+   531→   531→  console.log("  owner@cine360.demo    → Theatre Owner (Frost Cinemas + Pearl Screens · Chennai, Tamil Screens · Madurai — APPROVED)");
+   532→   532→  console.log("  owner2@cine360.demo   → Theatre Owner (Flame Multiplex · Coimbatore — PENDING approval)");
+   533→   533→  console.log("  owner3@cine360.demo   → Theatre Owner (Aurora Cineplex · Chennai — APPROVED)");
+   534→   534→  console.log("  owner4@cine360.demo   → Theatre Owner (Lumière Cinemas + Galaxy Multiplex · Bengaluru — APPROVED)");
+   535→   535→  console.log("  owner5@cine360.demo   → Theatre Owner (Nizam Grand · Hyderabad + Marine Marquee · Mumbai — APPROVED)");
+   536→   536→  console.log("  owner6@cine360.demo   → Theatre Owner (Imperial Cines + Yamuna Prime · Delhi, Rajmahal · Jaipur — APPROVED)");
+   537→   537→  console.log("  owner7@cine360.demo   → Theatre Owner (Bengal Grand · Kolkata, Deccan Reels · Pune, Backwater Screens · Kochi — APPROVED)");
+   538→   538→  console.log("  staff@cine360.demo    → Gate Staff (Frost Cinemas + Tamil Screens + Yamuna Prime) — ticket scanner");
+   539→   539→  console.log("  customer@cine360.demo → Customer (demo bookings)");
+   540→   540→  console.log("──────────────────────────────────────────────────────────────────────────────");
+   541→   541→}
+   542→   542→
+   543→   543→async function createAuditorium(theatreId: string, name: string, layout: LayoutConfig, priceOverrides?: Record<string, number>) {
+   544→   544→  const { seats } = generateLayout(layout);
+   545→   545→  const aud = await db.auditorium.create({
+   546→   546→    data: {
+   547→   547→      theatreId, name, layoutConfig: JSON.stringify(layout), geometrySource: "PROCEDURAL", status: "PUBLISHED",
+   548→   548→      categories: {
+   549→   549→        create: Object.entries(DEFAULT_PRICES).map(([code, v]) => ({
+   550→   550→          code, name: v.name, color: v.color, basePrice: priceOverrides?.[code] ?? v.price,
+   551→   551→        })),
+   552→   552→      },
+   553→   553→      models: {
+   554→   554→        create: {
+   555→   555→          kind: "PROCEDURAL", status: "PUBLISHED", version: 1,
+   556→   556→          notes: "Procedural demonstration geometry generated from the auditorium layout configuration. Not a calibrated survey of a real auditorium.",
+   557→   557→        },
+   558→   558→      },
+   559→   559→    },
+   560→   560→    include: { categories: true },
+   561→   561→  });
+   562→   562→  const catByCode = new Map(aud.categories.map((c) => [c.code, c.id]));
+   563→   563→  await db.seat.createMany({
+   564→   564→    data: seats.map((s) => ({
+   565→   565→      auditoriumId: aud.id, rowLabel: s.rowLabel, seatNumber: s.seatNumber, rowIndex: s.rowIndex, colIndex: s.colIndex,
+   566→   566→      x: s.x, z: s.z, baseY: s.baseY, eyeHeight: s.eyeHeight, categoryId: catByCode.get(s.categoryCode)!,
+   567→   567→      isAccessible: s.isAccessible,
+   568→   568→    })),
+   569→   569→  });
+   570→   570→  return { id: aud.id, seatCount: seats.length };
+   571→   571→}
+   572→   572→
+   573→   573→async function clean() {
+   574→   574→  // delete in dependency order (typed delegates, no dynamic indexing)
+   575→   575→  const delegates = [
+   576→   576→    db.ticketValidation, db.ticket, db.payment, db.bookingSeat, db.booking, db.seatHold,
+   577→   577→    db.showSeat, db.show, db.movie, db.auditoriumModel, db.seat, db.seatCategory, db.auditorium,
+   578→   578→    db.theatreStaff, db.theatre, db.auditLog, db.setting, db.user,
+   579→   579→  ];
+   580→   580→  for (const t of delegates) {
+   581→   581→    await (t as unknown as { deleteMany: () => Promise<unknown> }).deleteMany();
+   582→   582→  }
+   583→   583→}
+   584→   584→
+   585→   585→main()
+   586→   586→  .catch((e) => {
+   587→   587→    console.error(e);
+   588→   588→    process.exit(1);
+   589→   589→  })
+   590→   590→  .finally(() => db.$disconnect());
+   591→   591→

@@ -25,7 +25,9 @@ export type LayoutConfig = {
 export type AuditoriumThemeCode =
   | "emerald" | "teal" | "amber" | "crimson" | "azure" | "violet" | "rose" | "copper"
   | "indigo" | "saffron" | "orchid" | "sage" | "onyx" | "sandstone"
-  | "garnet" | "pearl" | "mint" | "cocoa" | "sky" | "moss";
+  | "garnet" | "pearl" | "mint" | "cocoa" | "sky" | "moss"
+  | "ruby" | "gold" | "coral" | "plum" | "chestnut" | "denim" | "wine"
+  | "olive" | "petrol" | "graphite" | "laser" | "magenta" | "spruce";
 
 export const AUDITORIUM_THEMES: Record<
   AuditoriumThemeCode,
@@ -51,6 +53,20 @@ export const AUDITORIUM_THEMES: Record<
   cocoa:   { name: "Cocoa Prime",     seat: "#A47551", tint: "#C0A48C", label: "#5C3A1E" },
   sky:     { name: "Sky Reels",       seat: "#38BDF8", tint: "#A5C8E8", label: "#0369A1" },
   moss:    { name: "Moss Garden",     seat: "#84CC16", tint: "#B8CC9E", label: "#4D7C0F" },
+  // ---- 2026-11 Tamil Nadu circuit themes ----
+  ruby:     { name: "Ruby Grand",       seat: "#C41E3A", tint: "#C9A0AB", label: "#7A0C1E" },
+  gold:     { name: "Gold Royale",      seat: "#D4AF37", tint: "#CDBB8A", label: "#8A6D1C" },
+  coral:    { name: "Coral Atmos",      seat: "#FF7F66", tint: "#D4AFA6", label: "#B33A24" },
+  plum:     { name: "Plum Grand",       seat: "#8E4585", tint: "#B39DB0", label: "#5A1F55" },
+  chestnut: { name: "Chestnut Classic", seat: "#953735", tint: "#C4A39E", label: "#5E1F1D" },
+  denim:    { name: "Denim Twin",       seat: "#3E5F8A", tint: "#A3B4CC", label: "#1E3A5F" },
+  wine:     { name: "Wine Silver",      seat: "#722F37", tint: "#B79AA0", label: "#4A1418" },
+  olive:    { name: "Olive Green",      seat: "#7E8F3D", tint: "#BFC49A", label: "#4C571F" },
+  petrol:   { name: "Petrol Premium",   seat: "#0E7490", tint: "#9CC4CE", label: "#0A4A5C" },
+  graphite: { name: "Graphite Mall",    seat: "#3A3F4B", tint: "#8B92A5", label: "#C9A227" },
+  laser:    { name: "Laser Cyan",       seat: "#22D3EE", tint: "#A5D8E2", label: "#0E7490" },
+  magenta:  { name: "Magenta Mass",     seat: "#D6336C", tint: "#CBA1B0", label: "#8F0F3C" },
+  spruce:   { name: "Spruce Modern",    seat: "#2F7E6D", tint: "#A8C4BC", label: "#14483E" },
 };
 
 export function themeOf(code?: string | null) {
@@ -635,6 +651,256 @@ export const DEMO_LAYOUTS: Record<string, LayoutConfig> = {
       ...["A", "B", "C"].map((label) => ({ label, seats: 14, categoryCode: "SILVER" })),
       ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 14, categoryCode: "GOLD" })),
       ...["I", "J"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+
+  /* ---- 2026-11 Tamil Nadu circuit: flagship halls for the 23 new theatres ---- */
+
+  /* PVR Sathyam · Royapettah — flagship grand hall: 16 m screen,
+   * 20-seat rows, long shallow rake, 268 seats */
+  "sathyam-grand": {
+    screen: { widthM: 16, heightM: 6.8, bottomY: 2.2, z: 0 },
+    firstRowZ: 10.5,
+    rowSpacingM: 1.12,
+    rowStepUpM: 0.3,
+    seatSpacingM: 0.58,
+    centerAisle: true,
+    aisleGapM: 1.8,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "ruby",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["G", "H", "I", "J", "K", "L"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["M", "N"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* PVR Palazzo · Vadapalani — all-recliner premium hall: wide 0.86 m
+   * armchair pitch, small SILVER front, 112 seats */
+  "palazzo-recliner": {
+    screen: { widthM: 13.5, heightM: 5.7, bottomY: 1.9, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.3,
+    rowStepUpM: 0.36,
+    seatSpacingM: 0.86,
+    centerAisle: true,
+    aisleGapM: 1.6,
+    sideMarginM: 1.9,
+    eyeHeightM: 1.12,
+    theme: "gold",
+    rows: [
+      ...["A", "B"].map((label) => ({ label, seats: 12, categoryCode: "SILVER" })),
+      ...["C", "D", "E", "F"].map((label) => ({ label, seats: 12, categoryCode: "GOLD" })),
+      ...["G", "H", "I", "J"].map((label) => ({ label, seats: 10, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* PVR Escape · Express Avenue — Dolby Atmos mall hall: 14 m screen,
+   * steep 0.32 m rake, 152 seats */
+  "escape-atmos": {
+    screen: { widthM: 14, heightM: 6, bottomY: 2, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.18,
+    rowStepUpM: 0.32,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "coral",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["I", "J"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Luxe · Velacheri — grand plush hall: 17 m screen, 20-seat rows,
+   * generous 1.2 m row pitch, 228 seats */
+  "luxe-grand": {
+    screen: { widthM: 17, heightM: 7, bottomY: 2.3, z: 0 },
+    firstRowZ: 11,
+    rowSpacingM: 1.2,
+    rowStepUpM: 0.34,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.7,
+    sideMarginM: 1.9,
+    eyeHeightM: 1.15,
+    theme: "plum",
+    rows: [
+      ...["A", "B", "C", "D", "E"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["F", "G", "H", "I", "J"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["K", "L"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Ega · Kilpauk — heritage favourite: 13 m screen, tight 18-seat rows,
+   * shallow 0.26 m rake, 186 seats */
+  "ega-classic": {
+    screen: { widthM: 13, heightM: 5.5, bottomY: 1.9, z: 0 },
+    firstRowZ: 8.5,
+    rowSpacingM: 1.08,
+    rowStepUpM: 0.26,
+    seatSpacingM: 0.56,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.6,
+    eyeHeightM: 1.15,
+    theme: "chestnut",
+    rows: [
+      ...["A", "B", "C", "D"].map((label) => ({ label, seats: 18, categoryCode: "SILVER" })),
+      ...["E", "F", "G", "H", "I"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Udhayam · Ashok Nagar — twin-complex grand hall: 15 m screen,
+   * 20-seat rows, very shallow 0.22 m rake, 268 seats */
+  "udhayam-twin": {
+    screen: { widthM: 15, heightM: 6.2, bottomY: 2.1, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.04,
+    rowStepUpM: 0.22,
+    seatSpacingM: 0.56,
+    centerAisle: true,
+    aisleGapM: 1.8,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "denim",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F", "G"].map((label) => ({ label, seats: 20, categoryCode: "SILVER" })),
+      ...["H", "I", "J", "K", "L"].map((label) => ({ label, seats: 20, categoryCode: "GOLD" })),
+      ...["M", "N"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Rohini Movie Park · Koyambedu — giant single screen: 19.5 m canvas,
+   * 24-seat rows, festival-first-show house, 344 seats */
+  "rohini-silver": {
+    screen: { widthM: 19.5, heightM: 7.8, bottomY: 2.5, z: 0 },
+    firstRowZ: 11.5,
+    rowSpacingM: 1.1,
+    rowStepUpM: 0.28,
+    seatSpacingM: 0.56,
+    centerAisle: true,
+    aisleGapM: 2,
+    sideMarginM: 2,
+    eyeHeightM: 1.15,
+    theme: "wine",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F"].map((label) => ({ label, seats: 24, categoryCode: "SILVER" })),
+      ...["G", "H", "I", "J", "K", "L", "M"].map((label) => ({ label, seats: 24, categoryCode: "GOLD" })),
+      ...["N", "O"].map((label) => ({ label, seats: 16, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Kamala · Vadapalani — family-first hall: 12.5 m screen, balanced
+   * SILVER/GOLD split, 152 seats */
+  "kamala-family": {
+    screen: { widthM: 12.5, heightM: 5.4, bottomY: 1.9, z: 0 },
+    firstRowZ: 8.5,
+    rowSpacingM: 1.12,
+    rowStepUpM: 0.3,
+    seatSpacingM: 0.6,
+    centerAisle: true,
+    aisleGapM: 1.4,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "olive",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["I", "J"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* KG Cinemas · Big Bazaar Street — premium landmark hall: 14.5 m screen,
+   * 0.34 m rake, wide GOLD deck, 180 seats */
+  "kg-premium": {
+    screen: { widthM: 14.5, heightM: 6, bottomY: 2, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.22,
+    rowStepUpM: 0.34,
+    seatSpacingM: 0.64,
+    centerAisle: true,
+    aisleGapM: 1.6,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "petrol",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H", "I"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* INOX mall standard — dark graphite interior with gold accents:
+   * 13.2 m screen, 16-seat rows, 152 seats */
+  "inox-mall": {
+    screen: { widthM: 13.2, heightM: 5.6, bottomY: 1.9, z: 0 },
+    firstRowZ: 9,
+    rowSpacingM: 1.18,
+    rowStepUpM: 0.32,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "graphite",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 16, categoryCode: "GOLD" })),
+      ...["I", "J"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Sakthi · Pitchampalayam — RGB laser 4K flagship: 15.8 m screen,
+   * 18-seat rows, 0.36 m rake, 186 seats */
+  "sakthi-laser": {
+    screen: { widthM: 15.8, heightM: 6.6, bottomY: 2.2, z: 0 },
+    firstRowZ: 10,
+    rowSpacingM: 1.24,
+    rowStepUpM: 0.36,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.6,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "laser",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 18, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H", "I"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["J", "K"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* Vetri · Madurai — mass single screen: 16 m canvas, 22-seat rows,
+   * festival-day roar house, 270 seats */
+  "vetri-mass": {
+    screen: { widthM: 16, heightM: 6.6, bottomY: 2.2, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.06,
+    rowStepUpM: 0.24,
+    seatSpacingM: 0.56,
+    centerAisle: true,
+    aisleGapM: 1.8,
+    sideMarginM: 1.7,
+    eyeHeightM: 1.15,
+    theme: "magenta",
+    rows: [
+      ...["A", "B", "C", "D", "E", "F"].map((label) => ({ label, seats: 22, categoryCode: "SILVER" })),
+      ...["G", "H", "I", "J", "K"].map((label) => ({ label, seats: 22, categoryCode: "GOLD" })),
+      ...["L", "M"].map((label) => ({ label, seats: 14, categoryCode: "RECLINER" })),
+    ],
+  },
+  /* LA Cinemas · Tiruchy — Atmos mid-size hall: 14.2 m screen,
+   * wide GOLD deck, 162 seats */
+  "la-atmos": {
+    screen: { widthM: 14.2, heightM: 6, bottomY: 2.1, z: 0 },
+    firstRowZ: 9.5,
+    rowSpacingM: 1.2,
+    rowStepUpM: 0.34,
+    seatSpacingM: 0.62,
+    centerAisle: true,
+    aisleGapM: 1.5,
+    sideMarginM: 1.8,
+    eyeHeightM: 1.15,
+    theme: "spruce",
+    rows: [
+      ...["A", "B", "C"].map((label) => ({ label, seats: 16, categoryCode: "SILVER" })),
+      ...["D", "E", "F", "G", "H"].map((label) => ({ label, seats: 18, categoryCode: "GOLD" })),
+      ...["I", "J"].map((label) => ({ label, seats: 12, categoryCode: "RECLINER" })),
     ],
   },
 };
