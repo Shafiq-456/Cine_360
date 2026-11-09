@@ -735,7 +735,7 @@ async function main() {
   const upcoming = await db.movie.create({
     data: {
       title: "CINE 360 Original: First Light", slug: "cine360-first-light", synopsis: "A demonstration upcoming title for the CINE 360 platform. This entry exists to showcase the 'Upcoming releases' rail.",
-      posterUrl: "/posters/interstellar.svg", languages: JSON.stringify(["English"]), genres: JSON.stringify(["Demo"]),
+      posterUrl: posterPath("cine360-first-light", ""), languages: JSON.stringify(["English"]), genres: JSON.stringify(["Demo"]),
       durationMins: 120, certification: "UA", trailerUrl: "https://www.youtube.com/results?search_query=cinema+trailer",
       status: "UPCOMING", featured: false,
     },
