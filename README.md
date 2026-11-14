@@ -38,7 +38,7 @@
 - **⚡ Real-Time Socket.IO Synchronization**: Background WebSocket hub broadcasts live inventory changes across all connected clients in real time.
 - **💳 Transparent Demo Gateway**: Complete mock checkout lifecycle mirroring modern payment provider handshakes (Order creation → HMAC-SHA256 signature verification → Webhook ingestion). Ready for drop-in Razorpay integration.
 - **🎟️ Gate QR Scanner & Validation**: Dedicated staff portal for verifying and redeeming tickets with duplicate prevention and audit logging.
-- **🛡️ Full RBAC Governance**: Role-based access control protecting Customer, Theatre Owner, Gate Staff, and Super Admin consoles.
+- **🛡️ Full RBAC Governance**: Role-based access control protecting Customer, Theatre Owner, Gate Staff, and Super Admin console.
 
 ---
 
