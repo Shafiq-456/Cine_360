@@ -155,10 +155,10 @@ The demo database comes pre-seeded with 5 distinct roles to test all facets of t
 | Role | Email | Password | Available Features & Permissions |
 |---|---|---|---|
 | **Customer** | `customer@cine360.demo` | `Demo@1234` | Browse catalogue, 3D seat viewer, hold seats, complete checkout, view QR tickets. |
-| **Theatre Owner (Approved)** | `owner@cine360.demo` | `Demo@1234` | Manage Frost Cinemas, create auditoriums, generate showtimes, view revenue analytics. |
-| **Theatre Owner (Pending)** | `owner2@cine360.demo` | `Demo@1234` | Flame Multiplex (Demonstrates pending approval workflows in admin dashboard). |
+| **Theatre Owner (Approved)** | `owner@cine360.demo` | `demo-owner@1234` | Manage Frost Cinemas, create auditoriums, generate showtimes, view revenue analytics. |
+| **Theatre Owner (Pending)** | `owner2@cine360.demo` | `demo@1234` | Flame Multiplex (Demonstrates pending approval workflows in admin dashboard). |
 | **Gate Staff** | `staff@cine360.demo` | `Demo@1234` | In-app QR ticket camera scanner, ticket validation & redemption, duplicate check. |
-| **Super Admin** | `admin@cine360.demo` | `Demo@1234` | Platform approvals, theatre review, refund management, audit log inspection. |
+| **Super Admin** | `admin@cine360.demo` | `demo@1234` | Platform approvals, theatre review, refund management, audit log inspection. |
 
 ---
 
