@@ -160,24 +160,24 @@ export default function CineAIAssistant() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-40">
+    <div className="fixed bottom-6 right-6 z-40">
       {!open ? (
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#8B5CF6] via-[#D97706] to-[#F59E0B] text-white shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer font-medium text-sm border border-white/20 group"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#F59E0B] via-[#D97706] to-[#B45309] text-slate-950 font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer text-sm border border-amber-300/30 group shadow-amber-500/20"
           aria-label="Open CINE AI Assistant"
         >
-          <span className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-[#FBBF24] animate-pulse" />
+          <span className="w-6 h-6 rounded-full bg-black/20 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-slate-950 animate-pulse" />
           </span>
           <span>Ask CINE AI</span>
         </button>
       ) : (
-        <div className="w-[360px] sm:w-[400px] h-[520px] rounded-2xl bg-[#120A1C]/95 border border-white/15 shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
+        <div className="w-[360px] sm:w-[400px] h-[520px] rounded-2xl bg-[#090B10]/98 border border-white/15 shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
           {/* Header */}
-          <div className="p-3.5 border-b border-white/10 bg-[#1A1029] flex items-center justify-between">
+          <div className="p-3.5 border-b border-white/10 bg-[#0F1117] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#F59E0B] flex items-center justify-center text-white">
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center text-slate-950 font-bold">
                 <Bot className="w-4 h-4" />
               </span>
               <div>
@@ -206,8 +206,8 @@ export default function CineAIAssistant() {
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 leading-relaxed ${
                     m.sender === "user"
-                      ? "bg-[#8B5CF6] text-white rounded-br-none"
-                      : "bg-[#1F1433] text-[#E2E8F0] border border-white/10 rounded-bl-none whitespace-pre-line"
+                      ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-slate-950 font-medium rounded-br-none"
+                      : "bg-[#141722] text-[#E2E8F0] border border-white/10 rounded-bl-none whitespace-pre-line"
                   }`}
                 >
                   {m.text}
@@ -241,19 +241,19 @@ export default function CineAIAssistant() {
               e.preventDefault();
               handlePrompt(input);
             }}
-            className="p-2.5 border-t border-white/10 bg-[#160D24] flex items-center gap-2"
+            className="p-2.5 border-t border-white/10 bg-[#0A0C11] flex items-center gap-2"
           >
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about movies, seats, sightlines…"
-              className="bg-[#1F1433] border-white/10 text-white placeholder:text-[#64748B] text-xs h-9 focus-visible:ring-[#F59E0B]"
+              className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] text-xs h-9 focus-visible:ring-[#F59E0B]"
             />
             <Button
               type="submit"
               size="sm"
               disabled={busy || !input.trim()}
-              className="bg-[#F59E0B] hover:bg-[#D97706] text-black h-9 px-3 cursor-pointer"
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-bold h-9 px-3 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
             </Button>

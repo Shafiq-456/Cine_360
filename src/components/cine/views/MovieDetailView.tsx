@@ -141,7 +141,7 @@ export default function MovieDetailView({ id }: { id: string }) {
                   </Button>
                 </a>
               ) : null}
-              <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
+              <Button className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-slate-950 font-bold shadow-lg shadow-amber-500/20 cursor-pointer" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
                 <Ticket className="w-4 h-4 mr-2" /> Book tickets
               </Button>
               <Button
@@ -160,7 +160,7 @@ export default function MovieDetailView({ id }: { id: string }) {
       {/* Showtimes */}
       <section id="showtimes" className="mt-12" aria-label="Showtimes">
         <h2 className="text-2xl font-bold mb-2">Showtimes</h2>
-        <p className="text-sm text-[#B4A6D4] mb-6">Pick a show, then explore the auditorium in 3D.</p>
+        <p className="text-sm text-[#94A3B8] mb-6">Pick a show, then explore the auditorium in 3D.</p>
 
         {dates.length > 1 && (
           <div className="flex gap-2 mb-6 flex-wrap">
@@ -170,7 +170,7 @@ export default function MovieDetailView({ id }: { id: string }) {
                 onClick={() => setDate(d)}
                 aria-pressed={date === d}
                 className={`px-4 py-2 rounded-xl text-sm border transition-colors cursor-pointer ${
-                  date === d ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white hover:border-[#8B5CF6]/50"
+                  date === d ? "bg-[#F59E0B] border-[#F59E0B] text-slate-950 font-bold" : "border-white/10 text-[#94A3B8] hover:text-white hover:border-[#F59E0B]/50"
                 }`}
               >
                 {fmtDate(d)}
@@ -196,9 +196,9 @@ export default function MovieDetailView({ id }: { id: string }) {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                   <div>
                     <h3 className="font-semibold text-lg">{theatre.name}</h3>
-                    <p className="text-xs text-[#B4A6D4] mt-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> {theatre.city} · {theatre.address}</p>
+                    <p className="text-xs text-[#94A3B8] mt-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> {theatre.city} · {theatre.address}</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-[#8B5CF6]" onClick={() => navigate(`/theatres/${theatre.id}`)}>
+                  <Button variant="ghost" size="sm" className="text-[#F59E0B] hover:text-[#FBBF24]" onClick={() => navigate(`/theatres/${theatre.id}`)}>
                     Theatre details
                   </Button>
                 </div>
@@ -211,8 +211,8 @@ export default function MovieDetailView({ id }: { id: string }) {
                       <button
                         key={s.id}
                         onClick={() => navigate(`/book/${s.id}`)}
-                        className={`relative border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#8B5CF6]/60 hover:bg-[#8B5CF6]/5 ${
-                          almostFull ? "border-[#F0659A]/30" : "border-white/10"
+                        className={`relative border rounded-xl p-3.5 text-left transition-all cursor-pointer hover:border-[#F59E0B]/60 hover:bg-[#F59E0B]/5 ${
+                          almostFull ? "border-[#EF4444]/40" : "border-white/10"
                         }`}
                       >
                         {(filling || almostFull) && (

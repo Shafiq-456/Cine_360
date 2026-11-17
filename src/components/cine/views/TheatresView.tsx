@@ -61,7 +61,7 @@ export default function TheatresView({ params }: { params: URLSearchParams }) {
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {t.auditoriums.map((a) => (
-          <span key={a.id} className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/25 text-[#C4B5FD]">
+          <span key={a.id} className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#FBBF24]">
             <Armchair className="w-3.5 h-3.5" /> {a.name} · {a.seatCount} seats
           </span>
         ))}
@@ -74,13 +74,13 @@ export default function TheatresView({ params }: { params: URLSearchParams }) {
       <PageTitle title="Theatres" subtitle="Browse CINE 360 partner theatres by city. Each auditorium has an independent 3D model and seating configuration." />
       <div className="flex flex-col md:flex-row gap-3 mb-8">
         <div className="relative max-w-md w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#B4A6D4]" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or address…" className="pl-9 bg-[#1A1029] border-white/10" aria-label="Search theatres" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or address…" className="pl-9 bg-[#0F1117] border-white/10" aria-label="Search theatres" />
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setCity("")} aria-pressed={!city} className={`px-3 py-2 rounded-lg text-xs border cursor-pointer transition-colors ${!city ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white"}`}>All cities</button>
+          <button onClick={() => setCity("")} aria-pressed={!city} className={`px-3 py-2 rounded-lg text-xs border cursor-pointer transition-colors ${!city ? "bg-[#F59E0B] border-[#F59E0B] text-slate-950 font-bold" : "border-white/10 text-[#94A3B8] hover:text-white"}`}>All cities</button>
           {cities.map((c) => (
-            <button key={c} onClick={() => setCity(c)} aria-pressed={city === c} className={`px-3 py-2 rounded-lg text-xs border cursor-pointer transition-colors ${city === c ? "bg-[#8B5CF6] border-[#8B5CF6] text-white" : "border-white/10 text-[#B4A6D4] hover:text-white"}`}>
+            <button key={c} onClick={() => setCity(c)} aria-pressed={city === c} className={`px-3 py-2 rounded-lg text-xs border cursor-pointer transition-colors ${city === c ? "bg-[#F59E0B] border-[#F59E0B] text-slate-950 font-bold" : "border-white/10 text-[#94A3B8] hover:text-white"}`}>
               {c} ({countIn(c)})
             </button>
           ))}

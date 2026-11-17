@@ -18,32 +18,34 @@ export type SeatStatus = (typeof SEAT_STATUS)[keyof typeof SEAT_STATUS];
 
 export const HOLD_TTL_SECONDS = 300; // 5 minutes, configurable via env HOLD_TTL_SECONDS
 
-// Visual identity — Velvet Aurora palette
+// Visual identity — Obsidian Amber Cinema Palette
 export const BRAND = {
-  obsidian: "#120A1C",
-  graphite: "#1F1330",
-  titanium: "#EAE2FA",
-  frost: "#F7F2FE",
-  electricBlue: "#8B5CF6",
-  cyan: "#F2B04C",
-  flame: "#F0659A",
+  obsidian: "#070709",
+  graphite: "#0F1117",
+  slate: "#181B24",
+  titanium: "#E2E8F0",
+  frost: "#F8FAFC",
+  amber: "#F59E0B",
+  gold: "#FBBF24",
+  accent: "#D97706",
+  electricBlue: "#38BDF8",
 };
 
-// Seat state colours (never used alone — always paired with labels)
+// Seat state colours (compliant with cinema standards & accessibility)
 export const SEAT_COLORS: Record<SeatStatus | "SELECTED", string> = {
-  AVAILABLE: "#34D399",
-  HELD: "#FFD166",
-  BOOKED: "#E5484D",
-  UNAVAILABLE: "#4A3D63",
-  SELECTED: "#8B5CF6",
+  AVAILABLE: "#10B981", // Emerald Green
+  HELD: "#FBBF24",      // Soft Amber Held
+  BOOKED: "#EF4444",    // Crimson Red Occupied
+  UNAVAILABLE: "#475569", // Slate Grey Restricted
+  SELECTED: "#F59E0B",  // Obsidian Amber Selected
 };
 
 export const SEAT_STATE_LABELS: Record<SeatStatus | "SELECTED", string> = {
-  AVAILABLE: "Available",
+  AVAILABLE: "Available (Green)",
   HELD: "Temporarily held by another user",
-  BOOKED: "Booked",
-  UNAVAILABLE: "Unavailable",
-  SELECTED: "Selected by you",
+  BOOKED: "Booked (Red)",
+  UNAVAILABLE: "Restricted / Unavailable (Grey)",
+  SELECTED: "Selected by you (Amber)",
 };
 
 export const TICKET_STATUSES = ["VALID", "REDEEMED", "VOID"] as const;

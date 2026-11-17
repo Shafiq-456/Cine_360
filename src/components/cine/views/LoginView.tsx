@@ -41,9 +41,9 @@ import {
 
 const DEMO_ACCOUNTS = [
   { email: "customer@cine360.demo", label: "Customer", desc: "Book seats, 3D seat vision, QR tickets" },
-  { email: "owner@cine360.demo", label: "Theatre Owner", desc: "Frost Cinemas · screens, shows, analytics" },
-  { email: "owner2@cine360.demo", label: "Owner #2 (Pending)", desc: "Flame Multiplex · pending approval flow" },
-  { email: "staff@cine360.demo", label: "Gate Staff", desc: "Frost Cinemas · QR ticket scanner" },
+  { email: "owner@cine360.demo", label: "Theatre Owner", desc: "Grand Multiplex · screens, shows, analytics" },
+  { email: "owner2@cine360.demo", label: "Owner #2 (Pending)", desc: "City Cinema · pending approval flow" },
+  { email: "staff@cine360.demo", label: "Gate Staff", desc: "Grand Multiplex · QR ticket scanner" },
   { email: "admin@cine360.demo", label: "Super Admin", desc: "Platform approvals, refunds, audit logs" },
 ];
 const DEMO_PASSWORD = "Demo@1234";
@@ -199,14 +199,14 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 grid lg:grid-cols-2 gap-10 items-start">
       {/* Authentication Card */}
-      <div className="cine-card p-8 rounded-2xl border border-white/10 bg-[#120A1C]/90 shadow-2xl relative overflow-hidden">
+      <div className="cine-card p-8 rounded-2xl border border-white/10 bg-[#0B0D13]/95 shadow-2xl relative overflow-hidden">
         {/* Glow accent */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#8B5CF6]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#F59E0B]/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2.5">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] via-[#D97706] to-[#F59E0B] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/20">
-              <Clapperboard className="w-5 h-5 text-white" />
+            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F59E0B] via-[#D97706] to-[#B45309] flex items-center justify-center shadow-lg shadow-[#F59E0B]/20">
+              <Clapperboard className="w-5 h-5 text-slate-950" />
             </span>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -216,7 +216,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
             </div>
           </div>
           {fbReady ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#10B981]/15 text-[#34D399] border border-[#10B981]/30">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
               <ShieldCheck className="w-3.5 h-3.5" /> Firebase Live
             </span>
           ) : (
@@ -258,7 +258,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-white/10" />
           </div>
-          <span className="relative bg-[#120A1C] px-3 text-xs text-[#94A3B8] uppercase tracking-wider">
+          <span className="relative bg-[#0B0D13] px-3 text-xs text-[#94A3B8] uppercase tracking-wider">
             Or with email &amp; password
           </span>
         </div>
@@ -268,7 +268,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
             <>
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="text-xs text-[#CBD5E1] font-medium flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#8B5CF6]" /> Full Name
+                  <User className="w-3.5 h-3.5 text-[#F59E0B]" /> Full Name
                 </Label>
                 <Input
                   id="name"
@@ -277,19 +277,19 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
                   required
                   minLength={2}
                   placeholder="e.g. Maya Sharma"
-                  className="bg-[#180E28] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
+                  className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone" className="text-xs text-[#CBD5E1] font-medium flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#8B5CF6]" /> Phone Number (Optional)
+                  <Phone className="w-3.5 h-3.5 text-[#F59E0B]" /> Phone Number (Optional)
                 </Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="bg-[#180E28] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
+                  className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
                 />
               </div>
             </>
@@ -297,7 +297,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
 
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-xs text-[#CBD5E1] font-medium flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-[#8B5CF6]" /> Email Address
+              <Mail className="w-3.5 h-3.5 text-[#F59E0B]" /> Email Address
             </Label>
             <Input
               id="email"
@@ -306,7 +306,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="bg-[#180E28] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
+              className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
               autoComplete="username"
             />
           </div>
@@ -314,7 +314,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-xs text-[#CBD5E1] font-medium flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-[#8B5CF6]" /> Password
+                <Lock className="w-3.5 h-3.5 text-[#F59E0B]" /> Password
               </Label>
               {mode === "login" && (
                 <button
@@ -338,7 +338,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
                 required
                 minLength={mode === "register" ? 8 : 1}
                 placeholder={mode === "register" ? "At least 8 characters" : "Your password"}
-                className="bg-[#180E28] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] pr-10 h-11"
+                className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] pr-10 h-11"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
               <button
@@ -355,7 +355,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
           {mode === "register" && (
             <div className="space-y-1.5">
               <Label htmlFor="confirmPassword" className="text-xs text-[#CBD5E1] font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#8B5CF6]" /> Confirm Password
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#F59E0B]" /> Confirm Password
               </Label>
               <Input
                 id="confirmPassword"
@@ -365,7 +365,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
                 required
                 minLength={8}
                 placeholder="Re-enter your password"
-                className="bg-[#180E28] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
+                className="bg-[#141722] border-white/10 text-white placeholder:text-[#64748B] focus:border-[#F59E0B] h-11"
                 autoComplete="new-password"
               />
             </div>
@@ -401,7 +401,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
           <Button
             type="submit"
             disabled={busy}
-            className="w-full bg-gradient-to-r from-[#8B5CF6] via-[#D97706] to-[#F59E0B] hover:opacity-95 text-white font-semibold h-11 rounded-xl shadow-lg shadow-[#F59E0B]/20 transition-all cursor-pointer"
+            className="w-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-slate-950 font-bold h-11 rounded-xl shadow-lg shadow-[#F59E0B]/20 transition-all cursor-pointer"
           >
             {busy ? "Authenticating…" : mode === "login" ? "Sign In to CINE 360" : "Create My Account"}
           </Button>
@@ -433,7 +433,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
       </div>
 
       {/* Demo Credentials Panel */}
-      <div className="cine-card p-8 rounded-2xl border border-white/10 bg-[#120A1C]/90 shadow-2xl">
+      <div className="cine-card p-8 rounded-2xl border border-white/10 bg-[#0B0D13]/95 shadow-2xl">
         <div className="flex items-center gap-2 mb-2">
           <span className="w-8 h-8 rounded-lg bg-[#F59E0B]/15 border border-[#F59E0B]/30 flex items-center justify-center text-[#F59E0B]">
             <Flame className="w-4 h-4" />
@@ -442,7 +442,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
         </div>
         <p className="text-xs text-[#94A3B8] leading-relaxed mb-6">
           Explore all role consoles directly. Every demo account uses the shared password{" "}
-          <code className="px-2 py-0.5 rounded bg-[#1C112E] border border-white/10 text-[#F59E0B] font-mono text-xs">
+          <code className="px-2 py-0.5 rounded bg-[#141722] border border-white/10 text-[#F59E0B] font-mono text-xs">
             Demo@1234
           </code>
           . Click any card to auto-populate credentials.
@@ -454,7 +454,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
               key={d.email}
               type="button"
               onClick={() => fillDemo(d.email)}
-              className="w-full text-left p-3.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-[#8B5CF6]/10 hover:border-[#F59E0B]/50 transition-all cursor-pointer group"
+              className="w-full text-left p-3.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-[#F59E0B]/10 hover:border-[#F59E0B]/50 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold text-white group-hover:text-[#F59E0B] transition-colors">
@@ -475,7 +475,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
 
       {/* Forgot Password Dialog */}
       <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
-        <DialogContent className="bg-[#160D24] border-white/10 text-white sm:max-w-md">
+        <DialogContent className="bg-[#0F1117] border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5 text-[#F59E0B]" /> Reset Password
@@ -496,7 +496,7 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
                 onChange={(e) => setForgotEmail(e.target.value)}
                 required
                 placeholder="name@example.com"
-                className="bg-[#1E1232] border-white/10 text-white"
+                className="bg-[#141722] border-white/10 text-white"
               />
             </div>
             <DialogFooter className="gap-2 sm:gap-0">

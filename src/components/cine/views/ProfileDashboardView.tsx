@@ -93,17 +93,17 @@ export default function ProfileDashboardView() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
       {/* Profile Header Card */}
-      <div className="cine-card p-6 md:p-8 rounded-2xl border border-white/10 bg-[#120A1C] relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="cine-card p-6 md:p-8 rounded-2xl border border-white/10 bg-[#0B0D13] relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          <Avatar className="w-16 h-16 border-2 border-[#8B5CF6]/50 shadow-xl shadow-[#8B5CF6]/20">
-            <AvatarFallback className="bg-gradient-to-br from-[#8B5CF6] to-[#D97706] text-white text-xl font-bold">
+          <Avatar className="w-16 h-16 border-2 border-[#F59E0B]/50 shadow-xl shadow-amber-500/20">
+            <AvatarFallback className="bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-slate-950 text-xl font-bold">
               {session?.name.split(" ").map((n) => n[0]).slice(0, 2).join("") || "U"}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-2xl font-bold text-white tracking-tight">{session?.name}</h1>
-              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#C4B5FD] border border-[#8B5CF6]/30">
+              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#F59E0B]/15 text-[#FBBF24] border border-[#F59E0B]/30 font-semibold">
                 {session?.role}
               </span>
             </div>
@@ -128,7 +128,7 @@ export default function ProfileDashboardView() {
           <Button
             size="sm"
             onClick={() => navigate("/tickets")}
-            className="bg-[#8B5CF6] hover:bg-[#A78BFA] text-white text-xs gap-1.5"
+            className="bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-slate-950 font-bold text-xs gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer"
           >
             <QrCode className="w-3.5 h-3.5" /> My QR Tickets
           </Button>
@@ -136,7 +136,7 @@ export default function ProfileDashboardView() {
             size="sm"
             variant="outline"
             onClick={() => navigate("/movies")}
-            className="border-white/15 text-white hover:border-[#F59E0B] text-xs gap-1.5"
+            className="border-white/15 text-white hover:border-[#F59E0B] hover:text-[#FBBF24] text-xs gap-1.5 cursor-pointer"
           >
             <Film className="w-3.5 h-3.5 text-[#F59E0B]" /> Explore Films
           </Button>

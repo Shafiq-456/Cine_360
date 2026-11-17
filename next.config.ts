@@ -7,11 +7,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  /* Keep the dev-tools badge out of the auditorium HUD (bottom-left overlaps
-     the Seat Experience controls on small screens). */
-  devIndicators: {
-    position: "bottom-right",
-  },
+  /* Disable the Next.js development indicator badge */
+  devIndicators: false,
 };
 
 export default nextConfig;

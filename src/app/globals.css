@@ -41,49 +41,49 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-cine-violet: #8B5CF6;
-  --color-cine-gold: #F2B04C;
-  --color-cine-rose: #F0659A;
-  --color-cine-plum: #120A1C;
-  --color-cine-grape: #1F1330;
-  --color-cine-lilac: #EAE2FA;
+  --color-cine-amber: #F59E0B;
+  --color-cine-gold: #FBBF24;
+  --color-cine-deep: #070709;
+  --color-cine-surface: #0F1117;
+  --color-cine-slate: #181B24;
+  --color-cine-silver: #E2E8F0;
 }
 
-/* ============ CINE 360 — Velvet Aurora theme ============ */
+/* ============ CINE 360 — Obsidian Amber Cinema Theme ============ */
 :root,
 .dark {
   --radius: 0.75rem;
-  --background: #120A1C;
-  --foreground: #F7F2FE;
-  --card: #1A1029;
-  --card-foreground: #F7F2FE;
-  --popover: #1E1230;
-  --popover-foreground: #F7F2FE;
-  --primary: #8B5CF6;
-  --primary-foreground: #FFFFFF;
-  --secondary: #1F1330;
-  --secondary-foreground: #EAE2FA;
-  --muted: #221536;
-  --muted-foreground: #B4A6D4;
-  --accent: #2A1B45;
-  --accent-foreground: #C4B5FD;
-  --destructive: #E5484D;
-  --border: rgba(234, 226, 250, 0.10);
-  --input: rgba(234, 226, 250, 0.12);
-  --ring: #8B5CF6;
-  --chart-1: #8B5CF6;
-  --chart-2: #F2B04C;
-  --chart-3: #F0659A;
-  --chart-4: #FFD166;
-  --chart-5: #34D399;
-  --sidebar: #150C22;
-  --sidebar-foreground: #F7F2FE;
-  --sidebar-primary: #8B5CF6;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1F1330;
-  --sidebar-accent-foreground: #EAE2FA;
-  --sidebar-border: rgba(234, 226, 250, 0.1);
-  --sidebar-ring: #8B5CF6;
+  --background: #070709;
+  --foreground: #F8FAFC;
+  --card: #0F1117;
+  --card-foreground: #F8FAFC;
+  --popover: #13161F;
+  --popover-foreground: #F8FAFC;
+  --primary: #F59E0B;
+  --primary-foreground: #050507;
+  --secondary: #181B24;
+  --secondary-foreground: #E2E8F0;
+  --muted: #181B24;
+  --muted-foreground: #94A3B8;
+  --accent: #242836;
+  --accent-foreground: #FBBF24;
+  --destructive: #EF4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #F59E0B;
+  --chart-1: #F59E0B;
+  --chart-2: #FBBF24;
+  --chart-3: #38BDF8;
+  --chart-4: #10B981;
+  --chart-5: #EF4444;
+  --sidebar: #090B0F;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #F59E0B;
+  --sidebar-primary-foreground: #050507;
+  --sidebar-accent: #181B24;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #F59E0B;
 }
 
 @layer base {
@@ -94,32 +94,34 @@
     @apply bg-background text-foreground;
     font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
     letter-spacing: 0.01em;
+    background-color: #070709;
     background-image:
-      radial-gradient(60rem 32rem at 85% -8%, rgba(139, 92, 246, 0.14), transparent 60%),
-      radial-gradient(48rem 28rem at -10% 12%, rgba(240, 101, 154, 0.10), transparent 60%),
-      radial-gradient(52rem 30rem at 50% 118%, rgba(242, 176, 76, 0.08), transparent 60%);
+      radial-gradient(70rem 38rem at 50% -12%, rgba(245, 158, 11, 0.11), transparent 65%),
+      radial-gradient(50rem 30rem at 95% 15%, rgba(56, 189, 248, 0.05), transparent 60%),
+      radial-gradient(60rem 35rem at 50% 115%, rgba(217, 119, 6, 0.06), transparent 60%);
     background-attachment: fixed;
   }
   ::selection {
-    background: rgba(139, 92, 246, 0.40);
+    background: rgba(245, 158, 11, 0.40);
+    color: #ffffff;
   }
 }
 
-/* ============ Brand utilities — Velvet Aurora ============ */
+/* ============ Brand utilities — Obsidian Amber Cinema ============ */
 .cine-gradient-text {
-  background: linear-gradient(92deg, #F7F2FE 0%, #C4B5FD 30%, #F2B04C 62%, #F0659A 100%);
+  background: linear-gradient(92deg, #FFFFFF 0%, #FDE68A 32%, #F59E0B 68%, #D97706 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: cine-gradient-shift 7s ease-in-out infinite alternate;
+  animation: cine-gradient-shift 8s ease-in-out infinite alternate;
 }
 @keyframes cine-gradient-shift {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
 .cine-flame-text {
-  background: linear-gradient(92deg, #F2B04C, #F0659A);
+  background: linear-gradient(92deg, #FBBF24, #F59E0B 50%, #EA580C 100%);
   background-size: 180% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -127,13 +129,14 @@
   animation: cine-gradient-shift 6s ease-in-out infinite alternate;
 }
 .cine-card {
-  background: linear-gradient(160deg, rgba(31, 19, 48, 0.88), rgba(18, 10, 28, 0.92));
-  border: 1px solid rgba(234, 226, 250, 0.08);
+  background: linear-gradient(165deg, rgba(21, 24, 33, 0.94), rgba(11, 13, 18, 0.97));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   position: relative;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.7);
 }
 .cine-card-hover {
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s, box-shadow 0.4s;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s;
 }
 .cine-card-hover::after {
   content: "";
@@ -141,24 +144,25 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(130deg, rgba(139, 92, 246, 0.55), rgba(242, 176, 76, 0.35) 50%, rgba(240, 101, 154, 0.5));
+  background: linear-gradient(130deg, rgba(245, 158, 11, 0.6), rgba(255, 255, 255, 0.15) 50%, rgba(217, 119, 6, 0.5));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.4s;
+  transition: opacity 0.35s;
   pointer-events: none;
 }
 .cine-card-hover:hover {
   transform: translateY(-5px);
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow: 0 14px 44px -14px rgba(139, 92, 246, 0.45), 0 0 0 1px rgba(242, 176, 76, 0.12);
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 16px 40px -12px rgba(245, 158, 11, 0.22), 0 0 0 1px rgba(245, 158, 11, 0.15);
 }
 .cine-card-hover:hover::after {
   opacity: 1;
 }
-.cine-glow-blue {
-  box-shadow: 0 0 24px rgba(139, 92, 246, 0.5), 0 0 64px rgba(240, 101, 154, 0.22);
+.cine-glow-blue,
+.cine-glow-amber {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), 0 0 50px rgba(217, 119, 6, 0.15);
 }
 /* sheen sweep for primary buttons */
 .cine-sheen {
@@ -180,7 +184,7 @@
 .cine-sheen:hover::before {
   left: 130%;
 }
-/* full-page aurora backdrop for hero areas */
+/* full-page cinema backdrop for hero areas */
 .cine-aurora {
   position: absolute;
   inset: 0;
@@ -192,46 +196,46 @@
   content: "";
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
+  filter: blur(75px);
   opacity: 0.5;
   will-change: transform;
 }
 .cine-aurora::before {
-  width: 46vw;
-  height: 46vw;
-  left: -12vw;
-  top: -18vw;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.5), transparent 65%);
+  width: 50vw;
+  height: 50vw;
+  left: -15vw;
+  top: -20vw;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.22), transparent 65%);
   animation: cine-aurora-drift-a 16s ease-in-out infinite alternate;
 }
 .cine-aurora::after {
-  width: 40vw;
-  height: 40vw;
-  right: -10vw;
-  top: -6vw;
-  background: radial-gradient(circle, rgba(240, 101, 154, 0.42), transparent 65%);
+  width: 45vw;
+  height: 45vw;
+  right: -12vw;
+  top: -8vw;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 65%);
   animation: cine-aurora-drift-b 20s ease-in-out infinite alternate;
 }
 @keyframes cine-aurora-drift-a {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(6vw, 4vw) scale(1.12); }
-  100% { transform: translate(-3vw, 7vw) scale(0.95); }
+  50% { transform: translate(5vw, 3vw) scale(1.10); }
+  100% { transform: translate(-3vw, 5vw) scale(0.95); }
 }
 @keyframes cine-aurora-drift-b {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-5vw, 6vw) scale(1.08); }
-  100% { transform: translate(4vw, -3vw) scale(1.15); }
+  50% { transform: translate(-4vw, 5vw) scale(1.08); }
+  100% { transform: translate(4vw, -2vw) scale(1.12); }
 }
-/* floating golden ember in the aurora */
+/* floating golden ember in the cinema ambient light */
 .cine-ember {
   position: absolute;
-  width: 22vw;
-  height: 22vw;
-  left: 58vw;
-  top: 2vw;
+  width: 25vw;
+  height: 25vw;
+  left: 55vw;
+  top: 1vw;
   border-radius: 50%;
-  filter: blur(60px);
-  background: radial-gradient(circle, rgba(242, 176, 76, 0.35), transparent 65%);
+  filter: blur(65px);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.20), transparent 65%);
   animation: cine-aurora-drift-b 24s ease-in-out infinite alternate-reverse;
   pointer-events: none;
 }
@@ -250,25 +254,25 @@
   height: 80vh;
   transform: translateX(-50%);
   background:
-    radial-gradient(45% 55% at 50% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 70%),
-    radial-gradient(30% 40% at 38% 10%, rgba(242, 176, 76, 0.12) 0%, transparent 70%),
-    radial-gradient(26% 36% at 63% 8%, rgba(240, 101, 154, 0.12) 0%, transparent 70%);
+    radial-gradient(45% 55% at 50% 0%, rgba(245, 158, 11, 0.16) 0%, transparent 70%),
+    radial-gradient(30% 40% at 38% 10%, rgba(251, 191, 36, 0.08) 0%, transparent 70%),
+    radial-gradient(26% 36% at 63% 8%, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
   filter: blur(2px);
   animation: cine-beam-breathe 9s ease-in-out infinite alternate;
 }
 @keyframes cine-beam-breathe {
-  0% { opacity: 0.55; transform: translateX(-50%) scale(1); }
+  0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
   100% { opacity: 1; transform: translateX(-50%) scale(1.06); }
 }
 .cine-film-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.05;
+  opacity: 0.04;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .cine-screen-arc {
-  background: linear-gradient(180deg, rgba(247, 242, 254, 0.85), rgba(234, 226, 250, 0.25));
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.85), rgba(226, 232, 240, 0.25));
   clip-path: ellipse(58% 100% at 50% 0%);
 }
 /* animated headline entrance */
@@ -308,20 +312,20 @@
   height: 8px;
 }
 .cine-scroll::-webkit-scrollbar-thumb {
-  background: rgba(180, 166, 212, 0.25);
+  background: rgba(148, 163, 184, 0.25);
   border-radius: 8px;
 }
 .cine-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 .cine-ring-focus:focus-visible {
-  outline: 2px solid #8B5CF6;
+  outline: 2px solid #F59E0B;
   outline-offset: 2px;
 }
 .cine-marquee-screen {
   background:
-    linear-gradient(100deg, rgba(139, 92, 246, 0.14), rgba(242, 176, 76, 0.10) 45%, rgba(240, 101, 154, 0.08)),
-    #150C22;
+    linear-gradient(100deg, rgba(245, 158, 11, 0.12), rgba(251, 191, 36, 0.08) 45%, rgba(56, 189, 248, 0.06)),
+    #0A0C11;
 }
 .cine-pulse-dot {
   animation: cine-pulse 1.6s ease-in-out infinite;
@@ -337,6 +341,22 @@
 @keyframes cine-float-y {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
+}
+
+/* ==============================================================================
+   Completely remove Next.js dev indicator badge & bottom-right dev icons
+   ============================================================================== */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay],
+[data-nextjs-dev-tools],
+#nextjs-dev-tools,
+div[data-nextjs-toast],
+#next-route-announcer ~ * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -521,15 +521,15 @@ export default function AuditoriumCanvas(props: SceneProps) {
       onPointerMissed={() => setHovered(null)}
       aria-label="3D auditorium view"
     >
-      <color attach="background" args={[bright ? "#E4DAF7" : "#0E0817"]} />
-      <fog attach="fog" args={[bright ? "#E4DAF7" : "#0E0817", dimensions.depthM * 1.9, dimensions.depthM * 3.4]} />
+      <color attach="background" args={[bright ? "#E8EDF5" : "#07080B"]} />
+      <fog attach="fog" args={[bright ? "#E8EDF5" : "#07080B", dimensions.depthM * 1.9, dimensions.depthM * 3.4]} />
 
-      <ambientLight intensity={bright ? 1.25 : 0.55} />
-      <hemisphereLight args={bright ? ["#F6F1FE", "#A99BC6", 0.95] : ["#33415C", "#120A1C", 0.5]} />
+      <ambientLight intensity={bright ? 1.25 : 0.65} />
+      <hemisphereLight args={bright ? ["#FFFFFF", "#94A3B8", 0.95] : ["#E2E8F0", "#0B0D13", 0.55]} />
       {/* projector glow */}
-      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM * 0.7, layout.screen.z + 2.2]} intensity={bright ? 10 : 26} distance={26} color="#C4B5FD" />
-      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM / 2, layout.screen.z + 1]} intensity={bright ? 8 : 18} distance={18} color="#8B5CF6" />
-      <pointLight position={[0, dimensions.heightM - 1, dimensions.lastRowZ - 1]} intensity={bright ? 18 : 10} distance={22} color={bright ? "#FFE9C4" : "#F2B04C"} />
+      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM * 0.7, layout.screen.z + 2.2]} intensity={bright ? 10 : 24} distance={26} color="#E2E8F0" />
+      <pointLight position={[0, layout.screen.bottomY + layout.screen.heightM / 2, layout.screen.z + 1]} intensity={bright ? 8 : 16} distance={18} color="#38BDF8" />
+      <pointLight position={[0, dimensions.heightM - 1, dimensions.lastRowZ - 1]} intensity={bright ? 18 : 12} distance={22} color={bright ? "#FFE9C4" : "#F59E0B"} />
 
       <RoomShell layout={layout} dimensions={dimensions} movieTitle={props.movieTitle} accent={props.accent} bright={bright} backdropUrl={props.backdropUrl} showLabel={props.showLabel} theme={theme} />
 

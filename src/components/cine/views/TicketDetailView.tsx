@@ -46,17 +46,16 @@ export default function TicketDetailView({ id }: { id: string }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <button onClick={() => navigate("/tickets")} className="text-xs text-[#8B5CF6] hover:underline cursor-pointer mb-4">← All bookings</button>
+      <button onClick={() => navigate("/tickets")} className="text-xs text-[#F59E0B] hover:underline cursor-pointer mb-4">← All bookings</button>
 
       <div className="cine-card overflow-hidden">
         {/* stub */}
-        <div className="bg-gradient-to-r from-[#8B5CF6]/25 via-[#F2B04C]/15 to-transparent px-6 py-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#F59E0B]/25 via-[#FBBF24]/15 to-transparent px-6 py-5 flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-[#F2B04C] mb-1">CINE 360 e-ticket</div>
+            <div className="text-[10px] uppercase tracking-widest text-[#FBBF24] mb-1">CINE 360 e-ticket</div>
             <h1 className="text-2xl font-bold">{booking.show.movie.title}</h1>
-            <p className="text-xs text-[#B4A6D4] mt-1">Ref {booking.reference} · <StatusBadge status={booking.status} /></p>
+            <p className="text-xs text-[#94A3B8] mt-1">Ref {booking.reference} · <StatusBadge status={booking.status} /></p>
           </div>
-          { }
           <img src={booking.show.movie.posterUrl} alt="" className="w-16 h-24 rounded-lg object-cover border border-white/10 hidden sm:block" />
         </div>
 
@@ -69,20 +68,19 @@ export default function TicketDetailView({ id }: { id: string }) {
 
         {/* perforation */}
         <div className="relative h-px bg-white/10 mx-6">
-          <span className="absolute -left-8 -top-2 w-4 h-4 rounded-full bg-[#120A1C] border border-white/10" />
-          <span className="absolute -right-8 -top-2 w-4 h-4 rounded-full bg-[#120A1C] border border-white/10" />
+          <span className="absolute -left-8 -top-2 w-4 h-4 rounded-full bg-[#070709] border border-white/10" />
+          <span className="absolute -right-8 -top-2 w-4 h-4 rounded-full bg-[#070709] border border-white/10" />
         </div>
 
         {/* QR tickets */}
         <div className="px-6 py-6 grid sm:grid-cols-2 gap-4">
           {booking.tickets.map((t) => (
             <div key={t.id} className="rounded-xl bg-white p-4 flex flex-col items-center gap-2">
-              { }
               <img src={t.qrDataUrl} alt={`QR code for seat ${t.rowLabel}${t.seatNumber}`} className="w-44 h-44" />
               <div className="text-center">
-                <div className="text-[#150C22] font-bold">Row {t.rowLabel} · Seat {t.seatNumber}</div>
+                <div className="text-slate-950 font-bold">Row {t.rowLabel} · Seat {t.seatNumber}</div>
                 <div className="text-[10px] text-[#5A6572] font-mono mt-0.5 break-all max-w-[200px]">{t.code}</div>
-                <div className="text-xs mt-1 font-semibold" style={{ color: t.status === "VALID" ? "#1B7F4D" : t.status === "REDEEMED" ? "#8B5CF6" : "#888" }}>
+                <div className="text-xs mt-1 font-semibold" style={{ color: t.status === "VALID" ? "#1B7F4D" : t.status === "REDEEMED" ? "#D97706" : "#888" }}>
                   {t.status === "VALID" ? "Show this QR at the gate" : t.status === "REDEEMED" ? "Already redeemed" : "Void"}
                 </div>
               </div>
