@@ -9,9 +9,17 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const customHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof window !== "undefined") {
+    const fbToken = localStorage.getItem("c360_fb_token") || sessionStorage.getItem("c360_fb_token");
+    if (fbToken) {
+      customHeaders["Authorization"] = `Bearer ${fbToken}`;
+    }
+  }
+
   const res = await fetch(path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers: { ...customHeaders, ...(init?.headers || {}) },
     credentials: "same-origin",
   });
   let body: { ok?: boolean; data?: T; error?: string } = {};

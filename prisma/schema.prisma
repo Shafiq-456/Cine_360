@@ -14,10 +14,12 @@ datasource db {
 
 model User {
   id           String   @id @default(cuid())
+  firebaseUid  String?  @unique
   email        String   @unique
-  passwordHash String
+  passwordHash String?
   name         String
   phone        String?
+  photoUrl     String?
   // CUSTOMER | OWNER | STAFF | ADMIN
   role         String   @default("CUSTOMER")
   // ACTIVE | INACTIVE
@@ -31,6 +33,8 @@ model User {
   holds       SeatHold[]
   validations TicketValidation[]
   auditLogs   AuditLog[]
+  watchlist   Watchlist[]
+  waitlists   Waitlist[]
 }
 
 model Theatre {
@@ -170,7 +174,8 @@ model Movie {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  shows Show[]
+  shows      Show[]
+  watchlists Watchlist[]
 
   @@index([status])
 }
@@ -192,6 +197,7 @@ model Show {
   auditorium Auditorium @relation(fields: [auditoriumId], references: [id])
   showSeats  ShowSeat[]
   bookings   Booking[]
+  waitlists  Waitlist[]
 
   @@index([movieId, startsAt])
   @@index([auditoriumId, startsAt])
@@ -371,4 +377,36 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// ============ USER ENGAGEMENT ============
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@index([userId])
+}
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  userId    String
+  showId    String
+  // WAITING | NOTIFIED | CONVERTED | CANCELLED
+  status    String   @default("WAITING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  show Show @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, showId])
+  @@index([showId, status])
+  @@index([userId])
 }

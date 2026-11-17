@@ -5,9 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "CINE 360 — Experience Your Seat Before You Book",
   description:
-    "Step into virtual 3D cinema auditoriums, explore every row, preview your exact viewing perspective and book with confidence.",
-  keywords: ["CINE 360", "3D cinema booking", "seat preview", "movie tickets", "auditorium"],
-  authors: [{ name: "FROST & FLAME" }],
+    "Experience Your Seat Before You Book. Step into virtual 3D cinema auditoriums, explore every row, preview your exact viewing perspective and book with confidence.",
+  keywords: ["CINE 360", "3D cinema booking", "seat preview", "movie tickets", "auditorium", "SeatVision"],
 };
 
 export default function RootLayout({

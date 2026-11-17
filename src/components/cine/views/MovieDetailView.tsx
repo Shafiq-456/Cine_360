@@ -8,7 +8,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState, Spinner } from "./bits";
 import type { Movie } from "./MoviesView";
-import { Clock, Languages, Ticket, Play, X, MapPin, Armchair, Flame } from "lucide-react";
+import { useAuth } from "@/lib/store";
+import { toast } from "sonner";
+import { Clock, Languages, Ticket, Play, X, MapPin, Armchair, Flame, Bookmark } from "lucide-react";
 
 type ShowRow = {
   id: string;
@@ -30,10 +32,45 @@ function dayKey(iso: string) {
 }
 
 export default function MovieDetailView({ id }: { id: string }) {
+  const { session } = useAuth();
   const [data, setData] = useState<DetailData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [date, setDate] = useState<string>("");
   const [trailerOpen, setTrailerOpen] = useState(false);
+  const [inWatchlist, setInWatchlist] = useState(false);
+
+  useEffect(() => {
+    if (session) {
+      api.get<any[]>("/api/watchlist").then((list) => {
+        if (Array.isArray(list)) {
+          setInWatchlist(list.some((m) => m.id === id || m.slug === id));
+        }
+      }).catch(() => {});
+    }
+  }, [session, id]);
+
+  const toggleWatchlist = async () => {
+    if (!session) {
+      sessionStorage.setItem("c360_return", `#/movies/${id}`);
+      toast.info("Please sign in to add movies to your watchlist");
+      navigate("/login");
+      return;
+    }
+    if (!data?.movie) return;
+    try {
+      if (inWatchlist) {
+        await api.del(`/api/watchlist?movieId=${data.movie.id}`);
+        setInWatchlist(false);
+        toast.success(`Removed "${data.movie.title}" from watchlist`);
+      } else {
+        await api.post("/api/watchlist", { movieId: data.movie.id });
+        setInWatchlist(true);
+        toast.success(`Added "${data.movie.title}" to watchlist!`);
+      }
+    } catch {
+      toast.error("Failed to update watchlist");
+    }
+  };
 
   // Close the trailer overlay with Escape (a11y)
   useEffect(() => {
@@ -106,6 +143,14 @@ export default function MovieDetailView({ id }: { id: string }) {
               ) : null}
               <Button className="bg-[#8B5CF6] hover:bg-[#A78BFA]" onClick={() => document.getElementById("showtimes")?.scrollIntoView({ behavior: "smooth" })}>
                 <Ticket className="w-4 h-4 mr-2" /> Book tickets
+              </Button>
+              <Button
+                variant="outline"
+                onClick={toggleWatchlist}
+                className={`border-white/15 gap-2 cursor-pointer ${inWatchlist ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/50" : "text-white hover:border-[#38BDF8]"}`}
+              >
+                <Bookmark className={`w-4 h-4 ${inWatchlist ? "fill-current" : ""}`} />
+                {inWatchlist ? "In Watchlist" : "Save to Watchlist"}
               </Button>
             </div>
           </div>

@@ -249,6 +249,241 @@ export function deriveSightline(m: SeatVision, screen: LayoutConfig["screen"]): 
   return { score, grade, notes };
 }
 
+export type SmartSeatRec = {
+  key: "BEST_OVERALL" | "BEST_BUDGET" | "BEST_CENTRE" | "BEST_FRONT" | "BEST_REAR";
+  title: string;
+  badge: string;
+  seatId: string;
+  rowLabel: string;
+  seatNumber: number;
+  category: string;
+  price: number;
+  score: number;
+  grade: string;
+  reason: string;
+};
+
+export function findSmartSeatRecommendations(
+  availableSeats: Array<{
+    showSeatId: string;
+    seatId: string;
+    rowLabel: string;
+    seatNumber: number;
+    price: number;
+    category: string;
+    x: number;
+    z: number;
+    baseY: number;
+    eyeHeight: number;
+  }>,
+  screen: LayoutConfig["screen"]
+): SmartSeatRec[] {
+  if (!availableSeats || availableSeats.length === 0) return [];
+
+  const scored = availableSeats.map((s) => {
+    const vision = measureSeat(s, screen);
+    const sightline = deriveSightline(vision, screen);
+    return {
+      seat: s,
+      vision,
+      sightline,
+      score: sightline.score,
+      grade: sightline.grade,
+    };
+  });
+
+  const recs: SmartSeatRec[] = [];
+
+  // 1. Best Overall View: Highest score, closest to center
+  const bestOverall = [...scored].sort(
+    (a, b) => b.score - a.score || Math.abs(a.vision.horizontalAngleDeg) - Math.abs(b.vision.horizontalAngleDeg)
+  )[0];
+  if (bestOverall) {
+    recs.push({
+      key: "BEST_OVERALL",
+      title: "Best Overall View",
+      badge: "Top Sightline",
+      seatId: bestOverall.seat.showSeatId,
+      rowLabel: bestOverall.seat.rowLabel,
+      seatNumber: bestOverall.seat.seatNumber,
+      category: bestOverall.seat.category,
+      price: bestOverall.seat.price,
+      score: bestOverall.score,
+      grade: bestOverall.grade,
+      reason: `Row ${bestOverall.seat.rowLabel}, Seat ${bestOverall.seat.seatNumber} — Optimal ${bestOverall.vision.distanceM}m distance with central screen alignment (${bestOverall.score}/100).`,
+    });
+  }
+
+  // 2. Best Centre View: Minimum absolute horizontal angle
+  const bestCentre = [...scored].sort(
+    (a, b) => Math.abs(a.vision.horizontalAngleDeg) - Math.abs(b.vision.horizontalAngleDeg) || b.score - a.score
+  )[0];
+  if (bestCentre && bestCentre.seat.showSeatId !== bestOverall?.seat.showSeatId) {
+    recs.push({
+      key: "BEST_CENTRE",
+      title: "Best Centre View",
+      badge: "Zero Distortion",
+      seatId: bestCentre.seat.showSeatId,
+      rowLabel: bestCentre.seat.rowLabel,
+      seatNumber: bestCentre.seat.seatNumber,
+      category: bestCentre.seat.category,
+      price: bestCentre.seat.price,
+      score: bestCentre.score,
+      grade: bestCentre.grade,
+      reason: `Row ${bestCentre.seat.rowLabel}, Seat ${bestCentre.seat.seatNumber} — Direct eye axis onto the screen centre (${bestCentre.vision.horizontalAngleDeg}° off-axis).`,
+    });
+  }
+
+  // 3. Best Budget Seats: Lowest price with the highest score in that tier
+  const minPrice = Math.min(...scored.map((x) => x.seat.price));
+  const budgetCandidates = scored.filter((x) => x.seat.price === minPrice).sort((a, b) => b.score - a.score);
+  const bestBudget = budgetCandidates[0];
+  if (bestBudget) {
+    recs.push({
+      key: "BEST_BUDGET",
+      title: "Best Budget Seat",
+      badge: "Maximum Value",
+      seatId: bestBudget.seat.showSeatId,
+      rowLabel: bestBudget.seat.rowLabel,
+      seatNumber: bestBudget.seat.seatNumber,
+      category: bestBudget.seat.category,
+      price: bestBudget.seat.price,
+      score: bestBudget.score,
+      grade: bestBudget.grade,
+      reason: `Row ${bestBudget.seat.rowLabel}, Seat ${bestBudget.seat.seatNumber} — Clear sightline (${bestBudget.score}/100) at the lowest price tier.`,
+    });
+  }
+
+  // 4. Best Front View: Closest to screen with acceptable sightline
+  const frontCandidates = [...scored].sort((a, b) => a.vision.horizontalDistanceM - b.vision.horizontalDistanceM);
+  const bestFront = frontCandidates.find((x) => x.score >= 50) || frontCandidates[0];
+  if (bestFront && !recs.some((r) => r.seatId === bestFront.seat.showSeatId)) {
+    recs.push({
+      key: "BEST_FRONT",
+      title: "Best Front View",
+      badge: "Cinematic Immersion",
+      seatId: bestFront.seat.showSeatId,
+      rowLabel: bestFront.seat.rowLabel,
+      seatNumber: bestFront.seat.seatNumber,
+      category: bestFront.seat.category,
+      price: bestFront.seat.price,
+      score: bestFront.score,
+      grade: bestFront.grade,
+      reason: `Row ${bestFront.seat.rowLabel}, Seat ${bestFront.seat.seatNumber} — Up-close immersive field of view (${bestFront.vision.horizontalDistanceM}m).`,
+    });
+  }
+
+  // 5. Best Rear View: Back rows with elevated panoramic perspective
+  const rearCandidates = [...scored].sort((a, b) => b.vision.horizontalDistanceM - a.vision.horizontalDistanceM);
+  const bestRear = rearCandidates.sort((a, b) => b.score - a.score)[0];
+  if (bestRear && !recs.some((r) => r.seatId === bestRear.seat.showSeatId)) {
+    recs.push({
+      key: "BEST_REAR",
+      title: "Best Rear View",
+      badge: "Elevated Wide View",
+      seatId: bestRear.seat.showSeatId,
+      rowLabel: bestRear.seat.rowLabel,
+      seatNumber: bestRear.seat.seatNumber,
+      category: bestRear.seat.category,
+      price: bestRear.seat.price,
+      score: bestRear.score,
+      grade: bestRear.grade,
+      reason: `Row ${bestRear.seat.rowLabel}, Seat ${bestRear.seat.seatNumber} — Panoramic wide view with complete screen visibility.`,
+    });
+  }
+
+  return recs;
+}
+
+export type GroupSeatCluster = {
+  rowLabel: string;
+  startSeat: number;
+  endSeat: number;
+  count: number;
+  category: string;
+  pricePerSeat: number;
+  totalPrice: number;
+  avgScore: number;
+  seats: Array<{ showSeatId: string; rowLabel: string; seatNumber: number; price: number; category: string }>;
+  explanation: string;
+};
+
+export function findContiguousGroupSeats(
+  availableSeats: Array<{
+    showSeatId: string;
+    seatId: string;
+    rowLabel: string;
+    seatNumber: number;
+    price: number;
+    category: string;
+    x: number;
+    z: number;
+    baseY: number;
+    eyeHeight: number;
+  }>,
+  groupSize: number,
+  screen: LayoutConfig["screen"]
+): GroupSeatCluster[] {
+  if (!availableSeats || availableSeats.length === 0 || groupSize < 1) return [];
+
+  const byRow = new Map<string, typeof availableSeats>();
+  for (const s of availableSeats) {
+    const list = byRow.get(s.rowLabel) || [];
+    list.push(s);
+    byRow.set(s.rowLabel, list);
+  }
+
+  const clusters: GroupSeatCluster[] = [];
+
+  for (const [rowLabel, seatsInRow] of byRow.entries()) {
+    const sorted = [...seatsInRow].sort((a, b) => a.seatNumber - b.seatNumber);
+
+    for (let i = 0; i <= sorted.length - groupSize; i++) {
+      const window = sorted.slice(i, i + groupSize);
+      let contiguous = true;
+      for (let j = 0; j < window.length - 1; j++) {
+        if (window[j + 1].seatNumber !== window[j].seatNumber + 1) {
+          contiguous = false;
+          break;
+        }
+      }
+
+      if (contiguous) {
+        let totalScore = 0;
+        let totalPrice = 0;
+        for (const ws of window) {
+          const v = measureSeat(ws, screen);
+          const g = deriveSightline(v, screen);
+          totalScore += g.score;
+          totalPrice += ws.price;
+        }
+        const avgScore = Math.round(totalScore / groupSize);
+
+        clusters.push({
+          rowLabel,
+          startSeat: window[0].seatNumber,
+          endSeat: window[window.length - 1].seatNumber,
+          count: groupSize,
+          category: window[0].category,
+          pricePerSeat: window[0].price,
+          totalPrice,
+          avgScore,
+          seats: window.map((w) => ({
+            showSeatId: w.showSeatId,
+            rowLabel: w.rowLabel,
+            seatNumber: w.seatNumber,
+            price: w.price,
+            category: w.category,
+          })),
+          explanation: `Row ${rowLabel}: Seats ${window[0].seatNumber}–${window[window.length - 1].seatNumber} (Avg Sightline ${avgScore}/100)`,
+        });
+      }
+    }
+  }
+
+  return clusters.sort((a, b) => b.avgScore - a.avgScore);
+}
+
 /** Walk-mode collision bounds helper: is a point inside the seat block footprint? */
 export function seatFootprintAt(
   seats: { x: number; z: number; baseY: number }[],

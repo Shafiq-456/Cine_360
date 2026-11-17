@@ -1,9 +1,10 @@
 // Authentication: JWT (jose) + bcrypt password hashing + role guards.
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { db } from "./db";
 import { ROLES, type Role } from "./constants";
+import { verifyFirebaseIdToken } from "./firebase-admin";
 
 const SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || "cine360-demo-secret-change-in-production"
@@ -49,12 +50,50 @@ export async function verifyToken(token: string): Promise<SessionUser | null> {
   }
 }
 
-/** Reads the session from the httpOnly cookie (server side only). */
+/** Reads the session from the Authorization header (Firebase ID token or JWT) or httpOnly cookie. */
 export async function getSession(): Promise<SessionUser | null> {
-  const store = await cookies();
-  const token = store.get(AUTH_COOKIE)?.value;
-  if (!token) return null;
-  return verifyToken(token);
+  try {
+    const reqHeaders = await headers();
+    const authHeader = reqHeaders.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const bearer = authHeader.slice(7).trim();
+      // 1. Try internal JWT
+      const internalSession = await verifyToken(bearer);
+      if (internalSession) return internalSession;
+
+      // 2. Try Firebase ID Token
+      const firebaseDecoded = await verifyFirebaseIdToken(bearer);
+      if (firebaseDecoded && firebaseDecoded.uid) {
+        const user = await db.user.findFirst({
+          where: {
+            OR: [
+              { firebaseUid: firebaseDecoded.uid },
+              { email: firebaseDecoded.email?.toLowerCase().trim() || "" },
+            ],
+          },
+        });
+        if (user && user.status === "ACTIVE") {
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role as Role,
+          };
+        }
+      }
+    }
+  } catch {
+    // headers() might throw in certain non-request contexts
+  }
+
+  try {
+    const store = await cookies();
+    const token = store.get(AUTH_COOKIE)?.value;
+    if (!token) return null;
+    return verifyToken(token);
+  } catch {
+    return null;
+  }
 }
 
 export class AuthError extends Error {

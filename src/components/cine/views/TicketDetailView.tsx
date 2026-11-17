@@ -6,7 +6,7 @@ import { api, inr, fmtDateTime } from "@/lib/client";
 import { useAuth } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Spinner, EmptyState, StatusBadge } from "./bits";
-import { Download, MapPin, Clock } from "lucide-react";
+import { Download, MapPin, Clock, Printer } from "lucide-react";
 
 type TicketDetail = {
   id: string;
@@ -91,9 +91,19 @@ export default function TicketDetailView({ id }: { id: string }) {
         </div>
 
         <div className="px-6 pb-6">
-          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 flex items-center justify-between text-sm">
-            <span className="text-[#B4A6D4]">Total paid</span>
-            <b className="text-lg">{inr(booking.totalAmount)}</b>
+          <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+            <div>
+              <span className="text-[#B4A6D4]">Total paid</span>
+              <div className="text-xl font-bold text-white">{inr(booking.totalAmount)}</div>
+            </div>
+            <Button
+              onClick={() => window.print()}
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white hover:bg-white/10 gap-1.5 cursor-pointer self-start sm:self-auto"
+            >
+              <Printer className="w-4 h-4 text-[#F59E0B]" /> Print / Save Ticket (PDF)
+            </Button>
           </div>
           <p className="text-[11px] text-[#B4A6D4] mt-3 leading-relaxed">
             The QR contains only an opaque ticket code — no personal or payment data. Staff scan it against the backend, which rejects duplicates and voided tickets.

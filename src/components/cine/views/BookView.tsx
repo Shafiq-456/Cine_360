@@ -7,12 +7,28 @@ import { api, inr, fmtDateTime } from "@/lib/client";
 import { useAuth, useBookingSelection, type SelectedSeat } from "@/lib/store";
 import type { InventorySeat } from "@/lib/inventory";
 import type { LayoutConfig } from "@/lib/geometry";
-import { measureSeat, deriveSightline, themeOf } from "@/lib/geometry";
+import {
+  measureSeat,
+  deriveSightline,
+  themeOf,
+  findSmartSeatRecommendations,
+  findContiguousGroupSeats,
+  type SmartSeatRec,
+  type GroupSeatCluster,
+} from "@/lib/geometry";
 import dynamicImport from "next/dynamic";
 import type { SceneMode, MoveVector } from "@/components/cine/three/AuditoriumScene";
 import SeatMap2D from "./SeatMap2D";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Spinner, EmptyState } from "./bits";
 import { toast } from "sonner";
 
@@ -29,6 +45,7 @@ const AuditoriumCanvas = dynamicImport(() => import("@/components/cine/three/Aud
 import {
   Armchair, Orbit, Footprints, Eye, LayoutGrid, RotateCcw, Maximize, ChevronLeft, ChevronRight,
   Pin, PinOff, X, MousePointerClick, Loader2, Info, Accessibility, Sun, Moon, Flame, Play,
+  Sparkles, Users, Calculator, Bell, CheckCircle2,
 } from "lucide-react";
 
 type Inventory = {
@@ -78,6 +95,16 @@ export default function BookView({ showId, params }: { showId: string; params: U
   const [bright, setBright] = useState(true); // house lights up by default
   const [heatmap, setHeatmap] = useState(false); // row-demand heat colouring
   const [trailerOpen, setTrailerOpen] = useState(false);
+
+  // Smart Recommendations modal
+  const [smartRecOpen, setSmartRecOpen] = useState(false);
+  // Group Seat Finder modal
+  const [groupFinderOpen, setGroupFinderOpen] = useState(false);
+  const [groupSize, setGroupSize] = useState(2);
+  // Price Estimator modal
+  const [estimatorOpen, setEstimatorOpen] = useState(false);
+  // Waitlist state
+  const [waitlistJoining, setWaitlistJoining] = useState(false);
 
   // Close the trailer overlay with Escape (a11y)
   useEffect(() => {
@@ -301,6 +328,69 @@ export default function BookView({ showId, params }: { showId: string; params: U
 
   const selectedIds = useMemo(() => new Set(selected.map((s) => s.showSeatId)), [selected]);
 
+  const availableSeats = useMemo(() => {
+    if (!inv) return [];
+    return inv.seats
+      .filter((s) => s.status === "AVAILABLE")
+      .map((s) => ({
+        showSeatId: s.id,
+        seatId: s.id,
+        rowLabel: s.rowLabel,
+        seatNumber: s.seatNumber,
+        price: s.price,
+        category: s.category,
+        x: s.x,
+        z: s.z,
+        baseY: s.baseY,
+        eyeHeight: s.eyeHeight,
+      }));
+  }, [inv]);
+
+  const smartRecommendations = useMemo(() => {
+    if (!inv || availableSeats.length === 0) return [];
+    return findSmartSeatRecommendations(availableSeats, inv.layout.screen);
+  }, [inv, availableSeats]);
+
+  const groupClusters = useMemo(() => {
+    if (!inv || availableSeats.length === 0) return [];
+    return findContiguousGroupSeats(availableSeats, groupSize, inv.layout.screen);
+  }, [inv, availableSeats, groupSize]);
+
+  const handleJoinWaitlist = async () => {
+    if (!session) {
+      sessionStorage.setItem("c360_return", `#/book/${showId}`);
+      toast.info("Please sign in to join the show waitlist");
+      navigate("/login");
+      return;
+    }
+    setWaitlistJoining(true);
+    try {
+      const res = await api.post<{ message?: string }>("/api/waitlist", { showId });
+      toast.success(res?.message || "Joined show waitlist! We will alert you if seats become available.");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to join waitlist");
+    } finally {
+      setWaitlistJoining(false);
+    }
+  };
+
+  const selectGroupCluster = (cluster: GroupSeatCluster) => {
+    for (const st of cluster.seats) {
+      if (!selected.some((s) => s.showSeatId === st.showSeatId)) {
+        toggleSeat({
+          showSeatId: st.showSeatId,
+          rowLabel: st.rowLabel,
+          seatNumber: st.seatNumber,
+          price: st.price,
+          category: st.category,
+          status: "AVAILABLE",
+        });
+      }
+    }
+    setGroupFinderOpen(false);
+    toast.success(`Selected ${cluster.count} seats in Row ${cluster.rowLabel}!`);
+  };
+
   // ---------- hold → booking → checkout ----------
   const holdAndCheckout = async () => {
     if (!session) {
@@ -353,11 +443,41 @@ export default function BookView({ showId, params }: { showId: string; params: U
             </span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-[10px] px-2 py-1 rounded-full border ${show.auditorium.geometrySource === "UPLOADED" ? "border-[#34D399]/40 text-[#34D399] bg-[#34D399]/10" : "border-white/15 text-[#B4A6D4] bg-white/5"}`}>
-            {show.auditorium.geometrySource === "UPLOADED" ? "CALIBRATED 3D MODEL" : "DEMO GEOMETRY"}
-          </span>
-          <Button size="sm" variant={force2D ? "default" : "outline"} onClick={() => setForce2D((v) => !v)} className={force2D ? "bg-[#8B5CF6]" : "border-white/15"}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSmartRecOpen(true)}
+            className="border-[#F59E0B]/40 text-[#F59E0B] hover:bg-[#F59E0B]/10 gap-1.5 text-xs h-8 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Smart Picks
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setGroupFinderOpen(true)}
+            className="border-[#38BDF8]/40 text-[#38BDF8] hover:bg-[#38BDF8]/10 gap-1.5 text-xs h-8 cursor-pointer"
+          >
+            <Users className="w-3.5 h-3.5" /> Group Finder
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setEstimatorOpen(true)}
+            className="border-white/15 text-white hover:border-[#10B981] gap-1.5 text-xs h-8 cursor-pointer"
+          >
+            <Calculator className="w-3.5 h-3.5 text-[#10B981]" /> Price Breakdown
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleJoinWaitlist}
+            disabled={waitlistJoining}
+            className="border-white/15 text-[#94A3B8] hover:text-white gap-1.5 text-xs h-8 cursor-pointer"
+          >
+            <Bell className="w-3.5 h-3.5" /> Waitlist
+          </Button>
+          <Button size="sm" variant={force2D ? "default" : "outline"} onClick={() => setForce2D((v) => !v)} className={force2D ? "bg-[#8B5CF6] text-xs h-8" : "border-white/15 text-xs h-8"}>
             <Accessibility className="w-3.5 h-3.5 mr-1.5" /> {force2D ? "3D view" : "2D seat map"}
           </Button>
         </div>
@@ -489,6 +609,31 @@ export default function BookView({ showId, params }: { showId: string; params: U
                           <X className="w-4 h-4" />
                         </button>
                       </div>
+                    </div>
+
+                    {/* Cinematic Seat View Score */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/10 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-white">Cinematic Seat View Score:</span>
+                        <span
+                          className="px-2 py-0.5 rounded-md font-mono font-bold text-xs shadow-sm"
+                          style={{
+                            background: previewVision.score >= 82 ? "#10B981" : previewVision.score >= 64 ? "#F59E0B" : "#EF4444",
+                            color: "white",
+                          }}
+                        >
+                          {previewVision.score} / 100
+                        </span>
+                        <span
+                          className="text-[11px] font-medium"
+                          style={{ color: previewVision.score >= 82 ? "#34D399" : previewVision.score >= 64 ? "#FFD166" : "#F87171" }}
+                        >
+                          ({previewVision.grade})
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#94A3B8] hidden sm:inline">
+                        Estimated from SMPTE / THX cinema eye geometry
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
@@ -676,6 +821,197 @@ export default function BookView({ showId, params }: { showId: string; params: U
           </div>
         </aside>
       </div>
+
+      {/* Smart Recommendations Dialog */}
+      <Dialog open={smartRecOpen} onOpenChange={setSmartRecOpen}>
+        <DialogContent className="bg-[#150A24] border-white/10 text-white sm:max-w-xl max-h-[85vh] overflow-y-auto cine-scroll">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg text-white">
+              <Sparkles className="w-5 h-5 text-[#F59E0B]" /> Smart Seat Recommendations
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#94A3B8]">
+              Computed live from the auditorium&apos;s physical screen geometry and current seat availability.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {smartRecommendations.length === 0 ? (
+              <p className="text-xs text-[#94A3B8] text-center py-6">No available seats to recommend.</p>
+            ) : (
+              smartRecommendations.map((rec) => (
+                <div
+                  key={rec.key}
+                  className="p-3.5 rounded-xl border border-white/10 bg-white/[0.03] hover:border-[#F59E0B]/40 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-white">{rec.title}</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#F59E0B]/20 text-[#F59E0B] font-semibold">
+                        {rec.badge}
+                      </span>
+                      <span className="text-[11px] font-bold text-[#10B981] ml-auto sm:ml-0">
+                        {rec.score}/100
+                      </span>
+                    </div>
+                    <div className="text-xs text-[#E2E8F0] font-medium">
+                      Row {rec.rowLabel} · Seat {rec.seatNumber} ({rec.category}) · <span className="text-[#34D399] font-bold">{inr(rec.price)}</span>
+                    </div>
+                    <div className="text-[11px] text-[#94A3B8] mt-1">{rec.reason}</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setPreviewSeat(rec.seatId);
+                        setMode("preview");
+                        setSmartRecOpen(false);
+                      }}
+                      className="border-white/15 text-xs h-8 text-[#F59E0B] cursor-pointer"
+                    >
+                      <Eye className="w-3 h-3 mr-1" /> Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const target = inv.seats.find((s) => s.id === rec.seatId);
+                        if (target) onToggleFromScene(target);
+                        setSmartRecOpen(false);
+                      }}
+                      className={`text-xs h-8 cursor-pointer ${selectedIds.has(rec.seatId) ? "bg-[#EF4444]" : "bg-[#8B5CF6] hover:bg-[#A78BFA]"}`}
+                    >
+                      {selectedIds.has(rec.seatId) ? "Deselect" : "Select"}
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Seat Finder Dialog */}
+      <Dialog open={groupFinderOpen} onOpenChange={setGroupFinderOpen}>
+        <DialogContent className="bg-[#150A24] border-white/10 text-white sm:max-w-xl max-h-[85vh] overflow-y-auto cine-scroll">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg text-white">
+              <Users className="w-5 h-5 text-[#38BDF8]" /> Group Seat Finder
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#94A3B8]">
+              Find available contiguous seats in the same row so your whole group sits together.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
+              <span className="text-xs text-white font-medium">Number of Guests:</span>
+              <div className="flex items-center gap-1.5">
+                {[2, 3, 4, 5, 6, 8].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setGroupSize(size)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      groupSize === size
+                        ? "bg-[#38BDF8] text-black shadow-lg shadow-[#38BDF8]/20"
+                        : "bg-white/[0.05] text-[#94A3B8] hover:text-white"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2.5 max-h-72 overflow-y-auto cine-scroll pr-1">
+              {groupClusters.length === 0 ? (
+                <p className="text-xs text-[#94A3B8] text-center py-6">
+                  No contiguous block of {groupSize} seats found in a single row. Try a smaller group or check other showtimes.
+                </p>
+              ) : (
+                groupClusters.slice(0, 6).map((c, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-all flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-white flex items-center gap-2">
+                        <span>Row {c.rowLabel} · Seats {c.startSeat}–{c.endSeat}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-[#38BDF8]/15 text-[#38BDF8] font-mono">
+                          {c.category}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-[#94A3B8] mt-0.5">
+                        Avg Sightline: <b className="text-white">{c.avgScore}/100</b> · Total: <b className="text-[#34D399]">{inr(c.totalPrice)}</b>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => selectGroupCluster(c)}
+                      className="bg-[#38BDF8] hover:bg-[#0284C7] text-black font-semibold text-xs h-8 cursor-pointer"
+                    >
+                      Select All {c.count}
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Price Estimator Dialog */}
+      <Dialog open={estimatorOpen} onOpenChange={setEstimatorOpen}>
+        <DialogContent className="bg-[#150A24] border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg text-white">
+              <Calculator className="w-5 h-5 text-[#10B981]" /> Transparent Price Breakdown
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#94A3B8]">
+              Authoritative price calculation breakdown according to cinema regulations and seat categories.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-3 space-y-3 text-xs">
+            {(() => {
+              const seatCount = selectedSeats.length || 1;
+              const subtotal = selectedSeats.length > 0 ? total : (inv.categories[0]?.basePrice || 250);
+              const basePriceTotal = Math.round(subtotal * 0.82);
+              const gst = Math.round(subtotal * 0.18);
+              return (
+                <div className="space-y-2.5">
+                  <div className="flex justify-between py-1 border-b border-white/5 text-[#CBD5E1]">
+                    <span>Tickets ({seatCount} seat{seatCount > 1 ? "s" : ""}):</span>
+                    <span className="font-mono text-white">{inr(basePriceTotal)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-white/5 text-[#CBD5E1]">
+                    <span>GST &amp; Entertainment Tax (18%):</span>
+                    <span className="font-mono text-white">{inr(gst)}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-white/5 text-[#CBD5E1]">
+                    <span>Convenience Fee:</span>
+                    <span className="font-mono text-[#10B981]">₹0 (Free in Demo Mode)</span>
+                  </div>
+                  <div className="flex justify-between py-2 text-sm font-bold text-white border-t border-white/10">
+                    <span>Estimated Total Payable:</span>
+                    <span className="text-[#34D399] font-mono text-base">{inr(subtotal)}</span>
+                  </div>
+                  {selectedSeats.length === 0 && (
+                    <p className="text-[11px] text-[#94A3B8] italic">
+                      * Sample breakdown calculated for a single {inv.categories[0]?.name || "Standard"} seat. Select seats in the auditorium for exact live totals.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setEstimatorOpen(false)}
+              className="bg-[#10B981] hover:bg-[#059669] text-white font-semibold text-xs h-9 w-full cursor-pointer"
+            >
+              Close Breakdown
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ==================== TRAILER OVERLAY (YouTube embed of the official trailer) ==================== */}
       {trailerOpen && (show.movie.trailerId || show.movie.trailerUrl) && (

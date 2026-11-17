@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Clapperboard, Film, MapPin, Ticket, LogIn, LogOut, LayoutDashboard, ShieldCheck, ScanLine, Building2, ChevronDown } from "lucide-react";
+import { Clapperboard, Film, MapPin, Ticket, LogIn, LogOut, LayoutDashboard, ShieldCheck, ScanLine, Building2, ChevronDown, Compass, User } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/client";
 
@@ -28,6 +28,9 @@ import LoginView from "@/components/cine/views/LoginView";
 import OwnerView from "@/components/cine/views/OwnerView";
 import AdminView from "@/components/cine/views/AdminView";
 import ScanView from "@/components/cine/views/ScanView";
+import TheatreMapView from "@/components/cine/views/TheatreMapView";
+import ProfileDashboardView from "@/components/cine/views/ProfileDashboardView";
+import CineAIAssistant from "@/components/cine/views/CineAIAssistant";
 import { Spinner } from "@/components/cine/views/bits";
 
 function View({ path, params }: { path: string; params: URLSearchParams }) {
@@ -49,6 +52,10 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
     case "login":
     case "register":
       return <LoginView mode={head === "login" ? "login" : "register"} />;
+    case "map":
+      return <TheatreMapView />;
+    case "profile":
+      return <ProfileDashboardView />;
     case "owner":
       return <OwnerView params={params} />;
     case "admin":
@@ -124,6 +131,7 @@ function Nav({ path }: { path: string }) {
         <nav className="flex items-center gap-1" aria-label="Primary">
           {link("/movies", "Movies", <Film className="w-4 h-4" />)}
           {link("/theatres", "Theatres", <MapPin className="w-4 h-4" />)}
+          {link("/map", "Map", <Compass className="w-4 h-4" />)}
           {session && link("/tickets", "My Tickets", <Ticket className="w-4 h-4" />)}
         </nav>
 
@@ -146,6 +154,9 @@ function Nav({ path }: { path: string }) {
                   <div className="text-xs text-muted-foreground">{session.email} · {session.role}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                  <User className="w-4 h-4 mr-2" /> My Profile &amp; Watchlist
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/tickets")} className="cursor-pointer">
                   <Ticket className="w-4 h-4 mr-2" /> My Tickets
                 </DropdownMenuItem>
@@ -209,9 +220,9 @@ function Footer() {
           </ul>
         </div>
         <div>
-          <h3 className="font-semibold mb-3">Built by FROST &amp; FLAME</h3>
-          <p className="text-[#B4A6D4]">Mohammed Shafiq AS · Jaiyanth B</p>
-          <p className="mt-2 text-[#B4A6D4]">Your Cinema. Your View. Your Seat.</p>
+          <h3 className="font-semibold mb-3">CINE 360 Ecosystem</h3>
+          <p className="text-[#B4A6D4]">Experience Your Seat Before You Book.</p>
+          <p className="mt-2 text-[#B4A6D4]/80 text-xs">A unified 3D cinema experience and smart ticket booking platform.</p>
         </div>
       </div>
       <div className="border-t border-white/5 py-4 text-center text-xs text-[#B4A6D4]/60">
@@ -249,6 +260,7 @@ export default function CineApp() {
           <div className="flex items-center justify-center py-40"><Spinner label="Loading CINE 360" /></div>
         )}
       </motion.main>
+      <CineAIAssistant />
       <Footer />
     </div>
   );

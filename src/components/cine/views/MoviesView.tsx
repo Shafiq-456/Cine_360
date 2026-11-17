@@ -36,6 +36,7 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
   const [lang, setLang] = useState(params.get("language") || "");
   const [genre, setGenre] = useState(params.get("genre") || "");
   const [status, setStatus] = useState(params.get("status") || "NOW_SHOWING");
+  const [sortBy, setSortBy] = useState(params.get("sortBy") || "popularity");
 
   useEffect(() => {
     const sp = new URLSearchParams();
@@ -43,6 +44,7 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
     if (lang) sp.set("language", lang);
     if (genre) sp.set("genre", genre);
     if (status) sp.set("status", status);
+    if (sortBy) sp.set("sortBy", sortBy);
     const t = setTimeout(() => {
       api
         .get<{ movies: Movie[] }>(`/api/movies?${sp.toString()}`)
@@ -50,7 +52,7 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
         .catch(() => setMovies([]));
     }, 250);
     return () => clearTimeout(t);
-  }, [q, lang, genre, status]);
+  }, [q, lang, genre, status, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
@@ -80,6 +82,11 @@ export default function MoviesView({ params }: { params: URLSearchParams }) {
           <span className="text-xs text-[#B4A6D4] mr-1 ml-3 uppercase tracking-wider">Status</span>
           <FilterChip active={status === "NOW_SHOWING"} label="Now showing" onClick={() => setStatus("NOW_SHOWING")} />
           <FilterChip active={status === "UPCOMING"} label="Upcoming" onClick={() => setStatus("UPCOMING")} />
+          <span className="text-xs text-[#B4A6D4] mr-1 ml-3 uppercase tracking-wider">Sort by</span>
+          <FilterChip active={sortBy === "popularity"} label="Popularity" onClick={() => setSortBy("popularity")} />
+          <FilterChip active={sortBy === "title"} label="A-Z" onClick={() => setSortBy("title")} />
+          <FilterChip active={sortBy === "releaseDate"} label="Release Date" onClick={() => setSortBy("releaseDate")} />
+          <FilterChip active={sortBy === "duration"} label="Duration" onClick={() => setSortBy("duration")} />
         </div>
       </div>
 
