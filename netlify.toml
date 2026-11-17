@@ -1,0 +1,9 @@
+# Netlify Configuration for CINE 360
+# Experience Your Seat Before You Book.
+
+[build]
+  command = "npx next build --webpack"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"

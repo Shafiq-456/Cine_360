@@ -14,6 +14,7 @@ import {
 import { Clapperboard, Film, MapPin, Ticket, LogIn, LogOut, LayoutDashboard, ShieldCheck, ScanLine, Building2, ChevronDown, Compass, User } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/client";
+import { auth, onAuthStateChanged, logoutFirebase } from "@/lib/firebase";
 
 import HomeView from "@/components/cine/views/HomeView";
 import MoviesView from "@/components/cine/views/MoviesView";
@@ -83,6 +84,7 @@ function Nav({ path }: { path: string }) {
 
   const logout = async () => {
     try {
+      await logoutFirebase().catch(() => {});
       await api.post("/api/auth/logout");
       await loadSession();
       toast.success("Signed out");
@@ -238,6 +240,26 @@ export default function CineApp() {
 
   useEffect(() => {
     loadSession();
+
+    // Maintain persistent authentication across page refreshes via Firebase onAuthStateChanged
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+        if (fbUser) {
+          try {
+            const idToken = await fbUser.getIdToken();
+            localStorage.setItem("c360_fb_token", idToken);
+            await api.post("/api/auth/firebase-sync", {
+              idToken,
+              name: fbUser.displayName || undefined,
+            }).catch(() => {});
+            await loadSession();
+          } catch (e) {
+            console.warn("Failed to sync Firebase auth state:", e);
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
   }, [loadSession]);
 
   useEffect(() => {

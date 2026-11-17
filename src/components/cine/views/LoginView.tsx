@@ -34,10 +34,41 @@ import {
 import {
   isFirebaseConfigured,
   signInWithGoogle,
+  checkRedirectResult,
   loginWithEmail,
   registerWithEmail,
   resetPassword,
 } from "@/lib/firebase";
+
+function formatFirebaseError(err: any): string {
+  if (!err) return "Authentication failed";
+  const code = err.code || "";
+  const rawMsg = err.message || "";
+  switch (code) {
+    case "auth/popup-closed-by-user":
+      return "Google Sign-In popup was closed before completing.";
+    case "auth/popup-blocked":
+      return "Popup was blocked by your browser. Please allow popups or use redirect.";
+    case "auth/user-not-found":
+      return "No account found with this email. Please create an account.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again or reset your password.";
+    case "auth/invalid-credential":
+      return "Invalid email or password. Please verify your credentials.";
+    case "auth/email-already-in-use":
+      return "This email address is already in use. Please sign in instead.";
+    case "auth/weak-password":
+      return "Password is too weak. Please use at least 6 characters.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/unauthorized-domain":
+      return "This domain is not in Firebase Authorized Domains. Add it in Firebase Console > Authentication > Settings.";
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection.";
+    default:
+      return rawMsg.replace(/^Firebase:\s*/i, "").replace(/\s*\(auth\/[^)]+\)\.?$/, "") || "Authentication failed";
+  }
+}
 
 const DEMO_ACCOUNTS = [
   { email: "customer@cine360.demo", label: "Customer", desc: "Book seats, 3D seat vision, QR tickets" },
@@ -71,6 +102,32 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
     setPassword("");
     setConfirmPassword("");
   }, [mode]);
+
+  // Check if returning from a redirect Google sign-in
+  useEffect(() => {
+    if (fbReady) {
+      checkRedirectResult()
+        .then(async (user) => {
+          if (user) {
+            setBusy(true);
+            const idToken = await user.getIdToken();
+            localStorage.setItem("c360_fb_token", idToken);
+            await api.post("/api/auth/firebase-sync", {
+              idToken,
+              name: user.displayName || undefined,
+            });
+            toast.success(`Welcome back, ${user.displayName || "Cinema Fan"}!`);
+            await handleSuccessfulAuth();
+          }
+        })
+        .catch((err) => {
+          console.warn("Redirect result error:", err);
+        })
+        .finally(() => {
+          setBusy(false);
+        });
+    }
+  }, [fbReady]);
 
   const handleSuccessfulAuth = async () => {
     await loadSession();
@@ -117,10 +174,10 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
           await handleSuccessfulAuth();
           return;
         } catch (fbErr: any) {
-          // If the email is a demo account, or if user credentials exist in DB, fallback gracefully
+          // If the email is a demo account, fallback gracefully
           const isDemo = DEMO_ACCOUNTS.some((d) => d.email === email);
-          if (!isDemo && fbErr?.message) {
-            throw new Error(fbErr.message.replace("Firebase: ", ""));
+          if (!isDemo && fbErr) {
+            throw new Error(formatFirebaseError(fbErr));
           }
         }
       }
@@ -160,7 +217,11 @@ export default function LoginView({ mode }: { mode: "login" | "register" }) {
       toast.success(`Welcome, ${user.displayName || "Cinema Fan"}!`);
       await handleSuccessfulAuth();
     } catch (err: any) {
-      toast.error(err?.message ? err.message.replace("Firebase: ", "") : "Google Sign-In was cancelled or failed");
+      if (err?.message?.includes("Redirecting")) {
+        toast.info("Redirecting to Google Sign-In…");
+        return;
+      }
+      toast.error(formatFirebaseError(err));
     } finally {
       setBusy(false);
     }
