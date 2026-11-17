@@ -20,21 +20,37 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 
-const getEnv = (nextKey: string, viteKey: string): string => {
-  if (typeof process !== "undefined" && process.env) {
-    return process.env[nextKey] || process.env[viteKey] || "";
-  }
-  return "";
-};
-
+// Explicit literal property access is REQUIRED by Next.js / Webpack DefinePlugin
+// to statically inline NEXT_PUBLIC_* variables into the client bundle at build time.
 const firebaseConfig = {
-  apiKey: getEnv("NEXT_PUBLIC_FIREBASE_API_KEY", "VITE_FIREBASE_API_KEY"),
-  authDomain: getEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", "VITE_FIREBASE_AUTH_DOMAIN"),
-  projectId: getEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID", "VITE_FIREBASE_PROJECT_ID"),
-  storageBucket: getEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", "VITE_FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: getEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "VITE_FIREBASE_MESSAGING_SENDER_ID"),
-  appId: getEnv("NEXT_PUBLIC_FIREBASE_APP_ID", "VITE_FIREBASE_APP_ID"),
-  measurementId: getEnv("NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID", "VITE_FIREBASE_MEASUREMENT_ID"),
+  apiKey:
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+    process.env.VITE_FIREBASE_API_KEY ||
+    "",
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+    process.env.VITE_FIREBASE_AUTH_DOMAIN ||
+    "",
+  projectId:
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    process.env.VITE_FIREBASE_PROJECT_ID ||
+    "",
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    process.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    "",
+  messagingSenderId:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    process.env.VITE_FIREBASE_MESSAGING_SENDER_ID ||
+    "",
+  appId:
+    process.env.NEXT_PUBLIC_FIREBASE_APP_ID ||
+    process.env.VITE_FIREBASE_APP_ID ||
+    "",
+  measurementId:
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ||
+    process.env.VITE_FIREBASE_MEASUREMENT_ID ||
+    "",
 };
 
 export const isFirebaseConfigured = (): boolean => {
